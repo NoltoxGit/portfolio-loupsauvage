@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Toutes les créations Minecraft de LoupSauvage : packs, modèles, assets et commandes custom."
+    />
+    <title>Toutes les créations - LoupSauvage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="data.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body data-page="creations">
+    <a class="skip-link" href="#main" data-i18n="ui.skip">Aller au contenu</a>
+    <div class="nature-particles" aria-hidden="true">
+      <span class="leaf leaf-one"></span>
+      <span class="leaf leaf-two"></span>
+      <span class="leaf leaf-three"></span>
+      <span class="leaf leaf-four"></span>
+      <span class="leaf leaf-five"></span>
+      <span class="leaf leaf-six"></span>
+      <span class="leaf leaf-seven"></span>
+      <span class="leaf leaf-eight"></span>
+      <span class="leaf leaf-nine"></span>
+      <span class="leaf leaf-ten"></span>
+    </div>
+
+    <header class="site-header" data-header>
+      <nav class="nav-shell" aria-label="Navigation principale" data-i18n-aria-label="ui.mainNav">
+        <a class="brand" href="index.html#top" aria-label="Accueil LoupSauvage" data-i18n-aria-label="ui.homeAria">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>LoupSauvage</span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-controls="site-menu" aria-expanded="false">
+          <span class="nav-toggle-bars" aria-hidden="true"></span>
+          <span class="sr-only" data-i18n="ui.openMenu">Ouvrir le menu</span>
+        </button>
+
+        <div class="nav-menu" id="site-menu" data-menu>
+          <a href="index.html#creations" data-i18n="nav.creations">Créations</a>
+          <a href="index.html#tarifs" data-i18n="nav.pricing">Tarifs</a>
+          <a href="index.html#marketplace" data-i18n="nav.bestSellers">Best sellers</a>
+          <a class="nav-discord" href="index.html#discord" data-i18n="nav.discord" data-button="navDiscord">Discord</a>
+          <button class="language-toggle" type="button" data-lang-toggle>EN</button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="archive-hero" id="top" aria-labelledby="archive-title">
+        <div class="archive-hero-copy">
+          <p class="eyebrow" data-i18n="pages.creations.archiveEyebrow">Portfolio complet</p>
+          <h1 id="archive-title" data-i18n="pages.creations.archiveTitle">Toutes les créations</h1>
+          <p data-i18n="pages.creations.archiveText">
+            Packs thématiques, modèles custom, assets décoratifs et idées prêtes à
+            rejoindre un serveur Minecraft avec une identité visuelle forte.
+          </p>
+          <div class="archive-actions">
+            <a class="button button-primary" href="index.html#discord" data-i18n="pages.creations.archiveOrder" data-button="archiveOrder">Commander une création</a>
+            <a class="button button-secondary" href="index.html#top" data-i18n="pages.creations.archiveBack" data-button="archiveBack">Retour à l'accueil</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section archive-section" id="creations" aria-labelledby="archive-grid-title">
+        <div class="section-inner">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="pages.creations.galleryEyebrow">Galerie</p>
+            <h2 id="archive-grid-title" data-i18n="pages.creations.galleryTitle">Créations disponibles</h2>
+            <p data-i18n="pages.creations.galleryText">
+              Survole une création pour afficher ses infos, son type et l'appel à commande.
+            </p>
+          </div>
+
+          <div class="creations-grid creations-archive-grid" data-creations-grid aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <strong>LoupSauvage</strong>
+            <p data-i18n="footer.rights">Tous droits réservés.</p>
+          </div>
+        </div>
+
+        <div class="footer-meta" aria-label="Crédits du site">
+          <span><span data-i18n="footer.powered">Propulsé par</span> <strong>HeavenCreation</strong></span>
+          <span class="footer-credit"><span data-i18n="footer.created">Created by</span> <strong>YorzStudio</strong></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
