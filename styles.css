@@ -1691,6 +1691,7 @@ h3 {
   color: #ffffff;
   display: -webkit-box;
   overflow: hidden;
+  line-clamp: var(--creation-description-lines, 3);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -1723,6 +1724,7 @@ h3 {
   color: rgba(255, 255, 255, 0.84);
   display: -webkit-box;
   overflow: hidden;
+  line-clamp: var(--creation-description-lines, 3);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: var(--creation-description-lines, 3);
 }
