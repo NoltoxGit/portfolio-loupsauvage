@@ -80,6 +80,9 @@ api/config.local.php
 *.backup
 backups/
 exports/
+!database/
+!database/migrations/
+!database/migrations/*.sql
 
 # -------------------------
 # Logs / temporary files
