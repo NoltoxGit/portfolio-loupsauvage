@@ -20,33 +20,17 @@ const currentTranslations = window.LS_I18N?.[currentLanguage] || window.LS_I18N?
 
 const cloneData = (value) => JSON.parse(JSON.stringify(value));
 const defaultSiteData = cloneData(window.LS_SITE_DATA || {});
-
-const siteRoutes = {
-  homeTop: "index.html#top",
-  homeCreations: "index.html#creations",
-  homeDiscord: "index.html#discord",
-  creations: "creations.html",
-  creationDetail: "creation.html",
-};
-
-const currentPageHref = (id, fallback) => (document.getElementById(id) ? `#${id}` : fallback);
-
-const routeTargets = {
-  creations: currentPageHref("creations", siteRoutes.homeCreations),
-  discord: currentPageHref("discord", siteRoutes.homeDiscord),
-};
-
 const defaultButtonSettings = {
-  navDiscord: { label: "Discord", url: routeTargets.discord },
-  heroPrimary: { label: "Me contacter sur Discord", url: routeTargets.discord },
-  heroSecondary: { label: "Voir mes creations", url: routeTargets.creations },
-  creationsAll: { label: "Voir toutes les creations", url: siteRoutes.creations },
-  bestSellerCta: { label: "Commander un best seller", url: routeTargets.discord },
+  navDiscord: { label: "Discord", url: "index.html#discord" },
+  heroPrimary: { label: "Me contacter sur Discord", url: "#discord" },
+  heroSecondary: { label: "Voir mes creations", url: "#creations" },
+  creationsAll: { label: "Voir toutes les creations", url: "creations.html" },
+  bestSellerCta: { label: "Commander un best seller", url: "#discord" },
   contactDiscord: { label: "Rejoindre le Discord", url: "https://discord.com/" },
-  archiveOrder: { label: "Commander une creation", url: siteRoutes.homeDiscord },
-  archiveBack: { label: "Retour a l'accueil", url: siteRoutes.homeTop },
-  packOrder: { label: "Commander", url: routeTargets.discord },
-  bestSellerOrder: { label: "Commander", url: routeTargets.discord },
+  archiveOrder: { label: "Commander une creation", url: "index.html#discord" },
+  archiveBack: { label: "Retour a l'accueil", url: "index.html#top" },
+  packOrder: { label: "Commander", url: "#discord" },
+  bestSellerOrder: { label: "Commander", url: "#discord" },
 };
 
 const getTranslation = (path, fallback = "") =>
@@ -107,7 +91,7 @@ const translateSiteData = (data) => {
 };
 
 const siteData = translateSiteData(readStoredSiteData());
-const discordHref = routeTargets.discord;
+const discordHref = document.querySelector("#discord") ? "#discord" : "index.html#discord";
 
 const collectionSignatureKeys = [
   "id",
@@ -168,7 +152,7 @@ const creationIdentifier = (creation = {}, index = 0) =>
   creation.id || creation.slug || `${slugify(creation.title)}-${index + 1}`;
 
 const creationDetailHref = (creation, index = 0) =>
-  `${siteRoutes.creationDetail}?id=${encodeURIComponent(creationIdentifier(creation, index))}`;
+  `creation.html?id=${encodeURIComponent(creationIdentifier(creation, index))}`;
 
 const escapeHTML = (value) =>
   String(value).replace(/[&<>"']/g, (char) => {
@@ -261,10 +245,7 @@ const imageCropStyle = (item = {}) => {
 const getSafeHref = (value, fallback = "#") => {
   const href = String(value || "").trim();
   if (!href) return fallback;
-  if (/^(https?:\/\/|mailto:|tel:|#|\.{0,2}\/)/i.test(href)) return href;
-  if (/^(?:[a-z0-9][a-z0-9/_-]*\/?|[a-z0-9][a-z0-9/_-]*\.html)(?:[?#].*)?$/i.test(href)) {
-    return href;
-  }
+  if (/^(https?:\/\/|mailto:|tel:|#|\.{0,2}\/|[a-z0-9_-]+\.html(?:[?#].*)?)/i.test(href)) return href;
   return fallback;
 };
 
@@ -591,7 +572,7 @@ const renderCreationDetail = () => {
         <p class="eyebrow">${escapeHTML(getTranslation("pages.creationDetail.emptyEyebrow", "Creation introuvable"))}</p>
         <h1>${escapeHTML(getTranslation("pages.creationDetail.emptyTitle", "Cette creation n'existe pas encore"))}</h1>
         <p>${escapeHTML(getTranslation("pages.creationDetail.emptyText", "Retourne au portfolio pour choisir une creation disponible."))}</p>
-        <a class="button button-primary" href="${escapeHTML(siteRoutes.creations)}">${escapeHTML(
+        <a class="button button-primary" href="creations.html">${escapeHTML(
           getTranslation("pages.creationDetail.back", "Retour aux creations")
         )}</a>
       </section>
@@ -608,7 +589,7 @@ const renderCreationDetail = () => {
 
   target.innerHTML = `
     <section class="creation-detail-hero">
-      <a class="text-link" href="${escapeHTML(siteRoutes.creations)}">${escapeHTML(
+      <a class="text-link" href="creations.html">${escapeHTML(
         getTranslation("pages.creationDetail.back", "Retour aux creations")
       )}</a>
       <div class="creation-detail-layout">
@@ -649,7 +630,7 @@ const renderCreationDetail = () => {
             <a class="button button-primary" ${linkAttributes(getButtonUrl("archiveOrder", discordHref), discordHref)}>${escapeHTML(
               getButtonLabel("archiveOrder")
             )}</a>
-            <a class="button button-secondary" href="${escapeHTML(siteRoutes.creations)}">${escapeHTML(
+            <a class="button button-secondary" href="creations.html">${escapeHTML(
               getTranslation("pages.creationDetail.backShort", "Portfolio")
             )}</a>
           </div>
