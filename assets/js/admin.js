@@ -494,6 +494,34 @@ async function saveAdminData(message = "Modifications sauvegardées.") {
   }
 }
 
+async function saveAdminData(message = "Modifications sauvegardees.") {
+  if (adminRemoteMode) {
+    try {
+      const payload = await adminApi("admin-data.php", {
+        method: "POST",
+        body: JSON.stringify({ data: adminState }),
+      });
+      adminState = normalizeAdminData(payload.data || adminState);
+      showStatus(message);
+      return true;
+    } catch (error) {
+      console.error("Impossible de sauvegarder les donnees MariaDB.", error);
+      showStatus("Impossible de sauvegarder en base.");
+      return false;
+    }
+  }
+
+  try {
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminState));
+    showStatus(message);
+    return true;
+  } catch (error) {
+    console.error("Impossible de sauvegarder les donnees admin.", error);
+    showStatus("Impossible de sauvegarder les donnees locales.");
+    return false;
+  }
+}
+
 function showStatus(message) {
   const target = document.querySelector("[data-admin-status]");
   if (!target) return;

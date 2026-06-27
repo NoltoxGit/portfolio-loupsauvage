@@ -578,6 +578,11 @@ h3 {
   z-index: 1;
 }
 
+.admin-page:not(.is-authenticated) .admin-hero,
+.admin-page:not(.is-authenticated) .admin-shell {
+  display: none;
+}
+
 .admin-remote-only {
   display: none;
 }

@@ -1,6 +1,1 @@
-RewriteEngine On
-
-RewriteCond %{THE_REQUEST} \s/+admin\.html[?\s]
-RewriteRule ^admin\.html$ /admin/ [R=301,L]
-
-RewriteRule ^admin/?$ /admin.html [L]
+Redirect 301 /admin.html /admin/
