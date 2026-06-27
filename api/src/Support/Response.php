@@ -46,7 +46,7 @@ final class Response
             'error' => [
                 'code' => $code,
                 'message' => $message,
-                'fields' => $fields,
+                'fields' => (object) $fields,
             ],
         ], $status);
     }

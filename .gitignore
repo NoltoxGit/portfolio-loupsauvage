@@ -83,6 +83,8 @@ exports/
 !database/
 !database/migrations/
 !database/migrations/*.sql
+!database/seeders/
+!database/seeders/*.sql
 
 # -------------------------
 # Logs / temporary files

@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(80) NOT NULL UNIQUE,
     email VARCHAR(190) NOT NULL UNIQUE,
@@ -10,7 +10,7 @@ CREATE TABLE users (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE content_items (
+CREATE TABLE IF NOT EXISTS content_items (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     type ENUM('creation', 'marketplace') NOT NULL,
     title VARCHAR(190) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE content_items (
     INDEX idx_content_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE content_media (
+CREATE TABLE IF NOT EXISTS content_media (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     content_item_id BIGINT UNSIGNED NOT NULL,
     kind ENUM('cover', 'gallery', 'render', 'thumbnail') NOT NULL DEFAULT 'gallery',
@@ -49,8 +49,9 @@ CREATE TABLE content_media (
     INDEX idx_media_kind (kind)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE pricing_plans (
+CREATE TABLE IF NOT EXISTS pricing_plans (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(160) NOT NULL UNIQUE,
     title VARCHAR(190) NOT NULL,
     subtitle VARCHAR(190) NULL,
     price_label VARCHAR(120) NOT NULL,
