@@ -42,7 +42,7 @@ const defaultButtonSettings = {
   heroSecondary: { label: "Voir mes creations", url: routeTargets.creations },
   creationsAll: { label: "Voir toutes les creations", url: siteRoutes.creations },
   bestSellerCta: { label: "Commander un best seller", url: routeTargets.discord },
-  contactDiscord: { label: "Rejoindre le Discord", url: "https://discord.com/" },
+  contactDiscord: { label: "Rejoindre le Discord", url: "https://discord.gg/TtQK9rnwv3" },
   archiveOrder: { label: "Commander une creation", url: siteRoutes.homeDiscord },
   archiveBack: { label: "Retour a l'accueil", url: siteRoutes.homeTop },
   packOrder: { label: "Commander", url: routeTargets.discord },
