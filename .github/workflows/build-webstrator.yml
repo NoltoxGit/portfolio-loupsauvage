@@ -155,7 +155,7 @@ jobs:
           SOURCE_BRANCH_NOTE="${GITHUB_REF_NAME} | ${GITHUB_SHA::7}"
         fi
         BUILD_TIMESTAMP="$(TZ='Europe/Paris' date '+%d/%m/%y | %H:%M:%S')"
-        git commit -m "build: WebStrator deployment ($BUILD_TIMESTAMP • $SOURCE_BRANCH_NOTE)"
+        git commit -m "build: deployment ($BUILD_TIMESTAMP • $SOURCE_BRANCH_NOTE)"
         git branch -M "$TARGET_BRANCH"
         git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
         git push --force origin "$TARGET_BRANCH"
