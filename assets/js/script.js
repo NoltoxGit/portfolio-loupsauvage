@@ -107,7 +107,7 @@ const translateSiteData = (data) => {
 };
 
 const siteData = translateSiteData(readStoredSiteData());
-const discordHref = document.querySelector("#discord") ? "#discord" : "index.html#discord";
+const discordHref = routeTargets.discord;
 
 const collectionSignatureKeys = [
   "id",
