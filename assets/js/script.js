@@ -20,17 +20,33 @@ const currentTranslations = window.LS_I18N?.[currentLanguage] || window.LS_I18N?
 
 const cloneData = (value) => JSON.parse(JSON.stringify(value));
 const defaultSiteData = cloneData(window.LS_SITE_DATA || {});
+
+const siteRoutes = {
+  homeTop: "index.html#top",
+  homeCreations: "index.html#creations",
+  homeDiscord: "index.html#discord",
+  creations: "creations.html",
+  creationDetail: "creation.html",
+};
+
+const currentPageHref = (id, fallback) => (document.getElementById(id) ? `#${id}` : fallback);
+
+const routeTargets = {
+  creations: currentPageHref("creations", siteRoutes.homeCreations),
+  discord: currentPageHref("discord", siteRoutes.homeDiscord),
+};
+
 const defaultButtonSettings = {
-  navDiscord: { label: "Discord", url: "index.html#discord" },
-  heroPrimary: { label: "Me contacter sur Discord", url: "#discord" },
-  heroSecondary: { label: "Voir mes creations", url: "#creations" },
+  navDiscord: { label: "Discord", url: "routeTargets.discord" },
+  heroPrimary: { label: "Me contacter sur Discord", url: "routeTargets.discord" },
+  heroSecondary: { label: "Voir mes creations", url: "routeTargets.creations" },
   creationsAll: { label: "Voir toutes les creations", url: "creations.html" },
-  bestSellerCta: { label: "Commander un best seller", url: "#discord" },
-  contactDiscord: { label: "Rejoindre le Discord", url: "https://discord.com/" },
-  archiveOrder: { label: "Commander une creation", url: "index.html#discord" },
-  archiveBack: { label: "Retour a l'accueil", url: "index.html#top" },
-  packOrder: { label: "Commander", url: "#discord" },
-  bestSellerOrder: { label: "Commander", url: "#discord" },
+  bestSellerCta: { label: "Commander un best seller", url: "routeTargets.discord" },
+  contactDiscord: { label: "Rejoindre le Discord", url: "https://discord.gg/TtQK9rnwv3" },
+  archiveOrder: { label: "Commander une creation", url: "routeTargets.discord" },
+  archiveBack: { label: "Retour a l'accueil", url: "routeTargets.homeTop" },
+  packOrder: { label: "Commander", url: "routeTargets.discord" },
+  bestSellerOrder: { label: "Commander", url: "routeTargets.discord" },
 };
 
 const getTranslation = (path, fallback = "") =>
