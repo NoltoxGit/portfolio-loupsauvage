@@ -1,4 +1,4 @@
-import type { ContentItem, ContentStatus, ContentType, ExternalPlatform, SourceContext } from "./content";
+import type { ContentItem, ContentMedia, ContentStatus, ContentType, ExternalPlatform, SourceContext } from "./content";
 import type { PricingPlan } from "./pricing";
 
 export interface AdminDashboardSummary {
@@ -69,3 +69,30 @@ export type AdminPricingPlan = PricingPlan & {
   createdAt: string;
   updatedAt: string;
 };
+
+export type AdminMediaKind = ContentMedia["kind"];
+
+export type AdminMediaItem = ContentMedia & {
+  contentItemId: number;
+  createdAt: string;
+};
+
+export interface AdminMediaUploadPayload {
+  contentItemId: number;
+  kind: AdminMediaKind;
+  alt?: string | null;
+  sortOrder?: number;
+  file: File;
+}
+
+export interface AdminMediaUpdatePayload {
+  kind: AdminMediaKind;
+  alt?: string | null;
+  sortOrder?: number;
+}
+
+export interface AdminMediaDeleteResult {
+  id: number;
+  deleted: boolean;
+  fileDeleted: boolean;
+}
