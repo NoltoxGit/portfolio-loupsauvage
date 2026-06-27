@@ -1,0 +1,153 @@
+name: Build WebStrator branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Branch that WebStrator deploys"
+        required: true
+        default: "webstrator-build"
+      source_branch_note:
+        description: "Optional note for the deployment commit"
+        required: false
+        default: "manual build"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: webstrator-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build React/Vite frontend and publish deploy branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Validate frontend exists
+        run: |
+          test -f frontend/package.json || (echo "frontend/package.json is missing. Create the React/Vite app first." && exit 1)
+          test -f frontend/package-lock.json || (echo "frontend/package-lock.json is missing. Run npm install once and commit the lockfile." && exit 1)
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Prepare deployment directory
+        run: |
+          rm -rf .deploy
+          mkdir -p .deploy
+
+          # Vite production output.
+          cp -a frontend/dist/. .deploy/
+
+          # PHP API source. Copy only the new refactor API surface.
+          mkdir -p .deploy/api
+          for dir in auth public admin config src; do
+            if [ -d "api/$dir" ]; then
+              mkdir -p ".deploy/api/$dir"
+              rsync -a "api/$dir/" ".deploy/api/$dir/" \
+                --exclude 'config.local.php' \
+                --exclude 'config.production.php' \
+                --exclude '*.local.php' \
+                --exclude '*.production.php' \
+                --exclude 'secrets.php' \
+                --exclude '*.secret.php'
+            fi
+          done
+
+          # Apache routing/security files.
+          if [ -f .htaccess ]; then cp .htaccess .deploy/.htaccess; fi
+          if [ -f .user.ini ]; then cp .user.ini .deploy/.user.ini; fi
+
+          # Keep uploads placeholders/security files only.
+          mkdir -p .deploy/uploads
+          if [ -f uploads/.htaccess ]; then cp uploads/.htaccess .deploy/uploads/.htaccess; fi
+          if [ -f uploads/index.html ]; then cp uploads/index.html .deploy/uploads/index.html; fi
+          touch .deploy/uploads/.gitkeep
+
+      - name: Validate deployment directory
+        run: |
+          set -euo pipefail
+
+          test -f .deploy/index.html
+          test -d .deploy/api/auth
+          test -d .deploy/api/public
+          test -d .deploy/api/admin
+          test -d .deploy/api/config
+          test -d .deploy/api/src
+
+          for path in \
+            .deploy/database \
+            .deploy/docs \
+            .deploy/tools \
+            .deploy/.github \
+            .deploy/frontend \
+            .deploy/node_modules \
+            .deploy/admin \
+            .deploy/api/auth.php \
+            .deploy/api/admin-data.php \
+            .deploy/api/bootstrap.php \
+            .deploy/api/site-data.php \
+            .deploy/api/upload.php \
+            .deploy/api/config/config.local.php \
+            .deploy/api/config/config.production.php
+          do
+            if [ -e "$path" ]; then
+              echo "Forbidden deployment path found: $path"
+              exit 1
+            fi
+          done
+
+          if find .deploy/uploads -type f \
+            ! -name '.gitkeep' \
+            ! -name '.htaccess' \
+            ! -name 'index.html' | grep -q .; then
+            echo "Real uploaded files must not be committed to the deployment branch."
+            exit 1
+          fi
+
+          if find .deploy -type f \( \
+            -name '.env' -o \
+            -name '.env.*' -o \
+            -name '*.sql' -o \
+            -name '*.sql.gz' -o \
+            -name '*.dump' -o \
+            -name '*.bak' -o \
+            -name '*.backup' -o \
+            -name '*.log' \
+          \) | grep -q .; then
+            echo "Forbidden secret, dump, backup, or log file found in deployment directory."
+            exit 1
+          fi
+
+      - name: Publish deployment branch
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
+          SOURCE_BRANCH_NOTE: ${{ github.event.inputs.source_branch_note }}
+        run: |
+          set -euo pipefail
+          cd .deploy
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "build: WebStrator deployment ($SOURCE_BRANCH_NOTE)"
+          git branch -M "$TARGET_BRANCH"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force origin "$TARGET_BRANCH"
