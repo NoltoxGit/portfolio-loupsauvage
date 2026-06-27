@@ -77,6 +77,95 @@
   margin-top: 16px;
 }
 
+.admin-media-manager {
+  border: 1px solid rgba(31, 111, 58, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 18px;
+}
+
+.admin-media-heading {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.admin-media-heading span {
+  color: var(--green-dark);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.admin-media-heading h3 {
+  color: var(--title-ink);
+  font-family: var(--title-font);
+  font-size: 1.35rem;
+  line-height: 1.1;
+  margin: 4px 0 0;
+}
+
+.admin-media-upload,
+.admin-media-fields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-media-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-media-card {
+  border: 1px solid rgba(31, 111, 58, 0.12);
+  border-radius: var(--radius);
+  background: #ffffff;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.admin-media-preview {
+  border-radius: calc(var(--radius) - 2px);
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: rgba(31, 111, 58, 0.08);
+}
+
+.admin-media-preview img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.admin-media-path,
+.admin-media-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-media-path {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+}
+
+.admin-media-actions {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .admin-error-fields {
   margin: 8px 0 0;
   padding-left: 18px;
@@ -91,7 +180,8 @@
 }
 
 .admin-form-actions .button:disabled,
-.admin-list-actions button:disabled {
+.admin-list-actions button:disabled,
+.admin-media-actions .button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -104,10 +194,37 @@
   .admin-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .admin-media-upload,
+  .admin-media-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-media-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .admin-media-card .admin-media-actions {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 560px) {
   .admin-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-media-heading,
+  .admin-media-card {
+    display: grid;
+  }
+
+  .admin-media-upload,
+  .admin-media-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-media-preview {
+    width: 120px;
   }
 }

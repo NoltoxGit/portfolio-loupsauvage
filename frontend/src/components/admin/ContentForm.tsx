@@ -8,6 +8,7 @@ import {
 import type { AdminContentItem, AdminContentPayload } from "../../types/admin";
 import type { ContentStatus, ContentType, ExternalPlatform, SourceContext } from "../../types/content";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
+import { MediaManager } from "./MediaManager";
 
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
 const sourceContexts: SourceContext[] = ["personal", "private_commission", "marketplace_product", "other"];
@@ -361,18 +362,7 @@ export function ContentForm({
         </label>
       </div>
 
-      {initialItem?.media.length ? (
-        <div className="admin-readonly-media">
-          <span>Medias existants en lecture seule</span>
-          <div className="admin-gallery-preview">
-            {initialItem.media.map((media) => (
-              <a className="admin-gallery-thumb" key={media.id} href={media.path} target="_blank" rel="noreferrer">
-                <img src={media.path} alt={media.alt ?? initialItem.title} />
-              </a>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      {initialItem ? <MediaManager contentId={initialItem.id} csrfToken={csrfToken} onUnauthenticated={onUnauthenticated} /> : null}
 
       <AdminError error={error} />
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}

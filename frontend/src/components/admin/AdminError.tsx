@@ -6,6 +6,7 @@ const errorMessages: Record<string, string> = {
   NOT_FOUND: "La ressource demandee est introuvable.",
   CSRF_INVALID: "Session ou action expiree. Recharge la page puis reessaie.",
   UNAUTHENTICATED: "Session admin expiree. Reconnecte-toi.",
+  UPLOAD_ERROR: "Upload impossible. Verifie le fichier puis reessaie.",
 };
 
 export function isUnauthenticatedError(error: unknown) {
