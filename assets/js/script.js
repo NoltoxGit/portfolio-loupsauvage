@@ -591,7 +591,7 @@ const renderCreationDetail = () => {
         <p class="eyebrow">${escapeHTML(getTranslation("pages.creationDetail.emptyEyebrow", "Creation introuvable"))}</p>
         <h1>${escapeHTML(getTranslation("pages.creationDetail.emptyTitle", "Cette creation n'existe pas encore"))}</h1>
         <p>${escapeHTML(getTranslation("pages.creationDetail.emptyText", "Retourne au portfolio pour choisir une creation disponible."))}</p>
-        <a class="button button-primary" href="creations.html">${escapeHTML(
+        <a class="button button-primary" href="${escapeHTML(siteRoutes.creations)}">${escapeHTML(
           getTranslation("pages.creationDetail.back", "Retour aux creations")
         )}</a>
       </section>
@@ -649,7 +649,7 @@ const renderCreationDetail = () => {
             <a class="button button-primary" ${linkAttributes(getButtonUrl("archiveOrder", discordHref), discordHref)}>${escapeHTML(
               getButtonLabel("archiveOrder")
             )}</a>
-            <a class="button button-secondary" href="creations.html">${escapeHTML(
+            <a class="button button-secondary" href="${escapeHTML(siteRoutes.creations)}">${escapeHTML(
               getTranslation("pages.creationDetail.backShort", "Portfolio")
             )}</a>
           </div>
