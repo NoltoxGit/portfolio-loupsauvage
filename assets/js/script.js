@@ -608,7 +608,7 @@ const renderCreationDetail = () => {
 
   target.innerHTML = `
     <section class="creation-detail-hero">
-      <a class="text-link" href="creations.html">${escapeHTML(
+      <a class="text-link" href="${escapeHTML(siteRoutes.creations)}">${escapeHTML(
         getTranslation("pages.creationDetail.back", "Retour aux creations")
       )}</a>
       <div class="creation-detail-layout">
