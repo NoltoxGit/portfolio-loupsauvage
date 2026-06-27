@@ -2,10 +2,10 @@
 declare(strict_types=1);
 
 // A modifier sur l'hebergement.
-const DB_HOST = 'localhost';
-const DB_NAME = 'loupsauvage_site';
-const DB_USER = 'loupsauvage_user';
-const DB_PASS = 'change-moi';
+const DB_HOST = '185.207.226.9:3306';
+const DB_NAME = 'uncttm_loupsauv_db';
+const DB_USER = 'uncttm_loupsauv_db';
+const DB_PASS = 'zer*%WQ0!Y8h-I59';
 const DB_CHARSET = 'utf8mb4';
 
 // Dossier public ou les images uploadees seront stockees.
