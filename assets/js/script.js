@@ -37,16 +37,16 @@ const routeTargets = {
 };
 
 const defaultButtonSettings = {
-  navDiscord: { label: "Discord", url: "routeTargets.discord" },
-  heroPrimary: { label: "Me contacter sur Discord", url: "routeTargets.discord" },
-  heroSecondary: { label: "Voir mes creations", url: "routeTargets.creations" },
-  creationsAll: { label: "Voir toutes les creations", url: "creations.html" },
-  bestSellerCta: { label: "Commander un best seller", url: "routeTargets.discord" },
+  navDiscord: { label: "Discord", url: routeTargets.discord },
+  heroPrimary: { label: "Me contacter sur Discord", url: routeTargets.discord },
+  heroSecondary: { label: "Voir mes creations", url: routeTargets.creations },
+  creationsAll: { label: "Voir toutes les creations", url: routeTargets.creations },
+  bestSellerCta: { label: "Commander un best seller", url: routeTargets.discord },
   contactDiscord: { label: "Rejoindre le Discord", url: "https://discord.gg/TtQK9rnwv3" },
-  archiveOrder: { label: "Commander une creation", url: "routeTargets.discord" },
-  archiveBack: { label: "Retour a l'accueil", url: "routeTargets.homeTop" },
-  packOrder: { label: "Commander", url: "routeTargets.discord" },
-  bestSellerOrder: { label: "Commander", url: "routeTargets.discord" },
+  archiveOrder: { label: "Commander une creation", url: routeTargets.discord },
+  archiveBack: { label: "Retour a l'accueil", url: routeTargets.homeTop },
+  packOrder: { label: "Commander", url: routeTargets.discord },
+  bestSellerOrder: { label: "Commander", url: routeTargets.discord },
 };
 
 const getTranslation = (path, fallback = "") =>
