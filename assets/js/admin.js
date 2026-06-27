@@ -38,7 +38,7 @@ const defaultAdminButtonSettings = {
     title: "Contact - Discord",
     help: "Bouton de la section contact en bas de page.",
     label: "Rejoindre le Discord",
-    url: "https://discord.com/",
+    url: "https://discord.gg/TtQK9rnwv3",
   },
   archiveOrder: {
     title: "Page creations - commander",
