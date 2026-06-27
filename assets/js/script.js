@@ -168,7 +168,7 @@ const creationIdentifier = (creation = {}, index = 0) =>
   creation.id || creation.slug || `${slugify(creation.title)}-${index + 1}`;
 
 const creationDetailHref = (creation, index = 0) =>
-  `creation.html?id=${encodeURIComponent(creationIdentifier(creation, index))}`;
+  `${siteRoutes.creationDetail}?id=${encodeURIComponent(creationIdentifier(creation, index))}`;
 
 const escapeHTML = (value) =>
   String(value).replace(/[&<>"']/g, (char) => {
