@@ -140,6 +140,7 @@ jobs:
         env:
           TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
           SOURCE_BRANCH_NOTE: ${{ github.event.inputs.source_branch_note }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           cd .deploy
