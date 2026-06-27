@@ -3,6 +3,9 @@ const ADMIN_IMAGE_DB_NAME = "loupsauvage-site-images";
 const ADMIN_IMAGE_STORE = "images";
 const ADMIN_IMAGE_PREFIX = "ls-image:";
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const ADMIN_API_BASE = document.body?.dataset.apiBase || window.LS_API_BASE || "api";
+const ADMIN_CAN_USE_API = window.location.protocol !== "file:";
+let adminRemoteMode = false;
 const defaultAdminButtonSettings = {
   navDiscord: {
     title: "Navigation Discord",
