@@ -18,7 +18,7 @@ export interface ContentItem {
   slug: string;
   shortDescription: string | null;
   description: string | null;
-  status: ContentStatus;
+  status?: ContentStatus;
   sourceContext: SourceContext;
   clientPermission: boolean;
   sketchfabUrl: string | null;
