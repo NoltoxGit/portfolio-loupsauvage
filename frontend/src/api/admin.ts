@@ -32,72 +32,72 @@ const queryString = (params: Record<string, string | number | boolean | undefine
   return query === "" ? "" : `?${query}`;
 };
 
-export const getAdminDashboard = () => apiRequest<AdminDashboardSummary>("/admin/dashboard");
+export const getAdminDashboard = () => apiRequest<AdminDashboardSummary>("/admin/dashboard/");
 
 export const listAdminContent = (filters: AdminContentFilters = {}) =>
   apiRequest<AdminContentItem[]>(
-    `/admin/content${queryString({
+    `/admin/content/${queryString({
       type: filters.type,
       status: filters.status,
     })}`,
   );
 
-export const getAdminContent = (id: number) => apiRequest<AdminContentItem>(`/admin/content${queryString({ id })}`);
+export const getAdminContent = (id: number) => apiRequest<AdminContentItem>(`/admin/content/${queryString({ id })}`);
 
 export const createAdminContent = (payload: AdminContentPayload, csrfToken: string) =>
-  apiRequest<AdminContentItem>("/admin/content", {
+  apiRequest<AdminContentItem>("/admin/content/", {
     method: "POST",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const updateAdminContent = (id: number, payload: AdminContentPayload, csrfToken: string) =>
-  apiRequest<AdminContentItem>(`/admin/content${queryString({ id })}`, {
+  apiRequest<AdminContentItem>(`/admin/content/${queryString({ id })}`, {
     method: "PUT",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const updateAdminContentStatus = (id: number, payload: AdminContentStatusPayload, csrfToken: string) =>
-  apiRequest<AdminContentItem>(`/admin/content/status${queryString({ id })}`, {
+  apiRequest<AdminContentItem>(`/admin/content/status/${queryString({ id })}`, {
     method: "PATCH",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const archiveAdminContent = (id: number, csrfToken: string) =>
-  apiRequest<AdminContentItem>(`/admin/content${queryString({ id })}`, {
+  apiRequest<AdminContentItem>(`/admin/content/${queryString({ id })}`, {
     method: "DELETE",
     headers: csrfHeaders(csrfToken),
   });
 
-export const listAdminPricing = () => apiRequest<AdminPricingPlan[]>("/admin/pricing");
+export const listAdminPricing = () => apiRequest<AdminPricingPlan[]>("/admin/pricing/");
 
-export const getAdminPricing = (id: number) => apiRequest<AdminPricingPlan>(`/admin/pricing${queryString({ id })}`);
+export const getAdminPricing = (id: number) => apiRequest<AdminPricingPlan>(`/admin/pricing/${queryString({ id })}`);
 
 export const createAdminPricing = (payload: AdminPricingPayload, csrfToken: string) =>
-  apiRequest<AdminPricingPlan>("/admin/pricing", {
+  apiRequest<AdminPricingPlan>("/admin/pricing/", {
     method: "POST",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const updateAdminPricing = (id: number, payload: AdminPricingPayload, csrfToken: string) =>
-  apiRequest<AdminPricingPlan>(`/admin/pricing${queryString({ id })}`, {
+  apiRequest<AdminPricingPlan>(`/admin/pricing/${queryString({ id })}`, {
     method: "PUT",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const updateAdminPricingActive = (id: number, payload: AdminPricingActivePayload, csrfToken: string) =>
-  apiRequest<AdminPricingPlan>(`/admin/pricing/active${queryString({ id })}`, {
+  apiRequest<AdminPricingPlan>(`/admin/pricing/active/${queryString({ id })}`, {
     method: "PATCH",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const listAdminMedia = (contentId: number) =>
-  apiRequest<AdminMediaItem[]>(`/admin/media${queryString({ contentId })}`);
+  apiRequest<AdminMediaItem[]>(`/admin/media/${queryString({ contentId })}`);
 
 export const uploadAdminMedia = (payload: AdminMediaUploadPayload, csrfToken: string) => {
   const body = new FormData();
@@ -114,7 +114,7 @@ export const uploadAdminMedia = (payload: AdminMediaUploadPayload, csrfToken: st
 
   body.set("file", payload.file);
 
-  return apiRequest<AdminMediaItem>("/admin/media/upload", {
+  return apiRequest<AdminMediaItem>("/admin/media/upload/", {
     method: "POST",
     headers: csrfHeaders(csrfToken),
     body,
@@ -122,14 +122,14 @@ export const uploadAdminMedia = (payload: AdminMediaUploadPayload, csrfToken: st
 };
 
 export const updateAdminMedia = (id: number, payload: AdminMediaUpdatePayload, csrfToken: string) =>
-  apiRequest<AdminMediaItem>(`/admin/media${queryString({ id })}`, {
+  apiRequest<AdminMediaItem>(`/admin/media/${queryString({ id })}`, {
     method: "PUT",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });
 
 export const deleteAdminMedia = (id: number, csrfToken: string) =>
-  apiRequest<AdminMediaDeleteResult>(`/admin/media${queryString({ id })}`, {
+  apiRequest<AdminMediaDeleteResult>(`/admin/media/${queryString({ id })}`, {
     method: "DELETE",
     headers: csrfHeaders(csrfToken),
   });
