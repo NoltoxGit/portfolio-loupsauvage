@@ -578,6 +578,83 @@ h3 {
   z-index: 1;
 }
 
+.admin-page:not(.is-authenticated) .admin-hero,
+.admin-page:not(.is-authenticated) .admin-shell {
+  display: none;
+}
+
+.admin-remote-only {
+  display: none;
+}
+
+.admin-page.is-remote-admin .admin-remote-only {
+  display: inline-flex;
+}
+
+.admin-login-panel {
+  display: grid;
+  min-height: calc(100vh - 90px);
+  padding: 118px 24px 72px;
+  place-items: center;
+}
+
+.admin-login-card {
+  width: min(100%, 520px);
+  border: 1px solid rgba(31, 111, 58, 0.16);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(230, 246, 233, 0.88));
+  box-shadow: var(--shadow);
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.admin-login-card h1 {
+  margin-bottom: 12px;
+  font-size: clamp(2.2rem, 7vw, 4.1rem);
+  line-height: 0.94;
+}
+
+.admin-login-card > p:not(.eyebrow) {
+  color: var(--muted);
+}
+
+.admin-login-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.admin-reset-box {
+  margin-top: 18px;
+  border-top: 1px solid rgba(31, 111, 58, 0.12);
+  padding-top: 16px;
+}
+
+.admin-reset-box summary {
+  color: var(--green-dark);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.admin-auth-message {
+  display: none;
+  margin-top: 16px;
+  border-radius: var(--radius);
+  background: rgba(230, 246, 233, 0.9);
+  color: var(--green-dark);
+  font-weight: 900;
+  padding: 12px 14px;
+}
+
+.admin-auth-message.is-visible {
+  display: block;
+}
+
+.admin-auth-message.is-error {
+  background: rgba(255, 238, 229, 0.95);
+  color: #8f3218;
+}
+
 .admin-hero {
   position: relative;
   display: grid;
@@ -1699,7 +1776,6 @@ h3 {
   color: #ffffff;
   display: -webkit-box;
   overflow: hidden;
-  line-clamp: var(--creation-description-lines, 3);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -1732,7 +1808,6 @@ h3 {
   color: rgba(255, 255, 255, 0.84);
   display: -webkit-box;
   overflow: hidden;
-  line-clamp: var(--creation-description-lines, 3);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: var(--creation-description-lines, 3);
 }
