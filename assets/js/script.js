@@ -261,7 +261,10 @@ const imageCropStyle = (item = {}) => {
 const getSafeHref = (value, fallback = "#") => {
   const href = String(value || "").trim();
   if (!href) return fallback;
-  if (/^(https?:\/\/|mailto:|tel:|#|\.{0,2}\/|[a-z0-9_-]+\.html(?:[?#].*)?)/i.test(href)) return href;
+  if (/^(https?:\/\/|mailto:|tel:|#|\.{0,2}\/)/i.test(href)) return href;
+  if (/^(?:[a-z0-9][a-z0-9/_-]*\/?|[a-z0-9][a-z0-9/_-]*\.html)(?:[?#].*)?$/i.test(href)) {
+    return href;
+  }
   return fallback;
 };
 
