@@ -12,6 +12,12 @@ try {
     $isAuthenticated = false;
     $adminInitError = true;
 }
+
+function asset_version(string $path): int
+{
+    $absolutePath = dirname(__DIR__) . $path;
+    return is_file($absolutePath) ? (int) filemtime($absolutePath) : time();
+}
 ?>
 <!doctype html>
 <html lang="fr">
@@ -30,9 +36,9 @@ try {
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/assets/css/styles.css" />
-    <script src="/assets/js/data.js" defer></script>
-    <script src="/assets/js/admin.js" defer></script>
+    <link rel="stylesheet" href="/assets/css/styles.css?v=<?php echo asset_version('/assets/css/styles.css'); ?>" />
+    <script src="/assets/js/data.js?v=<?php echo asset_version('/assets/js/data.js'); ?>" defer></script>
+    <script src="/assets/js/admin.js?v=<?php echo asset_version('/assets/js/admin.js'); ?>" defer></script>
   </head>
   <body
     class="admin-page<?php echo $isAuthenticated ? ' is-authenticated' : ''; ?>"
