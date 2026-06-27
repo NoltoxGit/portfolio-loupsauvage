@@ -1,0 +1,112 @@
+# =========================================================
+# LoupSauvage Portfolio - Git ignore policy
+# =========================================================
+# Goal:
+# - keep generated/build files out of the source branch
+# - never commit local/prod secrets
+# - keep uploads persistent on WebStrator, but not versioned
+# - keep useful repo documentation and config templates versioned
+
+# -------------------------
+# OS / editor noise
+# -------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# -------------------------
+# VS Code / Codex local state
+# -------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.codex/cache/
+.codex/logs/
+.codex/sessions/
+.agents/cache/
+.agents/logs/
+
+# -------------------------
+# Node / React / Vite
+# -------------------------
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Keep lockfiles versioned for reproducible builds.
+# Do not ignore package-lock.json, pnpm-lock.yaml, yarn.lock.
+
+# -------------------------
+# PHP / Composer, if used later
+# -------------------------
+vendor/
+composer.lock
+
+# -------------------------
+# Environment / secrets
+# -------------------------
+.env
+.env.*
+!.env.example
+
+api/config/config.local.php
+api/config/config.production.php
+api/config/*.local.php
+api/config/*.production.php
+api/config/secrets.php
+api/config/*.secret.php
+
+# Legacy project secret files that must not be reused in the refactor
+api/config.php
+api/config.local.php
+
+# -------------------------
+# Database dumps / backups
+# -------------------------
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.backup
+backups/
+exports/
+!database/
+!database/migrations/
+!database/migrations/*.sql
+!database/seeders/
+!database/seeders/*.sql
+
+# -------------------------
+# Logs / temporary files
+# -------------------------
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# -------------------------
+# Local uploads
+# -------------------------
+# WebStrator keeps /uploads during Git deployments.
+# The repository must only keep placeholders/security files.
+uploads/*
+!uploads/.gitkeep
+!uploads/.htaccess
+!uploads/index.html
+
+# -------------------------
+# Generated deployment branch note
+# -------------------------
+# The source branch ignores dist/build outputs.
+# The generated webstrator-build branch may contain compiled files.

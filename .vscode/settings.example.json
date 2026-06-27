@@ -1,0 +1,6 @@
+{
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "typescript.tsdk": "frontend/node_modules/typescript/lib",
+  "intelephense.files.maxSize": 5000000
+}

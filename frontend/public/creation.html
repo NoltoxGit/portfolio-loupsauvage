@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug") || params.get("id") || "";
+      window.location.replace(slug ? `/creations/${encodeURIComponent(slug)}` : "/creations");
+    </script>
+    <title>Redirection</title>
+  </head>
+  <body></body>
+</html>

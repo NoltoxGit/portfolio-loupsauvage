@@ -1,16 +1,41 @@
-# Force index.html as directory index
-DirectoryIndex index.html index.htm index.php
+# =========================================================
+# LoupSauvage Portfolio - Apache rules
+# =========================================================
+# Target hosting: WebStrator / Apache-compatible hosting.
+# Keep this conservative. API PHP files must remain directly reachable under /api.
+
+Options -Indexes
+DirectoryIndex index.html index.php
+
+<FilesMatch "^(\.env.*|\.user\.ini|.*\.(sql|dump|bak|backup|log)(\.gz)?)$">
+    Require all denied
+</FilesMatch>
 
 <IfModule mod_rewrite.c>
-  RewriteEngine On
-  # If the request is for the root URL, serve index.html
-  RewriteCond %{REQUEST_URI} ^/$
-  RewriteRule ^$ /index.html [L]
+    RewriteEngine On
+
+    # Block sensitive source, local config, database, and internal paths.
+    RewriteRule ^api/config(/|$) - [F,L]
+    RewriteRule ^(docs|tools|database|\.git|\.github)(/|$) - [F,L]
+    RewriteRule (^|/)\.env - [F,L]
+    RewriteRule (^|/)\.user\.ini$ - [F,L]
+    RewriteRule (^|/).*\.(sql|dump|bak|backup|log)(\.gz)?$ - [F,L]
+
+    # Never route API calls or uploads to the React app.
+    RewriteRule ^api/ - [L]
+    RewriteRule ^uploads/ - [L]
+
+    # Do not rewrite existing frontend files or directories.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # React/Vite fallback for clean public/admin routes.
+    RewriteRule ^ index.html [L]
 </IfModule>
 
-# Optional: disable MultiViews to avoid content negotiation issues
-Options -MultiViews
-DirectoryIndex index.php index.html
-
-Redirect 301 /admin.html /admin/
-Redirect 301 /admin/index.html /admin/
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
