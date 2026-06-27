@@ -1,3 +1,18 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../api/bootstrap.php';
+
+$adminInitError = false;
+
+try {
+    migrate();
+    $isAuthenticated = current_admin() !== null;
+} catch (Throwable $error) {
+    $isAuthenticated = false;
+    $adminInitError = true;
+}
+?>
 <!doctype html>
 <html lang="fr">
   <head>
@@ -19,7 +34,12 @@
     <script src="/assets/js/data.js" defer></script>
     <script src="/assets/js/admin.js" defer></script>
   </head>
-  <body class="admin-page" data-asset-prefix="/" data-api-base="/api">
+  <body
+    class="admin-page<?php echo $isAuthenticated ? ' is-authenticated' : ''; ?>"
+    data-asset-prefix="/"
+    data-api-base="/api"
+    <?php echo $adminInitError ? 'data-admin-init-error="1"' : ''; ?>
+  >
     <a class="skip-link" href="#main">Aller au contenu</a>
     <div class="nature-particles" aria-hidden="true">
       <span class="leaf leaf-one"></span>
@@ -55,6 +75,7 @@
     </header>
 
     <main id="main">
+      <?php if ($isAuthenticated): ?>
       <section class="admin-hero" aria-labelledby="admin-title">
         <div>
           <p class="eyebrow">Panel local</p>
@@ -88,6 +109,7 @@
           <div class="admin-list" data-admin-list></div>
         </section>
       </section>
+      <?php endif; ?>
     </main>
   </body>
 </html>

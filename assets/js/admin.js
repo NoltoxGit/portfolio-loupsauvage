@@ -1204,7 +1204,7 @@ document.addEventListener("click", async (event) => {
       console.warn("Déconnexion admin incomplète.", error);
     }
 
-    renderAdminLogin("Tu es déconnecté.");
+    window.location.reload();
     return;
   }
 
@@ -1290,9 +1290,7 @@ document.addEventListener("submit", async (event) => {
           password: String(formData.get("password") || ""),
         }),
       });
-      await loadRemoteAdminState();
-      showAdminApp();
-      renderAdmin();
+      window.location.reload();
     } catch (error) {
       console.error("Connexion admin refusée.", error);
       showAuthMessage("Login ou mot de passe incorrect.", true);

@@ -1,1 +1,4 @@
+DirectoryIndex index.php index.html
+
 Redirect 301 /admin.html /admin/
+Redirect 301 /admin/index.html /admin/
