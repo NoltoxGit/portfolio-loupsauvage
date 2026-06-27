@@ -18,6 +18,9 @@ return [
         'debug' => true,
         'url' => 'http://localhost:5173',
         'session_name' => 'loupsauvage_session',
+        'session_secure' => false,
+        'session_same_site' => 'Lax',
+        'session_lifetime' => 0,
     ],
 
     'database' => [

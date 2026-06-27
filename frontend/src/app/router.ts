@@ -4,6 +4,8 @@ export type AppRoute =
   | { name: "creationDetail"; slug: string }
   | { name: "marketplace" }
   | { name: "pricing" }
+  | { name: "adminLogin" }
+  | { name: "adminDashboard" }
   | { name: "notFound" };
 
 export function routeForPath(pathname: string): AppRoute {
@@ -13,6 +15,8 @@ export function routeForPath(pathname: string): AppRoute {
   if (path === "/creations") return { name: "creations" };
   if (path === "/marketplace") return { name: "marketplace" };
   if (path === "/pricing") return { name: "pricing" };
+  if (path === "/admin/login") return { name: "adminLogin" };
+  if (path === "/admin") return { name: "adminDashboard" };
 
   const creationMatch = path.match(/^\/creations\/([^/]+)$/);
   if (creationMatch) {
