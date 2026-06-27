@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { navigateTo } from "../../app/navigation";
 import type { AuthState } from "../../hooks/useAuth";
 
 export function LoginPage({ auth }: { auth: AuthState }) {
@@ -13,8 +14,7 @@ export function LoginPage({ auth }: { auth: AuthState }) {
     setSubmitting(false);
 
     if (ok) {
-      window.history.pushState({}, "", "/admin");
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      navigateTo("/admin");
     }
   };
 

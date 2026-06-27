@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { AuthSession } from "../../types/auth";
+import { AdminNav } from "./AdminNav";
 
 export function AdminLayout({
   children,
@@ -19,19 +20,9 @@ export function AdminLayout({
             <h1 id="admin-title">LoupSauvage</h1>
             <p>Connecte en tant que {session.user.email}.</p>
           </div>
-          <div className="admin-hero-actions">
-            <button className="button button-secondary" type="button" onClick={onLogout}>
-              Deconnexion
-            </button>
-          </div>
         </section>
         <section className="admin-shell">
-          <nav className="admin-tabs" aria-label="Navigation admin">
-            <a className="admin-tab is-active" href="/admin">
-              <span>Phase 4A</span>
-              Dashboard
-            </a>
-          </nav>
+          <AdminNav currentPath={window.location.pathname} onLogout={onLogout} />
           <div className="admin-panel">{children}</div>
         </section>
       </main>

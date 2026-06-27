@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { navigateTo } from "../app/navigation";
 import { getAuthSession, loginOwner, logoutOwner } from "../api/auth";
 import type { AuthSession } from "../types/auth";
 
@@ -54,8 +55,7 @@ export function useAuth(): AuthState {
     }
 
     setSession(null);
-    window.history.pushState({}, "", "/admin/login");
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigateTo("/admin/login");
   }, [session]);
 
   return { session, loading, error, login, logout };
