@@ -19,11 +19,42 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
-$environment = getenv('APP_ENV') ?: 'local';
-$configFile = __DIR__ . '/config.' . $environment . '.php';
+$environmentValue = getenv('APP_ENV');
+$environment = is_string($environmentValue) ? strtolower(trim($environmentValue)) : '';
 
-if (!is_file($configFile)) {
-    $configFile = __DIR__ . '/config.example.php';
+if ($environment === 'production') {
+    $configFile = __DIR__ . '/config.production.php';
+
+    if (!is_file($configFile)) {
+        throw new RuntimeException(
+            'Production configuration is missing. Create api/config/config.production.php on the server via SFTP.'
+        );
+    }
+} elseif ($environment !== '') {
+    $configFile = __DIR__ . '/config.' . $environment . '.php';
+
+    if (!is_file($configFile)) {
+        $configFile = __DIR__ . '/config.example.php';
+    }
+} else {
+    $configCandidates = [
+        __DIR__ . '/config.local.php',
+        __DIR__ . '/config.production.php',
+        __DIR__ . '/config.example.php',
+    ];
+
+    $configFile = null;
+
+    foreach ($configCandidates as $candidate) {
+        if (is_file($candidate)) {
+            $configFile = $candidate;
+            break;
+        }
+    }
+
+    if ($configFile === null) {
+        throw new RuntimeException('No API configuration file is available.');
+    }
 }
 
 $config = require $configFile;

@@ -56,17 +56,20 @@ jobs:
           # Vite production output.
           cp -a frontend/dist/. .deploy/
 
-          # PHP API source, if present.
-          if [ -d api ]; then
-            mkdir -p .deploy/api
-            rsync -a api/ .deploy/api/ \
-              --exclude 'config/config.local.php' \
-              --exclude 'config/config.production.php' \
-              --exclude 'config/*.local.php' \
-              --exclude 'config/*.production.php' \
-              --exclude 'config.php' \
-              --exclude 'config.local.php'
-          fi
+          # PHP API source. Copy only the new refactor API surface.
+          mkdir -p .deploy/api
+          for dir in auth public admin config src; do
+            if [ -d "api/$dir" ]; then
+              mkdir -p ".deploy/api/$dir"
+              rsync -a "api/$dir/" ".deploy/api/$dir/" \
+                --exclude 'config.local.php' \
+                --exclude 'config.production.php' \
+                --exclude '*.local.php' \
+                --exclude '*.production.php' \
+                --exclude 'secrets.php' \
+                --exclude '*.secret.php'
+            fi
+          done
 
           # Apache routing/security files.
           if [ -f .htaccess ]; then cp .htaccess .deploy/.htaccess; fi
@@ -78,10 +81,59 @@ jobs:
           if [ -f uploads/index.html ]; then cp uploads/index.html .deploy/uploads/index.html; fi
           touch .deploy/uploads/.gitkeep
 
-          # Optional database migrations for manual execution/reference only.
-          if [ -d database ]; then
-            mkdir -p .deploy/database
-            rsync -a database/ .deploy/database/
+      - name: Validate deployment directory
+        run: |
+          set -euo pipefail
+
+          test -f .deploy/index.html
+          test -d .deploy/api/auth
+          test -d .deploy/api/public
+          test -d .deploy/api/admin
+          test -d .deploy/api/config
+          test -d .deploy/api/src
+
+          for path in \
+            .deploy/database \
+            .deploy/docs \
+            .deploy/tools \
+            .deploy/.github \
+            .deploy/frontend \
+            .deploy/node_modules \
+            .deploy/admin \
+            .deploy/api/auth.php \
+            .deploy/api/admin-data.php \
+            .deploy/api/bootstrap.php \
+            .deploy/api/site-data.php \
+            .deploy/api/upload.php \
+            .deploy/api/config/config.local.php \
+            .deploy/api/config/config.production.php
+          do
+            if [ -e "$path" ]; then
+              echo "Forbidden deployment path found: $path"
+              exit 1
+            fi
+          done
+
+          if find .deploy/uploads -type f \
+            ! -name '.gitkeep' \
+            ! -name '.htaccess' \
+            ! -name 'index.html' | grep -q .; then
+            echo "Real uploaded files must not be committed to the deployment branch."
+            exit 1
+          fi
+
+          if find .deploy -type f \( \
+            -name '.env' -o \
+            -name '.env.*' -o \
+            -name '*.sql' -o \
+            -name '*.sql.gz' -o \
+            -name '*.dump' -o \
+            -name '*.bak' -o \
+            -name '*.backup' -o \
+            -name '*.log' \
+          \) | grep -q .; then
+            echo "Forbidden secret, dump, backup, or log file found in deployment directory."
+            exit 1
           fi
 
       - name: Publish deployment branch

@@ -10,6 +10,8 @@ declare(strict_types=1);
  * - api/config/config.production.php for WebStrator production
  *
  * Never commit real credentials.
+ * Production values must use debug=false and session_secure=true.
+ * Create config.production.php directly on WebStrator via SFTP.
  */
 
 return [

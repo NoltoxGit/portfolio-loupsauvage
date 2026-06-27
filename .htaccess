@@ -7,19 +7,30 @@
 Options -Indexes
 DirectoryIndex index.html index.php
 
+<FilesMatch "^(\.env.*|\.user\.ini|.*\.(sql|dump|bak|backup|log)(\.gz)?)$">
+    Require all denied
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Do not rewrite existing files or directories.
+    # Block sensitive source, local config, database, and internal paths.
+    RewriteRule ^api/config(/|$) - [F,L]
+    RewriteRule ^(docs|tools|database|\.git|\.github)(/|$) - [F,L]
+    RewriteRule (^|/)\.env - [F,L]
+    RewriteRule (^|/)\.user\.ini$ - [F,L]
+    RewriteRule (^|/).*\.(sql|dump|bak|backup|log)(\.gz)?$ - [F,L]
+
+    # Never route API calls or uploads to the React app.
+    RewriteRule ^api/ - [L]
+    RewriteRule ^uploads/ - [L]
+
+    # Do not rewrite existing frontend files or directories.
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Never route API calls to the React app.
-    RewriteRule ^api/ - [L]
-
-    # React/Vite fallback for clean public/admin routes, if enabled later.
-    # If WebStrator has issues with clean routes, keep .html routes during phase 1.
+    # React/Vite fallback for clean public/admin routes.
     RewriteRule ^ index.html [L]
 </IfModule>
 
