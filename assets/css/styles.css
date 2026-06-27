@@ -578,6 +578,19 @@ h3 {
   z-index: 1;
 }
 
+.admin-remote-only {
+  display: none;
+}
+
+.admin-page.is-remote-admin .admin-remote-only {
+  display: inline-flex;
+}
+
+.admin-page.is-remote-admin:not(.is-authenticated) .admin-hero,
+.admin-page.is-remote-admin:not(.is-authenticated) .admin-shell {
+  display: none;
+}
+
 .admin-hero {
   position: relative;
   display: grid;
@@ -1048,6 +1061,58 @@ h3 {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.admin-login-panel {
+  width: min(520px, calc(100% - 32px));
+  margin: 0 auto 80px;
+}
+
+.admin-login-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(34, 50, 34, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(30, 45, 30, 0.14);
+  padding: 32px;
+}
+
+.admin-login-card h1 {
+  margin: 6px 0 10px;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+}
+
+.admin-login-card p {
+  margin: 0 0 22px;
+  color: var(--muted);
+}
+
+.admin-login-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-reset-box {
+  margin-top: 22px;
+}
+
+.admin-reset-box summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.admin-reset-box .admin-login-form {
+  margin-top: 16px;
+}
+
+.admin-auth-message {
+  min-height: 24px;
+  margin-top: 16px;
+  color: var(--green-dark);
+  font-weight: 800;
+}
+
+.admin-auth-message.is-error {
+  color: #9f1d1d;
 }
 
 .admin-mini-button {

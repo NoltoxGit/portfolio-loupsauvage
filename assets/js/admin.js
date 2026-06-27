@@ -86,6 +86,10 @@ const cloneAdminData = (value) => JSON.parse(JSON.stringify(value));
 const isDirectImageSource = (value) =>
   /^(data:image\/|blob:|https?:\/\/|file:)/i.test(String(value || ""));
 
+const isApiImageSource = (value) => /^(api\/|\/api\/)/i.test(String(value || ""));
+
+const isUploadImageSource = (value) => /^(uploads\/|\/uploads\/)/i.test(String(value || ""));
+
 const isStoredImageRef = (value) => String(value || "").startsWith(ADMIN_IMAGE_PREFIX);
 
 const ADMIN_ASSET_PREFIX = document.body?.dataset.assetPrefix || "";
@@ -102,7 +106,50 @@ const adminImageSource = (image) => {
   const source = String(image || "").trim();
   if (!source) return "";
   if (isStoredImageRef(source)) return "";
+  if (isApiImageSource(source)) return source.startsWith("api/") ? `${ADMIN_ASSET_PREFIX}${source}` : source;
+  if (isUploadImageSource(source)) return source.startsWith("uploads/") ? `${ADMIN_ASSET_PREFIX}${source}` : source;
   return isDirectImageSource(source) ? source : adminAssetPath(source);
+};
+
+async function adminApi(path, options = {}) {
+  const body = options.body;
+  const headers = new Headers(options.headers || {});
+
+  if (body && !(body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(`${ADMIN_API_BASE}/${path}`, {
+    credentials: "same-origin",
+    cache: "no-store",
+    ...options,
+    headers,
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    payload = null;
+  }
+
+  if (!response.ok || payload?.ok === false) {
+    throw new Error(payload?.error || `HTTP_${response.status}`);
+  }
+
+  return payload || { ok: true };
+}
+
+const uploadAdminImage = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  const payload = await adminApi("upload.php", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!payload.image) throw new Error("IMAGE_UPLOAD");
+  return payload.image;
 };
 
 const clampAdminNumber = (value, min, max, fallback) => {
@@ -188,7 +235,8 @@ const readUploadedImage = (file) =>
       return;
     }
 
-    storeUploadedImage(file).then(resolve).catch(() => reject(new Error("IMAGE_STORE")));
+    const upload = adminRemoteMode ? uploadAdminImage(file) : storeUploadedImage(file);
+    upload.then(resolve).catch(() => reject(new Error(adminRemoteMode ? "IMAGE_UPLOAD" : "IMAGE_STORE")));
   });
 
 const readUploadedImages = async (files = []) => {
@@ -418,7 +466,23 @@ function loadAdminData() {
   }
 }
 
-function saveAdminData(message = "Modifications sauvegardées.") {
+async function saveAdminData(message = "Modifications sauvegardées.") {
+  if (adminRemoteMode) {
+    try {
+      const payload = await adminApi("admin-data.php", {
+        method: "POST",
+        body: JSON.stringify({ data: adminState }),
+      });
+      adminState = normalizeAdminData(payload.data || adminState);
+      showStatus(message);
+      return true;
+    } catch (error) {
+      console.error("Impossible de sauvegarder les données MariaDB.", error);
+      showStatus("Impossible de sauvegarder en base.");
+      return false;
+    }
+  }
+
   try {
     localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminState));
     showStatus(message);
@@ -996,6 +1060,80 @@ async function buildItemFromForm(form, config) {
   return item;
 }
 
+function showAuthMessage(message, isError = false) {
+  const target = document.querySelector("[data-admin-login-message]");
+  if (!target) return;
+  target.textContent = message;
+  target.classList.toggle("is-error", isError);
+  target.classList.add("is-visible");
+}
+
+function renderAdminLogin(message = "") {
+  document.body.classList.remove("is-authenticated");
+
+  const main = document.querySelector("#main");
+  if (!main) return;
+
+  document.querySelector("[data-admin-login-panel]")?.remove();
+  main.insertAdjacentHTML(
+    "afterbegin",
+    `
+      <section class="admin-login-panel" data-admin-login-panel aria-labelledby="admin-login-title">
+        <div class="admin-login-card">
+          <p class="eyebrow">Accès sécurisé</p>
+          <h1 id="admin-login-title">Connexion admin</h1>
+          <p>Connecte-toi pour modifier le contenu du site en production.</p>
+
+          <form class="admin-login-form" data-admin-login-form>
+            <label class="admin-field" for="admin-login-username">
+              <span>Login</span>
+              <input id="admin-login-username" name="username" type="text" value="LoupSauvage" autocomplete="username" required />
+            </label>
+            <label class="admin-field" for="admin-login-password">
+              <span>Mot de passe</span>
+              <input id="admin-login-password" name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button class="button button-primary" type="submit">Se connecter</button>
+          </form>
+
+          <details class="admin-reset-box">
+            <summary>Réinitialiser le mot de passe</summary>
+            <form class="admin-login-form" data-admin-reset-password-form>
+              <label class="admin-field" for="admin-reset-username">
+                <span>Login</span>
+                <input id="admin-reset-username" name="username" type="text" value="LoupSauvage" autocomplete="username" required />
+              </label>
+              <label class="admin-field" for="admin-reset-token">
+                <span>Token de reset</span>
+                <input id="admin-reset-token" name="resetToken" type="password" placeholder="Dans api/config.php" required />
+              </label>
+              <label class="admin-field" for="admin-reset-password">
+                <span>Nouveau mot de passe</span>
+                <input id="admin-reset-password" name="newPassword" type="password" minlength="8" required />
+              </label>
+              <button class="button button-secondary" type="submit">Mettre à jour</button>
+            </form>
+          </details>
+
+          <div class="admin-auth-message" data-admin-login-message role="status" aria-live="polite"></div>
+        </div>
+      </section>
+    `
+  );
+
+  if (message) showAuthMessage(message, message.toLowerCase().includes("impossible"));
+}
+
+function showAdminApp() {
+  document.querySelector("[data-admin-login-panel]")?.remove();
+  document.body.classList.add("is-authenticated");
+}
+
+async function loadRemoteAdminState() {
+  const payload = await adminApi("admin-data.php", { method: "GET" });
+  adminState = normalizeAdminData(payload.data || {});
+}
+
 function renderAdmin() {
   renderTabs();
   renderPanelHeading();
@@ -1027,7 +1165,21 @@ document.addEventListener("change", (event) => {
   previewImage.src = previewUrl;
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
+  if (event.target.closest("[data-admin-logout]")) {
+    try {
+      await adminApi("auth.php", {
+        method: "POST",
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch (error) {
+      console.warn("Déconnexion admin incomplète.", error);
+    }
+
+    renderAdminLogin("Tu es déconnecté.");
+    return;
+  }
+
   const sectionButton = event.target.closest("[data-section]");
   if (sectionButton) {
     activeSection = sectionButton.dataset.section;
@@ -1054,7 +1206,7 @@ document.addEventListener("click", (event) => {
 
     adminState[config.dataKey].splice(index, 1);
     editingIndex = null;
-    saveAdminData("Élément supprimé.");
+    await saveAdminData("Élément supprimé.");
     renderAdmin();
     return;
   }
@@ -1068,6 +1220,14 @@ document.addEventListener("click", (event) => {
 
   if (event.target.closest("[data-admin-reset]")) {
     if (!window.confirm("Réinitialiser toutes les données admin et revenir au contenu de base ?")) return;
+    if (adminRemoteMode) {
+      adminState = normalizeAdminData(window.LS_SITE_DATA);
+      await saveAdminData("Données réinitialisées.");
+      editingIndex = null;
+      renderAdmin();
+      return;
+    }
+
     localStorage.removeItem(ADMIN_STORAGE_KEY);
     adminState = loadAdminData();
     editingIndex = null;
@@ -1088,6 +1248,54 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", async (event) => {
+  const loginForm = event.target.closest("[data-admin-login-form]");
+  if (loginForm) {
+    event.preventDefault();
+    const formData = new FormData(loginForm);
+
+    try {
+      await adminApi("auth.php", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "login",
+          username: String(formData.get("username") || ""),
+          password: String(formData.get("password") || ""),
+        }),
+      });
+      await loadRemoteAdminState();
+      showAdminApp();
+      renderAdmin();
+    } catch (error) {
+      console.error("Connexion admin refusée.", error);
+      showAuthMessage("Login ou mot de passe incorrect.", true);
+    }
+    return;
+  }
+
+  const resetPasswordForm = event.target.closest("[data-admin-reset-password-form]");
+  if (resetPasswordForm) {
+    event.preventDefault();
+    const formData = new FormData(resetPasswordForm);
+
+    try {
+      await adminApi("auth.php", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "reset-password",
+          username: String(formData.get("username") || ""),
+          resetToken: String(formData.get("resetToken") || ""),
+          newPassword: String(formData.get("newPassword") || ""),
+        }),
+      });
+      resetPasswordForm.reset();
+      showAuthMessage("Mot de passe mis à jour. Tu peux te connecter.");
+    } catch (error) {
+      console.error("Reset mot de passe refusé.", error);
+      showAuthMessage("Reset impossible. Vérifie le token et le nouveau mot de passe.", true);
+    }
+    return;
+  }
+
   const form = event.target.closest("[data-admin-form]");
   if (!form) return;
   event.preventDefault();
@@ -1111,14 +1319,14 @@ document.addEventListener("submit", async (event) => {
 
   if (config.type === "single") {
     adminState[config.dataKey] = item;
-    saveAdminData("Pack mis en avant sauvegardé.");
+    await saveAdminData("Pack mis en avant sauvegardé.");
     renderAdmin();
     return;
   }
 
   if (config.type === "buttons") {
     adminState[config.dataKey] = normalizeAdminButtons(item);
-    saveAdminData("Boutons sauvegardes.");
+    await saveAdminData("Boutons sauvegardés.");
     renderAdmin();
     return;
   }
@@ -1133,7 +1341,7 @@ document.addEventListener("submit", async (event) => {
       createdAt: now,
       updatedAt: now,
     });
-    saveAdminData("Élément ajouté.");
+    await saveAdminData("Élément ajouté.");
   } else {
     const previousItem = adminState[config.dataKey][editingIndex] || {};
     adminState[config.dataKey][editingIndex] = {
@@ -1143,7 +1351,7 @@ document.addEventListener("submit", async (event) => {
       createdAt: previousItem.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    saveAdminData("Élément modifié.");
+    await saveAdminData("Élément modifié.");
   }
 
   editingIndex = null;
@@ -1181,5 +1389,34 @@ function setupAdminNavigation() {
   window.addEventListener("scroll", onScroll, { passive: true });
 }
 
-renderAdmin();
-setupAdminNavigation();
+async function initAdmin() {
+  setupAdminNavigation();
+
+  if (!ADMIN_CAN_USE_API) {
+    adminRemoteMode = false;
+    document.body.classList.remove("is-remote-admin");
+    showAdminApp();
+    renderAdmin();
+    return;
+  }
+
+  adminRemoteMode = true;
+  document.body.classList.add("is-remote-admin");
+
+  try {
+    const session = await adminApi("auth.php?action=me", { method: "GET" });
+    if (!session.authenticated) {
+      renderAdminLogin();
+      return;
+    }
+
+    await loadRemoteAdminState();
+    showAdminApp();
+    renderAdmin();
+  } catch (error) {
+    console.error("API admin indisponible.", error);
+    renderAdminLogin("Impossible de joindre l'API admin. Vérifie api/config.php et MariaDB.");
+  }
+}
+
+initAdmin();
