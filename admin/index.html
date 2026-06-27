@@ -15,9 +15,9 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/styles.css" />
-    <script src="assets/js/data.js" defer></script>
-    <script src="assets/js/admin.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <script src="../assets/js/data.js" defer></script>
+    <script src="../assets/js/admin.js" defer></script>
   </head>
   <body class="admin-page" data-asset-prefix="../" data-api-base="../api">
     <a class="skip-link" href="#main">Aller au contenu</a>
@@ -36,7 +36,7 @@
 
     <header class="site-header" data-header>
       <nav class="nav-shell" aria-label="Navigation admin">
-        <a class="brand" href="index.html#top" aria-label="Retour accueil LoupSauvage">
+        <a class="brand" href="../index.html#top" aria-label="Retour accueil LoupSauvage">
           <span class="brand-mark" aria-hidden="true"></span>
           <span>LoupSauvage</span>
         </a>
@@ -47,9 +47,9 @@
         </button>
 
         <div class="nav-menu" id="site-menu" data-menu>
-          <a href="index.html#top">Site</a>
-          <a href="creations.html">Toutes les créations</a>
-          <a class="nav-discord" href="index.html#discord">Discord</a>
+          <a href="../index.html#top">Site</a>
+          <a href="../creations.html">Toutes les créations</a>
+          <a class="nav-discord" href="../index.html#discord">Discord</a>
         </div>
       </nav>
     </header>
@@ -66,8 +66,9 @@
         </div>
 
         <div class="admin-hero-actions">
-          <a class="button button-primary" href="index.html#top">Voir le site</a>
+          <a class="button button-primary" href="../index.html#top">Voir le site</a>
           <button class="button button-secondary" type="button" data-admin-export>Exporter JSON</button>
+          <button class="button button-dark admin-remote-only" type="button" data-admin-logout>Deconnexion</button>
           <button class="button button-dark" type="button" data-admin-reset>Réinitialiser</button>
         </div>
       </section>
