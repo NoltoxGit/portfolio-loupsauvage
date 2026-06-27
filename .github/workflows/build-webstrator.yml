@@ -1,6 +1,9 @@
 name: Build WebStrator branch
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       target_branch:
@@ -138,8 +141,8 @@ jobs:
 
     - name: Publish deployment branch
       env:
-        TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
-        SOURCE_BRANCH_NOTE: ${{ github.event.inputs.source_branch_note }}
+        TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch || 'webstrator-build' }}
+        SOURCE_BRANCH_NOTE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.source_branch_note || '' }}
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
@@ -148,7 +151,11 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add -A
-        git commit -m "build: WebStrator deployment ($SOURCE_BRANCH_NOTE)"
+        if [ -z "$SOURCE_BRANCH_NOTE" ]; then
+          SOURCE_BRANCH_NOTE="auto ${GITHUB_REF_NAME} ${GITHUB_SHA::7}"
+        fi
+        BUILD_TIMESTAMP="$(TZ='Europe/Paris' date '+%d/%m/%y | %H:%M:%S')"
+        git commit -m "build: WebStrator deployment ($BUILD_TIMESTAMP - $SOURCE_BRANCH_NOTE)"
         git branch -M "$TARGET_BRANCH"
         git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
         git push --force origin "$TARGET_BRANCH"
