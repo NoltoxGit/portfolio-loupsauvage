@@ -17,7 +17,7 @@ export function mediaLabel(item: ContentItem): string {
 }
 
 export function platformLabel(value: string | null, otherLabel = "Autre", fallbackLabel = "Portfolio"): string {
-  if (value === "builtbybit") return "BuildByBit";
+  if (value === "builtbybit") return "BuiltByBit";
   if (value === "mcmodels") return "MCModels";
   if (value === "sketchfab") return "Sketchfab";
   if (value === "other") return otherLabel;
