@@ -18,7 +18,7 @@ final class AuthService
     /**
      * @return array<string, mixed>|null
      */
-    public function login(string $email, string $password): ?array
+    public function login(string $email, string $password, bool $rememberMe = false): ?array
     {
         $user = $this->users->findActiveOwnerByEmail($email);
 
@@ -26,7 +26,7 @@ final class AuthService
             return null;
         }
 
-        $csrfToken = $this->session->login((int) $user['id']);
+        $csrfToken = $this->session->login((int) $user['id'], $rememberMe);
         $this->users->updateLastLogin((int) $user['id']);
 
         return [

@@ -9,6 +9,7 @@ export type AppRoute =
   | { name: "adminContentList"; contentType: "creation" | "marketplace" }
   | { name: "adminContentNew"; contentType: "creation" | "marketplace" }
   | { name: "adminContentEdit"; contentType: "creation" | "marketplace"; id: number }
+  | { name: "adminContentPreview"; contentType: "creation" | "marketplace"; id: number }
   | { name: "adminPricingList" }
   | { name: "adminPricingNew" }
   | { name: "adminPricingEdit"; id: number }
@@ -29,6 +30,15 @@ export function routeForPath(pathname: string): AppRoute {
   if (path === "/admin/marketplace/new") return { name: "adminContentNew", contentType: "marketplace" };
   if (path === "/admin/pricing") return { name: "adminPricingList" };
   if (path === "/admin/pricing/new") return { name: "adminPricingNew" };
+
+  const adminContentPreviewMatch = path.match(/^\/admin\/(creations|marketplace)\/(\d+)\/preview$/);
+  if (adminContentPreviewMatch) {
+    return {
+      name: "adminContentPreview",
+      contentType: adminContentPreviewMatch[1] === "creations" ? "creation" : "marketplace",
+      id: Number(adminContentPreviewMatch[2]),
+    };
+  }
 
   const adminContentMatch = path.match(/^\/admin\/(creations|marketplace)\/(\d+)$/);
   if (adminContentMatch) {

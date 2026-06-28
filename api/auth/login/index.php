@@ -22,6 +22,7 @@ try {
     $payload = $request->json();
     $email = trim((string) ($payload['email'] ?? ''));
     $password = (string) ($payload['password'] ?? '');
+    $rememberMe = (bool) ($payload['rememberMe'] ?? false);
 
     if ($email === '' || $password === '') {
         Response::error('VALIDATION_ERROR', 'Email and password are required.', 422, [
@@ -33,7 +34,7 @@ try {
 
     $db = (new Connection($config))->pdo();
     $auth = new AuthService(new UserRepository($db), new SessionManager($config));
-    $session = $auth->login($email, $password);
+    $session = $auth->login($email, $password, $rememberMe);
 
     if ($session === null) {
         Response::error('INVALID_CREDENTIALS', 'Invalid credentials.', 401);

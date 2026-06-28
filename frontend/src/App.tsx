@@ -4,6 +4,7 @@ import { AdminGuard } from "./components/admin/AdminGuard";
 import { navigateTo } from "./app/navigation";
 import { AdminContentEditPage } from "./pages/admin/AdminContentEditPage";
 import { AdminContentListPage } from "./pages/admin/AdminContentListPage";
+import { AdminContentPreviewPage } from "./pages/admin/AdminContentPreviewPage";
 import { AdminPricingEditPage } from "./pages/admin/AdminPricingEditPage";
 import { AdminPricingListPage } from "./pages/admin/AdminPricingListPage";
 import { DashboardPage } from "./pages/admin/DashboardPage";
@@ -33,7 +34,7 @@ export function App() {
   if (route.name === "creationDetail") return <CreationDetailPage slug={route.slug} />;
   if (route.name === "marketplace") return <MarketplacePage />;
   if (route.name === "pricing") return <PricingPage />;
-  if (route.name === "adminLogin") return <AdminGuard>{(auth) => <LoginPage auth={auth} />}</AdminGuard>;
+  if (route.name === "adminLogin") return <AdminGuard>{(auth) => <LoginPage auth={auth} withChrome={false} />}</AdminGuard>;
   if (route.name === "adminDashboard") {
     return (
       <AdminGuard>
@@ -80,6 +81,21 @@ export function App() {
               contentType={route.contentType}
               id={route.id}
               csrfToken={auth.session.csrfToken}
+              onUnauthenticated={onUnauthenticated}
+            />
+          )
+        }
+      </AdminGuard>
+    );
+  }
+  if (route.name === "adminContentPreview") {
+    return (
+      <AdminGuard>
+        {(auth) =>
+          auth.session && (
+            <AdminContentPreviewPage
+              contentType={route.contentType}
+              id={route.id}
               onUnauthenticated={onUnauthenticated}
             />
           )

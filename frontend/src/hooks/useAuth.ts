@@ -7,7 +7,7 @@ export interface AuthState {
   session: AuthSession | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, rememberMe: boolean) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -35,11 +35,11 @@ export function useAuth(): AuthState {
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, rememberMe: boolean) => {
     setError(null);
 
     try {
-      const nextSession = await loginOwner({ email, password });
+      const nextSession = await loginOwner({ email, password, rememberMe });
       setSession(nextSession);
       return true;
     } catch {

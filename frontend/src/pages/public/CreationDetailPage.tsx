@@ -1,5 +1,6 @@
 import { getCreation } from "../../api/publicSite";
 import { Gallery } from "../../components/content/Gallery";
+import { sourceContextLabel } from "../../components/content/media";
 import { SketchfabEmbed } from "../../components/content/SketchfabEmbed";
 import { Layout } from "../../components/layout/Layout";
 import { ErrorState } from "../../components/state/ErrorState";
@@ -35,7 +36,7 @@ export function CreationDetailPage({ slug }: { slug: string }) {
             <div className="creation-detail-layout">
               <Gallery item={data} />
               <div className="creation-detail-copy">
-                <p className="eyebrow">{data.sourceContext === "private_commission" ? t("cards.commission") : t("cards.creation")}</p>
+                <p className="eyebrow">{sourceContextLabel(data, t("cards.commission"), t("cards.creation"))}</p>
                 <h1>{data.title}</h1>
                 <p>{data.description || data.shortDescription}</p>
                 <div className="creation-detail-actions">

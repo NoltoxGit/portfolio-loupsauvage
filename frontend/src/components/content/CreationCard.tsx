@@ -1,9 +1,19 @@
 import type { CSSProperties } from "react";
 import type { ContentItem } from "../../types/content";
 import { useI18n } from "../../i18n/useI18n";
-import { coverMedia, mediaLabel, resolveMediaPath } from "./media";
+import { coverMedia, mediaLabel, resolveMediaPath, sourceContextLabel } from "./media";
 
-export function CreationCard({ item, index = 0, archive = false }: { item: ContentItem; index?: number; archive?: boolean }) {
+export function CreationCard({
+  item,
+  index = 0,
+  archive = false,
+  href,
+}: {
+  item: ContentItem;
+  index?: number;
+  archive?: boolean;
+  href?: string;
+}) {
   const { t } = useI18n();
   const cover = coverMedia(item);
   const image = resolveMediaPath(cover?.path);
@@ -15,7 +25,13 @@ export function CreationCard({ item, index = 0, archive = false }: { item: Conte
   } as CSSProperties;
 
   return (
-    <a className="creation-card creation-standard" href={`/creations/${encodeURIComponent(item.slug)}`} style={style} aria-label={item.title}>
+    <a
+      className="creation-card creation-standard"
+      href={href ?? `/creations/${encodeURIComponent(item.slug)}`}
+      onClick={href === "#" ? (event) => event.preventDefault() : undefined}
+      style={style}
+      aria-label={item.title}
+    >
       <div className="creation-visual visual-forest" aria-hidden="true">
         {image ? (
           <img className="showcase-image" src={image} alt="" loading="lazy" data-image-position="center" />
@@ -30,7 +46,7 @@ export function CreationCard({ item, index = 0, archive = false }: { item: Conte
         )}
       </div>
       <div className="creation-content" aria-hidden="false">
-        <span className="content-tag">{item.sourceContext === "private_commission" ? t("cards.commission") : t("cards.creation")}</span>
+        <span className="content-tag">{sourceContextLabel(item, t("cards.commission"), t("cards.creation"))}</span>
         <h3>{item.title}</h3>
         <p>{mediaLabel(item)}</p>
       </div>
