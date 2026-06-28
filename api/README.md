@@ -1,19 +1,58 @@
-# LoupSauvage MariaDB backend
+# API PHP LoupSauvage
 
-## Installation
+API PHP 8.x du portfolio LoupSauvage. Elle utilise PDO, MariaDB, des sessions PHP natives pour l’admin et des réponses JSON normalisées.
 
-1. Cree une base MariaDB vide, par exemple `loupsauvage_site`.
-2. Modifie `api/config.php` avec les identifiants de ta base.
-3. Verifie que PHP a les extensions `pdo_mysql` et `fileinfo`.
-4. Verifie que le dossier `uploads/` est envoye sur l'hebergement et qu'il est inscriptible par PHP.
-5. Pour les uploads de 50 Mo, mets au minimum `upload_max_filesize=50M` et `post_max_size=60M`.
-6. Ouvre `/admin` sur le site heberge.
+## Configuration
 
-Au premier chargement, les tables sont creees automatiquement. Les images sont stockees dans `uploads/`, MariaDB garde seulement les chemins.
+Copier `api/config/config.example.php` vers un fichier non versionné :
 
-## Acces admin par defaut
+- local : `api/config/config.local.php`
+- production WebStrator : `api/config/config.production.php`
 
-- Login: `LoupSauvage`
-- Mot de passe: `LoupSauvage`
+La clé de connexion canonique est `database.user`. Les anciennes configs locales utilisant `database.username` restent supportées en fallback.
 
-Change le mot de passe apres la premiere connexion. Le token de reset se configure dans `api/config.php`.
+Ne jamais commiter de secrets, mots de passe ou hashes owner.
+
+## Endpoints publics
+
+- `GET /api/public/site`
+- `GET /api/public/creations`
+- `GET /api/public/creations?slug={slug}`
+- `GET /api/public/marketplace`
+- `GET /api/public/pricing`
+
+Les endpoints publics exposent uniquement les contenus publiés et les offres actives.
+
+## Authentification
+
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+
+La connexion owner utilise `password_verify`, une session PHP sécurisée et un token CSRF retourné par `login` et `me`.
+
+## Endpoints admin
+
+- `GET /api/admin/dashboard`
+- `GET|POST|PUT|DELETE /api/admin/content`
+- `PATCH /api/admin/content/status`
+- `GET|POST|PUT /api/admin/pricing`
+- `PATCH /api/admin/pricing/active`
+- `GET|PUT|DELETE /api/admin/media`
+- `POST /api/admin/media/upload`
+
+Tous les endpoints `/api/admin/*` exigent une session owner. Les mutations `POST`, `PUT`, `PATCH` et `DELETE` exigent l’en-tête `X-CSRF-Token`.
+
+## Réponses JSON
+
+Succès :
+
+```json
+{ "success": true, "data": {} }
+```
+
+Erreur :
+
+```json
+{ "success": false, "error": { "code": "VALIDATION_ERROR", "message": "Message", "fields": {} } }
+```

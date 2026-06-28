@@ -14,7 +14,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="footer-meta" aria-label="Credits du site">
+        <div className="footer-meta" aria-label="Crédits du site">
           <span>
             {t("footer.powered")} <strong>HeavenCreation</strong>
           </span>

@@ -1,62 +1,61 @@
-# Database - Local Phase 2
+# Base de données
 
-This folder contains the initial MariaDB schema and local test data.
+Ce dossier contient le schéma MariaDB et des données locales de développement.
 
-## Local configuration
+## Configuration locale
 
-Copy the example config, then edit the copy with your local MariaDB credentials:
+Créer une copie non versionnée du modèle de configuration :
 
 ```powershell
 Copy-Item api/config/config.example.php api/config/config.local.php
 ```
 
-`api/config/config.local.php` is ignored by Git and must never contain production secrets in the repository.
+Renseigner la section `database` avec les valeurs locales. La clé utilisateur canonique est :
 
-## Import order
+```php
+'user' => 'root',
+```
 
-Create the database:
+## Import local
+
+Créer la base :
 
 ```powershell
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS loupsauvage_portfolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-Import the schema, then the local test data:
+Importer le schéma puis le seeder local :
 
 ```powershell
 mysql -u root -p loupsauvage_portfolio < database/migrations/001_initial_schema.sql
 mysql -u root -p loupsauvage_portfolio < database/seeders/001_local_test_data.sql
 ```
 
-If the Phase 1 migration was already imported locally, recreate the local database or drop the existing tables before reimporting. `CREATE TABLE IF NOT EXISTS` will not alter an existing `pricing_plans` table to add the new `slug` column.
+Si une ancienne version du schéma existe déjà en local, recréer la base ou supprimer les tables avant de réimporter.
 
-## Local API server
+## Owner local
 
-Run from the repository root:
+Créer un owner local sans commiter de secret :
+
+```powershell
+php tools/create-owner.php LoupSauvage login@example.test
+```
+
+Le mot de passe est demandé au prompt puis hashé avec `password_hash`.
+
+## Vérifications utiles
+
+Lancer l’API locale :
 
 ```powershell
 php -S localhost:8000
 ```
 
-Then test:
+Tester les endpoints publics :
 
 ```powershell
 Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8000/api/public/site
 Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8000/api/public/creations
-Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:8000/api/public/creations?slug=forest-spirit"
 Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8000/api/public/marketplace
 Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8000/api/public/pricing
-```
-
-## Secret check
-
-With ripgrep:
-
-```powershell
-rg -n "password|passwd|secret|token|DB_PASSWORD|config.production|config.local" .env.example api/config/config.example.php api/config/bootstrap.php api/src database docs
-```
-
-PowerShell alternative:
-
-```powershell
-Get-ChildItem -Path ".env.example","api","database","docs" -Recurse -File | Select-String -Pattern "password|passwd|secret|token|DB_PASSWORD|config.production|config.local"
 ```

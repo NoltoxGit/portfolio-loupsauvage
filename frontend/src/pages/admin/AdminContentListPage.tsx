@@ -11,11 +11,17 @@ function sectionPath(contentType: ContentType) {
 }
 
 function sectionTitle(contentType: ContentType) {
-  return contentType === "creation" ? "Creations" : "Marketplace";
+  return contentType === "creation" ? "Créations" : "Marketplace";
 }
 
+const statusLabels: Record<ContentStatus, string> = {
+  draft: "Brouillon",
+  published: "Publié",
+  archived: "Archivé",
+};
+
 function formatDate(value: string | null) {
-  return value ? value.replace("T", " ").slice(0, 16) : "Non publie";
+  return value ? value.replace("T", " ").slice(0, 16) : "Non publié";
 }
 
 export function AdminContentListPage({
@@ -58,7 +64,7 @@ export function AdminContentListPage({
     <>
       <div className="admin-panel-heading admin-heading-actions">
         <div>
-          <p className="eyebrow">Content</p>
+          <p className="eyebrow">Contenu</p>
           <h2>{sectionTitle(contentType)}</h2>
           <p>Gestion des contenus {contentType === "creation" ? "portfolio" : "marketplace"}.</p>
         </div>
@@ -76,17 +82,17 @@ export function AdminContentListPage({
         <div className="admin-list">
           {data.map((item) => (
             <article className="admin-list-item" key={item.id}>
-              <div className="admin-list-icon">{item.status}</div>
+              <div className="admin-list-icon">{statusLabels[item.status]}</div>
               <div className="admin-list-copy">
                 <span>{item.slug}</span>
                 <h3>{item.title}</h3>
                 <p>
-                  sortOrder {item.sortOrder} · {formatDate(item.publishedAt)}
+                  ordre {item.sortOrder} · {formatDate(item.publishedAt)}
                 </p>
               </div>
               <div className="admin-list-actions">
                 <button className="admin-mini-button" type="button" onClick={() => navigateTo(`${path}/${item.id}`)}>
-                  Editer
+                  Éditer
                 </button>
                 {(["draft", "published", "archived"] as ContentStatus[]).map((status) => (
                   <button
@@ -96,7 +102,7 @@ export function AdminContentListPage({
                     type="button"
                     onClick={() => void runAction(() => updateAdminContentStatus(item.id, { status }, csrfToken))}
                   >
-                    {status}
+                    {statusLabels[status]}
                   </button>
                 ))}
                 <button

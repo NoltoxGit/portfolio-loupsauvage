@@ -18,8 +18,8 @@ INSERT INTO content_items (
     'creation',
     'Forest Spirit',
     'forest-spirit',
-    'Creature forestiere blocky pour serveur Minecraft.',
-    'Modele de creature forestiere avec silhouette lisible, textures naturelles et rendu adapte a un portfolio Minecraft.',
+    'Créature forestière blocky pour serveur Minecraft.',
+    'Modèle de créature forestière avec silhouette lisible, textures naturelles et rendu adapté à un portfolio Minecraft.',
     'published',
     'personal',
     0,
@@ -34,8 +34,8 @@ INSERT INTO content_items (
     'creation',
     'Crystal Golem',
     'crystal-golem',
-    'Golem magique avec cristaux et details fantasy.',
-    'Creation fantasy destinee aux lobbies, maps aventure et presentations de commandes Minecraft.',
+    'Golem magique avec cristaux et détails fantasy.',
+    'Création fantasy destinée aux lobbies, maps aventure et présentations de commandes Minecraft.',
     'published',
     'private_commission',
     1,
@@ -50,8 +50,8 @@ INSERT INTO content_items (
     'marketplace',
     'Nature Props Pack',
     'nature-props-pack',
-    'Pack de decorations naturelles pour maps Minecraft.',
-    'Ressource marketplace avec rochers, buissons, branches et petits elements organiques.',
+    'Pack de décorations naturelles pour maps Minecraft.',
+    'Ressource marketplace avec rochers, buissons, branches et petits éléments organiques.',
     'published',
     'marketplace_product',
     0,
@@ -66,8 +66,8 @@ INSERT INTO content_items (
     'marketplace',
     'Medieval Items Set',
     'medieval-items-set',
-    'Set medieval pour boutiques, lobbies et maps.',
-    'Ressource marketplace avec objets, panneaux et accessoires medieval-fantasy.',
+    'Set médiéval pour boutiques, lobbies et maps.',
+    'Ressource marketplace avec objets, panneaux et accessoires médiéval-fantasy.',
     'published',
     'marketplace_product',
     0,
@@ -82,7 +82,7 @@ INSERT INTO content_items (
     'creation',
     'Private Dragon Draft',
     'private-dragon-draft',
-    'Brouillon prive non visible publiquement.',
+    'Brouillon privé non visible publiquement.',
     'Ce contenu de test doit rester invisible dans les endpoints publics.',
     'draft',
     'private_commission',
@@ -127,7 +127,7 @@ INSERT INTO content_media (
     alt,
     sort_order
 )
-SELECT id, 'cover', '/assets/hero-zordix.webp', 'Apercu Forest Spirit', 10
+SELECT id, 'cover', '/assets/hero-zordix.webp', 'Aperçu Forest Spirit', 10
 FROM content_items
 WHERE slug = 'forest-spirit'
 UNION ALL
@@ -135,19 +135,19 @@ SELECT id, 'gallery', '/uploads/placeholders/forest-spirit-render.webp', 'Render
 FROM content_items
 WHERE slug = 'forest-spirit'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/crystal-golem-cover.webp', 'Apercu Crystal Golem', 10
+SELECT id, 'cover', '/uploads/placeholders/crystal-golem-cover.webp', 'Aperçu Crystal Golem', 10
 FROM content_items
 WHERE slug = 'crystal-golem'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/nature-props-pack-cover.webp', 'Apercu Nature Props Pack', 10
+SELECT id, 'cover', '/uploads/placeholders/nature-props-pack-cover.webp', 'Aperçu Nature Props Pack', 10
 FROM content_items
 WHERE slug = 'nature-props-pack'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/medieval-items-set-cover.webp', 'Apercu Medieval Items Set', 10
+SELECT id, 'cover', '/uploads/placeholders/medieval-items-set-cover.webp', 'Aperçu Medieval Items Set', 10
 FROM content_items
 WHERE slug = 'medieval-items-set'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/private-dragon-draft-cover.webp', 'Apercu brouillon Private Dragon Draft', 10
+SELECT id, 'cover', '/uploads/placeholders/private-dragon-draft-cover.webp', 'Aperçu brouillon Private Dragon Draft', 10
 FROM content_items
 WHERE slug = 'private-dragon-draft';
 
@@ -163,31 +163,31 @@ INSERT INTO pricing_plans (
 ) VALUES
 (
     'simple-model',
-    'Modele simple',
+    'Modèle simple',
     'Starter',
-    'A partir de 15 EUR',
-    'Modele leger pour item, prop ou petite creature.',
-    '["Item ou petit prop", "Texture simple incluse", "Ideal pour tester une idee"]',
+    'À partir de 15 EUR',
+    'Modèle léger pour item, prop ou petite créature.',
+    '["Item ou petit prop", "Texture simple incluse", "Idéal pour tester une idée"]',
     10,
     1
 ),
 (
     'detailed-model',
-    'Modele detaille',
-    'Le plus demande',
-    'A partir de 35 EUR',
-    'Creation plus complete avec silhouette travaillee et rendu propre.',
-    '["Details et silhouette soignes", "Texture prete a utiliser", "Render de presentation"]',
+    'Modèle détaillé',
+    'Le plus demandé',
+    'À partir de 35 EUR',
+    'Création plus complète avec silhouette travaillée et rendu propre.',
+    '["Détails et silhouette soignés", "Texture prête à utiliser", "Render de présentation"]',
     20,
     1
 ),
 (
     'inactive-test-plan',
     'Offre inactive de test',
-    'Masquee',
-    'Non affiche',
+    'Masquée',
+    'Non affiché',
     'Cette offre doit rester invisible dans les endpoints publics.',
-    '["Invisible cote public"]',
+    '["Invisible côté public"]',
     90,
     0
 )

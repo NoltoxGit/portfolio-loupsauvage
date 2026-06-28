@@ -105,7 +105,7 @@ export function PricingForm({
         : await createAdminPricing(payload(), csrfToken);
 
       setForm(stateFromPlan(saved));
-      setNotice("Offre enregistree.");
+      setNotice("Offre enregistrée.");
       onSaved(saved);
     } catch (nextError) {
       handleError(nextError);
@@ -127,7 +127,7 @@ export function PricingForm({
     try {
       const saved = await updateAdminPricingActive(initialPlan.id, { isActive: !form.isActive }, csrfToken);
       setForm(stateFromPlan(saved));
-      setNotice(saved.isActive ? "Offre activee." : "Offre desactivee.");
+      setNotice(saved.isActive ? "Offre activée." : "Offre désactivée.");
       onSaved(saved);
     } catch (nextError) {
       handleError(nextError);
@@ -160,7 +160,7 @@ export function PricingForm({
         </label>
 
         <label className="admin-field" htmlFor="pricing-subtitle">
-          <span>Subtitle</span>
+          <span>Sous-titre</span>
           <input
             id="pricing-subtitle"
             value={form.subtitle}
@@ -169,7 +169,7 @@ export function PricingForm({
         </label>
 
         <label className="admin-field" htmlFor="pricing-price-label">
-          <span>Price label</span>
+          <span>Libellé du prix</span>
           <input
             id="pricing-price-label"
             value={form.priceLabel}
@@ -179,7 +179,7 @@ export function PricingForm({
         </label>
 
         <label className="admin-field" htmlFor="pricing-sort-order">
-          <span>Sort order</span>
+          <span>Ordre</span>
           <input
             id="pricing-sort-order"
             type="number"
@@ -209,14 +209,14 @@ export function PricingForm({
         </label>
 
         <label className="admin-field admin-field-wide" htmlFor="pricing-features">
-          <span>Features</span>
+          <span>Fonctionnalités</span>
           <textarea
             id="pricing-features"
             rows={7}
             value={form.featuresText}
             onChange={(event) => updateField("featuresText", event.target.value)}
           />
-          <small>Une feature par ligne.</small>
+          <small>Une fonctionnalité par ligne.</small>
         </label>
       </div>
 
@@ -228,7 +228,7 @@ export function PricingForm({
           {submitting ? "Enregistrement..." : "Enregistrer"}
         </button>
         <button className="button button-secondary" type="button" disabled={submitting} onClick={toggleActive}>
-          {form.isActive ? "Desactiver" : "Activer"}
+          {form.isActive ? "Désactiver" : "Activer"}
         </button>
       </div>
     </form>

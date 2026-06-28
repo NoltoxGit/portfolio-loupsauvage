@@ -13,7 +13,7 @@ function sectionPath(contentType: ContentType) {
 }
 
 function sectionTitle(contentType: ContentType) {
-  return contentType === "creation" ? "Creation" : "Marketplace";
+  return contentType === "creation" ? "Création" : "Marketplace";
 }
 
 export function AdminContentEditPage({
@@ -54,8 +54,8 @@ export function AdminContentEditPage({
       <div className="admin-panel-heading admin-heading-actions">
         <div>
           <p className="eyebrow">{sectionTitle(contentType)}</p>
-          <h2>{isNew ? "Nouveau contenu" : "Edition contenu"}</h2>
-          <p>{contentType === "creation" ? "Type fixe : creation." : "Type fixe : marketplace."}</p>
+          <h2>{isNew ? "Nouveau contenu" : "Édition contenu"}</h2>
+          <p>{contentType === "creation" ? "Type fixe : création." : "Type fixe : marketplace."}</p>
         </div>
         <button className="button button-secondary" type="button" onClick={() => navigateTo(path)}>
           Retour
@@ -66,7 +66,7 @@ export function AdminContentEditPage({
       <AdminError error={error} />
 
       {!isNew && data && data.type !== contentType ? (
-        <AdminError message="Ce contenu n'appartient pas a cette section admin." />
+        <AdminError message="Ce contenu n'appartient pas à cette section admin." />
       ) : null}
 
       {(isNew || (data && data.type === contentType)) && !loading ? (

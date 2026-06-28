@@ -23,11 +23,13 @@ desktop.ini
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.example.json
+.agents/
+.idea/
+*.code-workspace
+.history/
 .codex/cache/
 .codex/logs/
 .codex/sessions/
-.agents/cache/
-.agents/logs/
 
 # -------------------------
 # Node / React / Vite
@@ -57,7 +59,6 @@ composer.lock
 # -------------------------
 .env
 .env.*
-!.env.example
 
 api/config/config.local.php
 api/config/config.production.php
@@ -65,10 +66,6 @@ api/config/*.local.php
 api/config/*.production.php
 api/config/secrets.php
 api/config/*.secret.php
-
-# Legacy project secret files that must not be reused in the refactor
-api/config.php
-api/config.local.php
 
 # -------------------------
 # Database dumps / backups
@@ -94,6 +91,9 @@ logs/
 tmp/
 temp/
 .cache/
+.phpunit.result.cache
+.php-cs-fixer.cache
+.eslintcache
 
 # -------------------------
 # Local uploads

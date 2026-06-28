@@ -13,6 +13,11 @@ import { MediaManager } from "./MediaManager";
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
 const sourceContexts: SourceContext[] = ["personal", "private_commission", "marketplace_product", "other"];
 const externalPlatforms: ExternalPlatform[] = ["builtbybit", "mcmodels", "sketchfab", "other"];
+const statusLabels: Record<ContentStatus, string> = {
+  draft: "Brouillon",
+  published: "Publié",
+  archived: "Archivé",
+};
 
 interface ContentFormState {
   title: string;
@@ -162,7 +167,7 @@ export function ContentForm({
           : await createAdminContent(toPayload(), csrfToken);
 
       setForm(stateFromItem(saved));
-      setNotice("Contenu enregistre.");
+      setNotice("Contenu enregistré.");
       onSaved(saved);
     } catch (nextError) {
       handleError(nextError);
@@ -184,7 +189,7 @@ export function ContentForm({
     try {
       const saved = await updateAdminContentStatus(initialItem.id, { status }, csrfToken);
       setForm(stateFromItem(saved));
-      setNotice(`Statut passe en ${status}.`);
+      setNotice(`Statut passé en ${statusLabels[status]}.`);
       onSaved(saved);
     } catch (nextError) {
       handleError(nextError);
@@ -205,7 +210,7 @@ export function ContentForm({
     try {
       const archived = await archiveAdminContent(initialItem.id, csrfToken);
       setForm(stateFromItem(archived));
-      setNotice("Contenu archive.");
+      setNotice("Contenu archivé.");
       onArchived?.(archived);
       onSaved(archived);
     } catch (nextError) {
@@ -239,7 +244,7 @@ export function ContentForm({
         </label>
 
         <label className="admin-field" htmlFor="content-status">
-          <span>Status</span>
+          <span>Statut</span>
           <select
             id="content-status"
             value={form.status}
@@ -247,7 +252,7 @@ export function ContentForm({
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
-                {status}
+                {statusLabels[status]}
               </option>
             ))}
           </select>
@@ -298,7 +303,7 @@ export function ContentForm({
         </label>
 
         <label className="admin-field" htmlFor="content-external-url">
-          <span>External URL</span>
+          <span>URL externe</span>
           <input
             id="content-external-url"
             value={form.externalUrl}
@@ -307,7 +312,7 @@ export function ContentForm({
         </label>
 
         <label className="admin-field" htmlFor="content-external-platform">
-          <span>External platform</span>
+          <span>Plateforme externe</span>
           <select
             id="content-external-platform"
             value={form.externalPlatform}
@@ -323,7 +328,7 @@ export function ContentForm({
         </label>
 
         <label className="admin-field" htmlFor="content-price-label">
-          <span>Price label</span>
+          <span>Libellé du prix</span>
           <input
             id="content-price-label"
             value={form.priceLabel}
@@ -332,7 +337,7 @@ export function ContentForm({
         </label>
 
         <label className="admin-field" htmlFor="content-sort-order">
-          <span>Sort order</span>
+          <span>Ordre</span>
           <input
             id="content-sort-order"
             type="number"
@@ -342,7 +347,7 @@ export function ContentForm({
         </label>
 
         <label className="admin-field" htmlFor="content-published-at">
-          <span>Published at</span>
+          <span>Date de publication</span>
           <input
             id="content-published-at"
             type="datetime-local"
@@ -379,7 +384,7 @@ export function ContentForm({
             type="button"
             onClick={() => void changeStatus(status)}
           >
-            {status}
+            {statusLabels[status]}
           </button>
         ))}
         {initialItem ? (

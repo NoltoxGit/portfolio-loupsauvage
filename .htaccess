@@ -5,7 +5,7 @@
 # Keep this conservative. API PHP files must remain directly reachable under /api.
 
 Options -Indexes
-DirectoryIndex index.html index.php
+DirectoryIndex index.html
 
 <FilesMatch "^(\.env.*|\.user\.ini|.*\.(sql|dump|bak|backup|log)(\.gz)?)$">
     Require all denied

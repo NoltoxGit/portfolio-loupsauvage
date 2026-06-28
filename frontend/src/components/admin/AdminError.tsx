@@ -1,12 +1,12 @@
 import { ApiError } from "../../api/client";
 
 const errorMessages: Record<string, string> = {
-  VALIDATION_ERROR: "Certains champs doivent etre corriges.",
-  DUPLICATE_SLUG: "Ce slug est deja utilise.",
-  NOT_FOUND: "La ressource demandee est introuvable.",
-  CSRF_INVALID: "Session ou action expiree. Recharge la page puis reessaie.",
-  UNAUTHENTICATED: "Session admin expiree. Reconnecte-toi.",
-  UPLOAD_ERROR: "Upload impossible. Verifie le fichier puis reessaie.",
+  VALIDATION_ERROR: "Certains champs doivent être corrigés.",
+  DUPLICATE_SLUG: "Ce slug est déjà utilisé.",
+  NOT_FOUND: "La ressource demandée est introuvable.",
+  CSRF_INVALID: "Session ou action expirée. Recharge la page puis réessaie.",
+  UNAUTHENTICATED: "Session admin expirée. Reconnecte-toi.",
+  UPLOAD_ERROR: "Envoi impossible. Vérifie le fichier puis réessaie.",
 };
 
 export function isUnauthenticatedError(error: unknown) {

@@ -23,9 +23,9 @@ export function DashboardPage({
   return (
     <>
       <div className="admin-panel-heading">
-        <p className="eyebrow">Dashboard</p>
+        <p className="eyebrow">Tableau de bord</p>
         <h2>Vue admin</h2>
-        <p>Connecte en tant que {session.user.username}. Les compteurs viennent de l'API admin protegee.</p>
+        <p>Connecté en tant que {session.user.username}. Les compteurs viennent de l'API admin protégée.</p>
       </div>
 
       {loading ? <LoadingState label="Chargement du dashboard admin..." /> : null}
@@ -36,20 +36,20 @@ export function DashboardPage({
           <article className="admin-summary-card">
             <span>Total contenus</span>
             <strong>{data.content.total}</strong>
-            <p>{data.content.published} publies</p>
+            <p>{data.content.published} publiés</p>
           </article>
           <article className="admin-summary-card">
             <span>Brouillons</span>
             <strong>{data.content.draft}</strong>
-            <p>{data.content.archived} archives</p>
+            <p>{data.content.archived} archivés</p>
           </article>
           <article className="admin-summary-card">
-            <span>Creations</span>
+            <span>Créations</span>
             <strong>{data.content.creations}</strong>
             <p>{data.content.marketplace} marketplace</p>
           </article>
           <article className="admin-summary-card">
-            <span>Pricing actifs</span>
+            <span>Offres actives</span>
             <strong>{data.pricing.active}</strong>
             <p>{data.pricing.inactive} inactifs</p>
           </article>

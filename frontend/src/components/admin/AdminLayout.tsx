@@ -18,7 +18,7 @@ export function AdminLayout({
           <div>
             <p className="eyebrow">Administration</p>
             <h1 id="admin-title">LoupSauvage</h1>
-            <p>Connecte en tant que {session.user.email}.</p>
+            <p>Connecté en tant que {session.user.email}.</p>
           </div>
         </section>
         <section className="admin-shell">

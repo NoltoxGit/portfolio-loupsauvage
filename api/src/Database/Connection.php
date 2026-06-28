@@ -30,9 +30,14 @@ final class Connection
             $charset
         );
 
+        $user = $this->config->string('database.user', '');
+        if ($user === '') {
+            $user = $this->config->string('database.username', 'root');
+        }
+
         $this->pdo = new PDO(
             $dsn,
-            $this->config->string('database.user', 'root'),
+            $user,
             $this->config->string('database.password', ''),
             [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

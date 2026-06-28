@@ -67,6 +67,7 @@ jobs:
             rsync -a "api/$dir/" ".deploy/api/$dir/" \
               --exclude 'config.local.php' \
               --exclude 'config.production.php' \
+              --exclude 'config.example.php' \
               --exclude '*.local.php' \
               --exclude '*.production.php' \
               --exclude 'secrets.php' \
@@ -109,7 +110,10 @@ jobs:
           .deploy/api/site-data.php \
           .deploy/api/upload.php \
           .deploy/api/config/config.local.php \
-          .deploy/api/config/config.production.php
+          .deploy/api/config/config.production.php \
+          .deploy/api/config/config.example.php \
+          .deploy/creation.html \
+          .deploy/creations.html
         do
           if [ -e "$path" ]; then
             echo "Forbidden deployment path found: $path"

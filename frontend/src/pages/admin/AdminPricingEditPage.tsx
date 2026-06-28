@@ -41,9 +41,9 @@ export function AdminPricingEditPage({
     <>
       <div className="admin-panel-heading admin-heading-actions">
         <div>
-          <p className="eyebrow">Pricing</p>
-          <h2>{isNew ? "Nouvelle offre" : "Edition offre"}</h2>
-          <p>Les features sont editees avec une ligne par element.</p>
+          <p className="eyebrow">Tarifs</p>
+          <h2>{isNew ? "Nouvelle offre" : "Édition offre"}</h2>
+          <p>Les fonctionnalités sont éditées avec une ligne par élément.</p>
         </div>
         <button className="button button-secondary" type="button" onClick={() => navigateTo("/admin/pricing")}>
           Retour

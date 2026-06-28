@@ -2,7 +2,7 @@ import { navigateTo } from "../../app/navigation";
 
 const navItems = [
   { href: "/admin", eyebrow: "Vue", label: "Tableau de bord" },
-  { href: "/admin/creations", eyebrow: "Contenu", label: "Creations" },
+  { href: "/admin/creations", eyebrow: "Contenu", label: "Créations" },
   { href: "/admin/marketplace", eyebrow: "Contenu", label: "Marketplace" },
   { href: "/admin/pricing", eyebrow: "Offres", label: "Tarifs" },
 ];
@@ -31,7 +31,7 @@ export function AdminNav({ currentPath, onLogout }: { currentPath: string; onLog
       })}
       <button className="admin-tab" type="button" onClick={onLogout}>
         <span>Session</span>
-        Deconnexion
+        Déconnexion
       </button>
     </nav>
   );

@@ -42,7 +42,7 @@ export function AdminPricingListPage({
     <>
       <div className="admin-panel-heading admin-heading-actions">
         <div>
-          <p className="eyebrow">Pricing</p>
+          <p className="eyebrow">Tarifs</p>
           <h2>Offres</h2>
           <p>Gestion des plans visibles via l'API publique quand ils sont actifs.</p>
         </div>
@@ -60,24 +60,24 @@ export function AdminPricingListPage({
         <div className="admin-list">
           {data.map((plan) => (
             <article className="admin-list-item" key={plan.id}>
-              <div className="admin-list-icon">{plan.isActive ? "active" : "off"}</div>
+              <div className="admin-list-icon">{plan.isActive ? "actif" : "inactif"}</div>
               <div className="admin-list-copy">
                 <span>{plan.slug}</span>
                 <h3>{plan.title}</h3>
                 <p>
-                  {plan.priceLabel} · sortOrder {plan.sortOrder}
+                  {plan.priceLabel} · ordre {plan.sortOrder}
                 </p>
               </div>
               <div className="admin-list-actions">
                 <button className="admin-mini-button" type="button" onClick={() => navigateTo(`/admin/pricing/${plan.id}`)}>
-                  Editer
+                  Éditer
                 </button>
                 <button
                   className="admin-mini-button"
                   type="button"
                   onClick={() => void toggleActive(plan.id, plan.isActive)}
                 >
-                  {plan.isActive ? "Desactiver" : "Activer"}
+                  {plan.isActive ? "Désactiver" : "Activer"}
                 </button>
               </div>
             </article>

@@ -8,7 +8,7 @@ export function AdminGuard({ children }: { children: (auth: ReturnType<typeof us
   const auth = useAuth();
 
   if (auth.loading) {
-    return <LoadingState label="Verification de la session admin..." />;
+    return <LoadingState label="Vérification de la session admin..." />;
   }
 
   if (!auth.session) {

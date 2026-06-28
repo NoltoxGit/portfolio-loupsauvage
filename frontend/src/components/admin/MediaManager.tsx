@@ -118,7 +118,7 @@ export function MediaManager({
   const uploadMedia = async () => {
     if (!uploadForm.file) {
       setError(null);
-      setNotice("Choisis un fichier avant upload.");
+      setNotice("Choisis un fichier avant l’envoi.");
       return;
     }
 
@@ -142,7 +142,7 @@ export function MediaManager({
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      setNotice("Media ajoute.");
+      setNotice("Média ajouté.");
       await loadMedia();
     } catch (nextError) {
       handleError(nextError);
@@ -173,7 +173,7 @@ export function MediaManager({
         csrfToken,
       );
 
-      setNotice("Media mis a jour.");
+      setNotice("Média mis à jour.");
       await loadMedia();
     } catch (nextError) {
       handleError(nextError);
@@ -183,7 +183,7 @@ export function MediaManager({
   };
 
   const removeMedia = async (mediaId: number) => {
-    if (!window.confirm("Supprimer ce media ?")) {
+    if (!window.confirm("Supprimer ce média ?")) {
       return;
     }
 
@@ -193,7 +193,7 @@ export function MediaManager({
 
     try {
       await deleteAdminMedia(mediaId, csrfToken);
-      setNotice("Media supprime.");
+      setNotice("Média supprimé.");
       await loadMedia();
     } catch (nextError) {
       handleError(nextError);
@@ -206,8 +206,8 @@ export function MediaManager({
     <section className="admin-media-manager" aria-labelledby="admin-media-title">
       <div className="admin-media-heading">
         <div>
-          <span>Medias</span>
-          <h3 id="admin-media-title">Medias du contenu</h3>
+          <span>Médias</span>
+          <h3 id="admin-media-title">Médias du contenu</h3>
         </div>
         <button className="button button-secondary" type="button" onClick={() => void loadMedia()} disabled={loading}>
           Actualiser
@@ -227,7 +227,7 @@ export function MediaManager({
         </label>
 
         <label className="admin-field" htmlFor="media-upload-kind">
-          <span>Kind</span>
+          <span>Type</span>
           <select
             id="media-upload-kind"
             value={uploadForm.kind}
@@ -247,7 +247,7 @@ export function MediaManager({
         </label>
 
         <label className="admin-field" htmlFor="media-upload-sort-order">
-          <span>Sort order</span>
+          <span>Ordre</span>
           <input
             id="media-upload-sort-order"
             type="number"
@@ -258,7 +258,7 @@ export function MediaManager({
 
         <div className="admin-media-actions">
           <button className="button button-primary" type="button" disabled={uploading} onClick={() => void uploadMedia()}>
-            {uploading ? "Upload..." : "Ajouter media"}
+            {uploading ? "Envoi..." : "Ajouter un média"}
           </button>
         </div>
       </div>
@@ -266,9 +266,9 @@ export function MediaManager({
       <AdminError error={error} />
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}
 
-      {loading ? <p className="admin-media-empty">Chargement des medias...</p> : null}
+      {loading ? <p className="admin-media-empty">Chargement des médias...</p> : null}
 
-      {!loading && mediaItems.length === 0 ? <p className="admin-media-empty">Aucun media pour ce contenu.</p> : null}
+      {!loading && mediaItems.length === 0 ? <p className="admin-media-empty">Aucun média pour ce contenu.</p> : null}
 
       {!loading && mediaItems.length > 0 ? (
         <div className="admin-media-list">
@@ -279,12 +279,12 @@ export function MediaManager({
             return (
               <article className="admin-media-card" key={media.id}>
                 <a className="admin-media-preview" href={media.path} target="_blank" rel="noreferrer">
-                  <img src={media.path} alt={media.alt ?? "Media"} loading="lazy" />
+                  <img src={media.path} alt={media.alt ?? "Média"} loading="lazy" />
                 </a>
 
                 <div className="admin-media-fields">
                   <label className="admin-field" htmlFor={`media-kind-${media.id}`}>
-                    <span>Kind</span>
+                    <span>Type</span>
                     <select
                       id={`media-kind-${media.id}`}
                       value={form.kind}
@@ -304,7 +304,7 @@ export function MediaManager({
                   </label>
 
                   <label className="admin-field" htmlFor={`media-sort-order-${media.id}`}>
-                    <span>Sort order</span>
+                    <span>Ordre</span>
                     <input
                       id={`media-sort-order-${media.id}`}
                       type="number"

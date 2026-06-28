@@ -1,24 +1,24 @@
-# Organisation du projet
+# Structure du projet
 
-Le projet est maintenant un portfolio React/Vite/TypeScript avec une API PHP 8.x et une base MariaDB.
+Portfolio LoupSauvage en React/Vite/TypeScript avec API PHP 8.x et MariaDB.
 
 ## Frontend
 
-- `frontend/` contient l'application React publique et admin.
-- `frontend/public/creation.html` et `frontend/public/creations.html` sont des shims de compatibilite inclus dans le build.
-- `frontend/public/assets/hero-zordix.webp` est l'image hero utilisee par le site React.
+- `frontend/` contient le site public, l’admin React et les assets publics.
+- `frontend/public/assets/hero-zordix.webp` est l’image principale utilisée par le site.
+- `frontend/dist/` est généré localement et ignoré sur `main`.
 
-## Backend
+## API
 
-- `api/auth/` expose les endpoints d'authentification owner.
-- `api/public/` expose les endpoints publics.
-- `api/admin/` expose les endpoints admin proteges.
-- `api/config/` contient le bootstrap et le modele de configuration.
-- `api/src/` contient les classes PHP partagees.
+- `api/auth/` expose login, logout et session owner.
+- `api/public/` expose les données publiques.
+- `api/admin/` expose les endpoints admin protégés.
+- `api/config/` contient le bootstrap et le modèle de config.
+- `api/src/` contient la logique partagée.
 
-## Donnees et deploiement
+## Données et déploiement
 
-- `database/migrations/` contient le schema SQL.
-- `database/seeders/` contient les donnees locales de developpement.
-- `uploads/` ne versionne que les placeholders et fichiers de securite.
-- `.github/workflows/build-webstrator.yml` genere la branche deployable `webstrator-build`.
+- `database/migrations/` contient le schéma SQL.
+- `database/seeders/` contient les données locales.
+- `uploads/` garde seulement les placeholders et règles de sécurité dans Git.
+- `.github/workflows/build-webstrator.yml` génère la branche `webstrator-build`.
