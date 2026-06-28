@@ -1,25 +1,24 @@
 # Organisation du projet
 
-Ce site est un portfolio statique deploye automatiquement. Les URL publiques historiques restent donc stables.
+Le projet est maintenant un portfolio React/Vite/TypeScript avec une API PHP 8.x et une base MariaDB.
 
-## Entrees publiques
+## Frontend
 
-- `index.html` : page d'accueil.
-- `creations.html` : galerie complete.
-- `creation.html?id=...` : detail d'une creation.
+- `frontend/` contient l'application React publique et admin.
+- `frontend/public/creation.html` et `frontend/public/creations.html` sont des shims de compatibilite inclus dans le build.
+- `frontend/public/assets/hero-zordix.webp` est l'image hero utilisee par le site React.
 
-## Assets
+## Backend
 
-- `assets/css/styles.css` : styles principaux.
-- `assets/js/data.js` : donnees du portfolio.
-- `assets/js/i18n.js` : traductions FR/EN.
-- `assets/js/script.js` : rendu dynamique, navigation, galerie et animations.
-- `assets/hero-zordix.webp` : visuel principal, garde a son chemin historique pour ne pas casser les pages ou caches existants.
+- `api/auth/` expose les endpoints d'authentification owner.
+- `api/public/` expose les endpoints publics.
+- `api/admin/` expose les endpoints admin proteges.
+- `api/config/` contient le bootstrap et le modele de configuration.
+- `api/src/` contient les classes PHP partagees.
 
-Les routes internes sont centralisees dans `siteRoutes` au debut de `assets/js/script.js`.
+## Donnees et deploiement
 
-## Compatibilite et redirections
-
-Les fichiers racine `styles.css`, `data.js`, `i18n.js` et `script.js` sont conserves comme shims de compatibilite. Ils protegent les anciennes references pendant les deploiements automatiques.
-
-Aucune URL publique HTML n'a ete deplacee dans cette passe. Si une hierarchie propre comme `/creations/` ou `/creation/` est ajoutee plus tard, conserver `creations.html` et `creation.html` comme redirections statiques.
+- `database/migrations/` contient le schema SQL.
+- `database/seeders/` contient les donnees locales de developpement.
+- `uploads/` ne versionne que les placeholders et fichiers de securite.
+- `.github/workflows/build-webstrator.yml` genere la branche deployable `webstrator-build`.

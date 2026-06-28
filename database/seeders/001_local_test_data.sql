@@ -127,7 +127,7 @@ INSERT INTO content_media (
     alt,
     sort_order
 )
-SELECT id, 'cover', 'assets/hero-zordix.webp', 'Apercu Forest Spirit', 10
+SELECT id, 'cover', '/assets/hero-zordix.webp', 'Apercu Forest Spirit', 10
 FROM content_items
 WHERE slug = 'forest-spirit'
 UNION ALL

@@ -19,7 +19,7 @@ export function Footer() {
             {t("footer.powered")} <strong>HeavenCreation</strong>
           </span>
           <span className="footer-credit">
-            {t("footer.created")}{" "}
+            <span>{t("footer.created").trim()}&nbsp;</span>
             <strong>
               <a href="https://yorzdraw.fr/" target="_blank" rel="noopener noreferrer">
                 YorzStudio
