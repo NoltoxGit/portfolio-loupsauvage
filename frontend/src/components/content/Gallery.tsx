@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import type { ContentItem } from "../../types/content";
+import { useI18n } from "../../i18n/useI18n";
 import { resolveMediaPath } from "./media";
 
 export function Gallery({ item }: { item: ContentItem }) {
+  const { t } = useI18n();
   const images = useMemo(
     () =>
       item.media
@@ -13,7 +15,7 @@ export function Gallery({ item }: { item: ContentItem }) {
   const [active, setActive] = useState(0);
 
   if (images.length === 0) {
-    return <div className="creation-media-empty">Les images de cette creation arrivent bientot.</div>;
+    return <div className="creation-media-empty">{t("pages.creationDetail.noImages")}</div>;
   }
 
   return (
@@ -23,7 +25,7 @@ export function Gallery({ item }: { item: ContentItem }) {
       </div>
 
       {images.length > 1 ? (
-        <div className="creation-thumbs" aria-label="Galerie">
+        <div className="creation-thumbs" aria-label={t("pages.creationDetail.gallery", "Galerie")}>
           {images.map((image, index) => (
             <button
               key={image.id}

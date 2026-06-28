@@ -1,8 +1,10 @@
 import type { PricingPlan } from "../../types/pricing";
+import { useI18n } from "../../i18n/useI18n";
 
 const tones = ["soft", "featured", "warm"];
 
 export function PricingCard({ plan, index = 0 }: { plan: PricingPlan; index?: number }) {
+  const { t } = useI18n();
   const tone = tones[index % tones.length];
 
   return (
@@ -14,7 +16,7 @@ export function PricingCard({ plan, index = 0 }: { plan: PricingPlan; index?: nu
           <span></span>
           <span></span>
         </div>
-        <span className="pricing-badge">{plan.subtitle || "Offre"}</span>
+        <span className="pricing-badge">{plan.subtitle || t("cards.offer")}</span>
       </div>
       <h3>{plan.title}</h3>
       <p>{plan.description}</p>

@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { useI18n } from "../../i18n/useI18n";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
@@ -13,10 +14,29 @@ function NatureParticles() {
 }
 
 export function Layout({ children, page }: { children: ReactNode; page: string }) {
+  const { t } = useI18n();
+
+  useEffect(() => {
+    const title = t(`pages.${page}.title`, "LoupSauvage");
+    const description = t(`pages.${page}.description`, "");
+    document.title = title;
+
+    if (description) {
+      let metaDescription = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement("meta");
+        metaDescription.name = "description";
+        document.head.appendChild(metaDescription);
+      }
+
+      metaDescription.content = description;
+    }
+  }, [page, t]);
+
   return (
     <div data-page={page}>
       <a className="skip-link" href="#main">
-        Aller au contenu
+        {t("ui.skip")}
       </a>
       <NatureParticles />
       <Header />

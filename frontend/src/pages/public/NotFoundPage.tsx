@@ -1,14 +1,17 @@
 import { Layout } from "../../components/layout/Layout";
+import { useI18n } from "../../i18n/useI18n";
 
 export function NotFoundPage() {
+  const { t } = useI18n();
+
   return (
     <Layout page="notFound">
       <section className="creation-detail-empty">
-        <p className="eyebrow">Page introuvable</p>
-        <h1>Cette page n'existe pas encore</h1>
-        <p>Retourne au portfolio pour continuer la visite.</p>
+        <p className="eyebrow">{t("pages.notFound.eyebrow")}</p>
+        <h1>{t("pages.notFound.heading")}</h1>
+        <p>{t("pages.notFound.text")}</p>
         <a className="button button-primary" href="/">
-          Retour a l'accueil
+          {t("pages.notFound.back")}
         </a>
       </section>
     </Layout>

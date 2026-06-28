@@ -1,10 +1,10 @@
 import { navigateTo } from "../../app/navigation";
 
 const navItems = [
-  { href: "/admin", eyebrow: "Vue", label: "Dashboard" },
-  { href: "/admin/creations", eyebrow: "Content", label: "Creations" },
-  { href: "/admin/marketplace", eyebrow: "Content", label: "Marketplace" },
-  { href: "/admin/pricing", eyebrow: "Offres", label: "Pricing" },
+  { href: "/admin", eyebrow: "Vue", label: "Tableau de bord" },
+  { href: "/admin/creations", eyebrow: "Contenu", label: "Creations" },
+  { href: "/admin/marketplace", eyebrow: "Contenu", label: "Marketplace" },
+  { href: "/admin/pricing", eyebrow: "Offres", label: "Tarifs" },
 ];
 
 export function AdminNav({ currentPath, onLogout }: { currentPath: string; onLogout: () => void }) {
@@ -31,7 +31,7 @@ export function AdminNav({ currentPath, onLogout }: { currentPath: string; onLog
       })}
       <button className="admin-tab" type="button" onClick={onLogout}>
         <span>Session</span>
-        Logout
+        Deconnexion
       </button>
     </nav>
   );

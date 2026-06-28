@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
 import type { ContentItem } from "../../types/content";
+import { useI18n } from "../../i18n/useI18n";
 import { coverMedia, mediaLabel, resolveMediaPath } from "./media";
 
 export function CreationCard({ item, index = 0, archive = false }: { item: ContentItem; index?: number; archive?: boolean }) {
+  const { t } = useI18n();
   const cover = coverMedia(item);
   const image = resolveMediaPath(cover?.path);
   const span = archive ? 4 : index % 5 === 0 ? 4 : 3;
@@ -28,7 +30,7 @@ export function CreationCard({ item, index = 0, archive = false }: { item: Conte
         )}
       </div>
       <div className="creation-content" aria-hidden="false">
-        <span className="content-tag">{item.sourceContext === "private_commission" ? "Commission" : "Creation"}</span>
+        <span className="content-tag">{item.sourceContext === "private_commission" ? t("cards.commission") : t("cards.creation")}</span>
         <h3>{item.title}</h3>
         <p>{mediaLabel(item)}</p>
       </div>

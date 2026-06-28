@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+
 function sketchfabEmbedUrl(value: string | null): string {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -18,10 +20,11 @@ function sketchfabEmbedUrl(value: string | null): string {
 }
 
 export function SketchfabEmbed({ title, url }: { title: string; url: string | null }) {
+  const { t } = useI18n();
   const embedUrl = sketchfabEmbedUrl(url);
 
   if (!embedUrl) {
-    return <div className="sketchfab-empty">Modele 3D a venir.</div>;
+    return <div className="sketchfab-empty">{t("pages.creationDetail.noModel")}</div>;
   }
 
   return (

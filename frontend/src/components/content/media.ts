@@ -16,10 +16,10 @@ export function mediaLabel(item: ContentItem): string {
   return item.shortDescription || item.description || item.title;
 }
 
-export function platformLabel(value: string | null): string {
+export function platformLabel(value: string | null, otherLabel = "Autre", fallbackLabel = "Portfolio"): string {
   if (value === "builtbybit") return "BuildByBit";
   if (value === "mcmodels") return "MCModels";
   if (value === "sketchfab") return "Sketchfab";
-  if (value === "other") return "Autre";
-  return "Portfolio";
+  if (value === "other") return otherLabel;
+  return fallbackLabel;
 }

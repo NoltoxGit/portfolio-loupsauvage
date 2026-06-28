@@ -1,4 +1,8 @@
+import { useI18n } from "../../i18n/useI18n";
+
 export function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer className="site-footer">
       <div className="footer-inner">
@@ -6,16 +10,16 @@ export function Footer() {
           <span className="brand-mark" aria-hidden="true"></span>
           <div>
             <strong>LoupSauvage</strong>
-            <p>Tous droits reserves.</p>
+            <p>{t("footer.rights")}</p>
           </div>
         </div>
 
         <div className="footer-meta" aria-label="Credits du site">
           <span>
-            Propulse par <strong>HeavenCreation</strong>
+            {t("footer.powered")} <strong>HeavenCreation</strong>
           </span>
           <span className="footer-credit">
-            Created by{" "}
+            {t("footer.created")}{" "}
             <strong>
               <a href="https://yorzdraw.fr/" target="_blank" rel="noopener noreferrer">
                 YorzStudio

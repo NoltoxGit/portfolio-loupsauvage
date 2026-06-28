@@ -1,8 +1,10 @@
 import { FormEvent, useState } from "react";
 import { navigateTo } from "../../app/navigation";
 import type { AuthState } from "../../hooks/useAuth";
+import { useI18n } from "../../i18n/useI18n";
 
 export function LoginPage({ auth }: { auth: AuthState }) {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -22,13 +24,13 @@ export function LoginPage({ auth }: { auth: AuthState }) {
     <main id="main" className="admin-page">
       <section className="admin-login-panel" aria-labelledby="admin-login-title">
         <div className="admin-login-card">
-          <p className="eyebrow">Acces securise</p>
-          <h1 id="admin-login-title">Connexion admin</h1>
-          <p>Connecte-toi avec un compte owner local.</p>
+          <p className="eyebrow">{t("admin.login.eyebrow")}</p>
+          <h1 id="admin-login-title">{t("admin.login.title")}</h1>
+          <p>{t("admin.login.intro")}</p>
 
           <form className="admin-login-form" onSubmit={onSubmit}>
             <label className="admin-field" htmlFor="admin-login-email">
-              <span>Email</span>
+              <span>{t("admin.login.email")}</span>
               <input
                 id="admin-login-email"
                 name="email"
@@ -40,7 +42,7 @@ export function LoginPage({ auth }: { auth: AuthState }) {
               />
             </label>
             <label className="admin-field" htmlFor="admin-login-password">
-              <span>Mot de passe</span>
+              <span>{t("admin.login.password")}</span>
               <input
                 id="admin-login-password"
                 name="password"
@@ -52,13 +54,13 @@ export function LoginPage({ auth }: { auth: AuthState }) {
               />
             </label>
             <button className="button button-primary" type="submit" disabled={submitting}>
-              {submitting ? "Connexion..." : "Se connecter"}
+              {submitting ? t("admin.login.submitting") : t("admin.login.submit")}
             </button>
           </form>
 
           {auth.error ? (
             <div className="admin-auth-message is-visible is-error" role="alert">
-              {auth.error}
+              {t("admin.login.invalidCredentials", auth.error)}
             </div>
           ) : null}
         </div>
