@@ -30,13 +30,16 @@ export interface AdminContentPayload {
   description?: string | null;
   status: ContentStatus;
   sourceContext: SourceContext;
+  sourceLabel?: string | null;
   clientPermission: boolean;
   sketchfabUrl?: string | null;
   externalUrl?: string | null;
   externalPlatform?: ExternalPlatform | null;
+  platformLabel?: string | null;
   priceLabel?: string | null;
   sortOrder?: number;
   publishedAt?: string | null;
+  displayDate: string;
 }
 
 export interface AdminContentStatusPayload {

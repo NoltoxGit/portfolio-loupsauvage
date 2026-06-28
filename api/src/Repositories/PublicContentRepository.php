@@ -20,7 +20,7 @@ final class PublicContentRepository
         $sql = $this->baseSelect() . '
             WHERE content_items.type = :type
               AND content_items.status = :status
-            ORDER BY content_items.sort_order ASC, content_items.published_at DESC, content_items.id DESC';
+            ORDER BY content_items.display_date ASC, content_items.id ASC';
 
         if ($limit !== null) {
             $sql .= ' LIMIT ' . max(1, $limit);
@@ -74,13 +74,16 @@ final class PublicContentRepository
                 content_items.short_description,
                 content_items.description,
                 content_items.source_context,
+                content_items.source_label,
                 content_items.client_permission,
                 content_items.sketchfab_url,
                 content_items.external_url,
                 content_items.external_platform,
+                content_items.platform_label,
                 content_items.price_label,
                 content_items.sort_order,
-                content_items.published_at
+                content_items.published_at,
+                content_items.display_date
             FROM content_items';
     }
 
@@ -128,13 +131,16 @@ final class PublicContentRepository
                 'shortDescription' => $item['short_description'],
                 'description' => $item['description'],
                 'sourceContext' => (string) $item['source_context'],
+                'sourceLabel' => $item['source_label'],
                 'clientPermission' => (bool) $item['client_permission'],
                 'sketchfabUrl' => $item['sketchfab_url'],
                 'externalUrl' => $item['external_url'],
                 'externalPlatform' => $item['external_platform'],
+                'platformLabel' => $item['platform_label'],
                 'priceLabel' => $item['price_label'],
                 'sortOrder' => (int) $item['sort_order'],
                 'publishedAt' => $item['published_at'],
+                'displayDate' => $item['display_date'],
                 'media' => $mediaByItem[$id] ?? [],
             ];
         }, $items);

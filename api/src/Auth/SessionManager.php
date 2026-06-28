@@ -12,7 +12,7 @@ final class SessionManager
     {
     }
 
-    public function start(): void
+    public function start(?int $lifetime = null): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
@@ -27,7 +27,7 @@ final class SessionManager
         ini_set('session.use_only_cookies', '1');
 
         session_set_cookie_params([
-            'lifetime' => $this->config->int('app.session_lifetime', 0),
+            'lifetime' => $lifetime ?? $this->config->int('app.session_lifetime', 0),
             'path' => '/',
             'secure' => $this->config->bool('app.session_secure', false),
             'httponly' => true,
@@ -37,13 +37,18 @@ final class SessionManager
         session_start();
     }
 
-    public function login(int $ownerId): string
+    public function login(int $ownerId, bool $rememberMe = false): string
     {
-        $this->start();
+        $lifetime = $rememberMe
+            ? $this->config->int('app.session_remember_lifetime', 30 * 24 * 60 * 60)
+            : $this->config->int('app.session_lifetime', 0);
+
+        $this->start($lifetime);
         session_regenerate_id(true);
 
         $_SESSION['owner_user_id'] = $ownerId;
         $_SESSION['owner_role'] = 'owner';
+        $_SESSION['remember_me'] = $rememberMe;
 
         return $this->csrfToken();
     }

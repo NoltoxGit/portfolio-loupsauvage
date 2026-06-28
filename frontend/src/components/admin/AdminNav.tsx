@@ -1,38 +1,53 @@
 import { navigateTo } from "../../app/navigation";
+import type { AuthSession } from "../../types/auth";
 
 const navItems = [
-  { href: "/admin", eyebrow: "Vue", label: "Tableau de bord" },
-  { href: "/admin/creations", eyebrow: "Contenu", label: "Créations" },
-  { href: "/admin/marketplace", eyebrow: "Contenu", label: "Marketplace" },
-  { href: "/admin/pricing", eyebrow: "Offres", label: "Tarifs" },
+  { href: "/admin", eyebrow: "Accueil", label: "Tableau de bord" },
+  { href: "/admin/creations", eyebrow: "Portfolio", label: "Créations" },
+  { href: "/admin/marketplace", eyebrow: "Produits", label: "Marketplace" },
+  { href: "/admin/pricing", eyebrow: "Vente", label: "Tarifs" },
 ];
 
-export function AdminNav({ currentPath, onLogout }: { currentPath: string; onLogout: () => void }) {
+export function AdminNav({
+  currentPath,
+  onLogout,
+  session,
+}: {
+  currentPath: string;
+  onLogout: () => void;
+  session: AuthSession;
+}) {
   return (
-    <nav className="admin-tabs" aria-label="Navigation admin">
-      {navItems.map((item) => {
-        const isActive =
-          item.href === "/admin" ? currentPath === "/admin" : currentPath === item.href || currentPath.startsWith(`${item.href}/`);
+    <aside className="admin-nav-shell" aria-label="Navigation admin">
+      <nav className="admin-tabs">
+        {navItems.map((item) => {
+          const isActive =
+            item.href === "/admin" ? currentPath === "/admin" : currentPath === item.href || currentPath.startsWith(`${item.href}/`);
 
-        return (
-          <a
-            key={item.href}
-            className={`admin-tab${isActive ? " is-active" : ""}`}
-            href={item.href}
-            onClick={(event) => {
-              event.preventDefault();
-              navigateTo(item.href);
-            }}
-          >
-            <span>{item.eyebrow}</span>
-            {item.label}
-          </a>
-        );
-      })}
-      <button className="admin-tab" type="button" onClick={onLogout}>
+          return (
+            <a
+              key={item.href}
+              className={`admin-tab${isActive ? " is-active" : ""}`}
+              href={item.href}
+              onClick={(event) => {
+                event.preventDefault();
+                navigateTo(item.href);
+              }}
+            >
+              <span>{item.eyebrow}</span>
+              {item.label}
+            </a>
+          );
+        })}
+      </nav>
+
+      <div className="admin-session-card">
         <span>Session</span>
-        Déconnexion
-      </button>
-    </nav>
+        <strong>{session.user.username}</strong>
+        <button className="button button-secondary admin-logout-button" type="button" onClick={onLogout}>
+          Déconnexion
+        </button>
+      </div>
+    </aside>
   );
 }

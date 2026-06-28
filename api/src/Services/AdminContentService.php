@@ -208,13 +208,16 @@ final class AdminContentService
             'description' => $this->nullableString($payload, 'description', $existing['description'] ?? null, 16777215, $fields),
             'status' => $status,
             'source_context' => $sourceContext,
+            'source_label' => $this->nullableString($payload, 'sourceLabel', $existing['sourceLabel'] ?? null, 120, $fields),
             'client_permission' => $this->boolValue($payload, 'clientPermission', (bool) ($existing['clientPermission'] ?? false), $fields),
             'sketchfab_url' => $this->nullableString($payload, 'sketchfabUrl', $existing['sketchfabUrl'] ?? null, 500, $fields),
             'external_url' => $this->nullableString($payload, 'externalUrl', $existing['externalUrl'] ?? null, 500, $fields),
             'external_platform' => $externalPlatform,
+            'platform_label' => $this->nullableString($payload, 'platformLabel', $existing['platformLabel'] ?? null, 120, $fields),
             'price_label' => $this->nullableString($payload, 'priceLabel', $existing['priceLabel'] ?? null, 120, $fields),
             'sort_order' => $this->intValue($payload, 'sortOrder', (int) ($existing['sortOrder'] ?? 0), $fields),
             'published_at' => $this->nullableDateTime($payload, 'publishedAt', $existing['publishedAt'] ?? null, $fields),
+            'display_date' => $this->requiredDate($payload, 'displayDate', $existing['displayDate'] ?? null, $fields),
         ];
 
         if ($this->violatesPrivateCommissionRule([
@@ -417,6 +420,34 @@ final class AdminContentService
         } catch (\Throwable) {
             $fields[$key] = 'This field must be a valid date time.';
             return null;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $fields
+     */
+    private function requiredDate(array $payload, string $key, mixed $fallback, array &$fields): string
+    {
+        $value = array_key_exists($key, $payload) ? $payload[$key] : $fallback;
+
+        if (!is_scalar($value)) {
+            $fields[$key] = 'This field is required.';
+            return '';
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            $fields[$key] = 'This field is required.';
+            return '';
+        }
+
+        try {
+            return (new DateTimeImmutable($value))->format('Y-m-d');
+        } catch (\Throwable) {
+            $fields[$key] = 'This field must be a valid date.';
+            return '';
         }
     }
 

@@ -14,14 +14,32 @@ function sectionTitle(contentType: ContentType) {
   return contentType === "creation" ? "Créations" : "Marketplace";
 }
 
+function sectionIntro(contentType: ContentType) {
+  return contentType === "creation"
+    ? "Œuvres, rendus et commissions publiables sur le portfolio."
+    : "Ressources vendues ou publiées sur des plateformes externes.";
+}
+
 const statusLabels: Record<ContentStatus, string> = {
   draft: "Brouillon",
-  published: "Publié",
+  published: "En ligne",
   archived: "Archivé",
 };
 
 function formatDate(value: string | null) {
   return value ? value.replace("T", " ").slice(0, 16) : "Non publié";
+}
+
+function formatDisplayDate(value: string) {
+  return value ? value.slice(0, 10) : "Date non renseignée";
+}
+
+function publicationLabel(publishedAt: string | null, displayDate: string) {
+  if (publishedAt) {
+    return formatDate(publishedAt);
+  }
+
+  return formatDisplayDate(displayDate);
 }
 
 export function AdminContentListPage({
@@ -60,16 +78,24 @@ export function AdminContentListPage({
     }
   };
 
+  const archiveItem = (id: number) => {
+    if (!window.confirm("Archiver ce contenu ? Il ne sera plus visible publiquement.")) {
+      return;
+    }
+
+    void runAction(() => archiveAdminContent(id, csrfToken));
+  };
+
   return (
     <>
       <div className="admin-panel-heading admin-heading-actions">
         <div>
-          <p className="eyebrow">Contenu</p>
+          <p className="eyebrow">{contentType === "creation" ? "Portfolio" : "Produits"}</p>
           <h2>{sectionTitle(contentType)}</h2>
-          <p>Gestion des contenus {contentType === "creation" ? "portfolio" : "marketplace"}.</p>
+          <p>{sectionIntro(contentType)}</p>
         </div>
         <button className="button button-primary" type="button" onClick={() => navigateTo(`${path}/new`)}>
-          Nouveau
+          {contentType === "creation" ? "Nouvelle création" : "Nouvelle ressource"}
         </button>
       </div>
 
@@ -81,35 +107,43 @@ export function AdminContentListPage({
       {data?.length ? (
         <div className="admin-list">
           {data.map((item) => (
-            <article className="admin-list-item" key={item.id}>
-              <div className="admin-list-icon">{statusLabels[item.status]}</div>
+            <article className={`admin-list-item is-${contentType}`} key={item.id}>
+              <div className={`admin-list-icon is-${item.status}`}>{statusLabels[item.status]}</div>
               <div className="admin-list-copy">
-                <span>{item.slug}</span>
+                <span>{contentType === "creation" ? `/creations/${item.slug}` : item.externalUrl || `/marketplace/${item.slug}`}</span>
                 <h3>{item.title}</h3>
-                <p>
-                  ordre {item.sortOrder} · {formatDate(item.publishedAt)}
-                </p>
+                <p>Date de publication {publicationLabel(item.publishedAt, item.displayDate)}</p>
               </div>
               <div className="admin-list-actions">
                 <button className="admin-mini-button" type="button" onClick={() => navigateTo(`${path}/${item.id}`)}>
                   Éditer
                 </button>
-                {(["draft", "published", "archived"] as ContentStatus[]).map((status) => (
+                <button className="admin-mini-button" type="button" onClick={() => navigateTo(`${path}/${item.id}/preview`)}>
+                  Prévisualiser
+                </button>
+                {item.status !== "published" ? (
                   <button
                     className="admin-mini-button"
-                    disabled={item.status === status}
-                    key={status}
                     type="button"
-                    onClick={() => void runAction(() => updateAdminContentStatus(item.id, { status }, csrfToken))}
+                    onClick={() => void runAction(() => updateAdminContentStatus(item.id, { status: "published" }, csrfToken))}
                   >
-                    {statusLabels[status]}
+                    Mettre en ligne
                   </button>
-                ))}
+                ) : null}
+                {item.status !== "draft" ? (
+                  <button
+                    className="admin-mini-button"
+                    type="button"
+                    onClick={() => void runAction(() => updateAdminContentStatus(item.id, { status: "draft" }, csrfToken))}
+                  >
+                    Brouillon
+                  </button>
+                ) : null}
                 <button
                   className="admin-mini-button admin-danger"
                   disabled={item.status === "archived"}
                   type="button"
-                  onClick={() => void runAction(() => archiveAdminContent(item.id, csrfToken))}
+                  onClick={() => archiveItem(item.id)}
                 >
                   Archiver
                 </button>

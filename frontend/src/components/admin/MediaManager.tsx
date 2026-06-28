@@ -5,6 +5,13 @@ import { AdminError, isUnauthenticatedError } from "./AdminError";
 
 const mediaKinds: AdminMediaKind[] = ["cover", "gallery", "render", "thumbnail"];
 
+const mediaKindLabels: Record<AdminMediaKind, string> = {
+  cover: "Image principale",
+  gallery: "Galerie",
+  render: "Rendu",
+  thumbnail: "Aperçu",
+};
+
 interface MediaFormState {
   kind: AdminMediaKind;
   alt: string;
@@ -40,6 +47,32 @@ function toInteger(value: string) {
   const parsed = Number.parseInt(value, 10);
 
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function MediaKindChoices({
+  value,
+  onChange,
+  disabled = false,
+}: {
+  value: AdminMediaKind;
+  onChange: (kind: AdminMediaKind) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="admin-choice-group admin-media-kind-group" role="group" aria-label="Rôle de l’image">
+      {mediaKinds.map((kind) => (
+        <button
+          className={`admin-choice${value === kind ? " is-selected" : ""}`}
+          disabled={disabled}
+          key={kind}
+          type="button"
+          onClick={() => onChange(kind)}
+        >
+          {mediaKindLabels[kind]}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export function MediaManager({
@@ -118,7 +151,7 @@ export function MediaManager({
   const uploadMedia = async () => {
     if (!uploadForm.file) {
       setError(null);
-      setNotice("Choisis un fichier avant l’envoi.");
+      setNotice("Choisis une image avant l’envoi.");
       return;
     }
 
@@ -142,7 +175,7 @@ export function MediaManager({
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      setNotice("Média ajouté.");
+      setNotice("Image ajoutée.");
       await loadMedia();
     } catch (nextError) {
       handleError(nextError);
@@ -173,7 +206,7 @@ export function MediaManager({
         csrfToken,
       );
 
-      setNotice("Média mis à jour.");
+      setNotice("Image mise à jour.");
       await loadMedia();
     } catch (nextError) {
       handleError(nextError);
@@ -183,7 +216,7 @@ export function MediaManager({
   };
 
   const removeMedia = async (mediaId: number) => {
-    if (!window.confirm("Supprimer ce média ?")) {
+    if (!window.confirm("Supprimer cette image ? Le fichier sera aussi supprimé si l’API peut le faire en sécurité.")) {
       return;
     }
 
@@ -193,7 +226,7 @@ export function MediaManager({
 
     try {
       await deleteAdminMedia(mediaId, csrfToken);
-      setNotice("Média supprimé.");
+      setNotice("Image supprimée.");
       await loadMedia();
     } catch (nextError) {
       handleError(nextError);
@@ -206,8 +239,9 @@ export function MediaManager({
     <section className="admin-media-manager" aria-labelledby="admin-media-title">
       <div className="admin-media-heading">
         <div>
-          <span>Médias</span>
-          <h3 id="admin-media-title">Médias du contenu</h3>
+          <span>Images</span>
+          <h3 id="admin-media-title">Images du contenu</h3>
+          <p>Ajoute une image principale et des images de galerie. Les aperçus ne sont pas rognés.</p>
         </div>
         <button className="button button-secondary" type="button" onClick={() => void loadMedia()} disabled={loading}>
           Actualiser
@@ -215,8 +249,8 @@ export function MediaManager({
       </div>
 
       <div className="admin-media-upload">
-        <label className="admin-field" htmlFor="media-upload-file">
-          <span>Fichier</span>
+        <label className="admin-field admin-field-wide" htmlFor="media-upload-file">
+          <span>Nouvelle image</span>
           <input
             id="media-upload-file"
             ref={fileInputRef}
@@ -226,28 +260,23 @@ export function MediaManager({
           />
         </label>
 
-        <label className="admin-field" htmlFor="media-upload-kind">
-          <span>Type</span>
-          <select
-            id="media-upload-kind"
-            value={uploadForm.kind}
-            onChange={(event) => updateUploadField("kind", event.target.value as AdminMediaKind)}
-          >
-            {mediaKinds.map((kind) => (
-              <option key={kind} value={kind}>
-                {kind}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="admin-field admin-field-wide">
+          <span>Rôle de l’image</span>
+          <MediaKindChoices value={uploadForm.kind} onChange={(kind) => updateUploadField("kind", kind)} disabled={uploading} />
+        </div>
 
         <label className="admin-field" htmlFor="media-upload-alt">
-          <span>Alt</span>
-          <input id="media-upload-alt" value={uploadForm.alt} onChange={(event) => updateUploadField("alt", event.target.value)} />
+          <span>Texte d’accessibilité</span>
+          <input
+            id="media-upload-alt"
+            value={uploadForm.alt}
+            onChange={(event) => updateUploadField("alt", event.target.value)}
+            placeholder="Facultatif"
+          />
         </label>
 
         <label className="admin-field" htmlFor="media-upload-sort-order">
-          <span>Ordre</span>
+          <span>Position d’affichage</span>
           <input
             id="media-upload-sort-order"
             type="number"
@@ -258,7 +287,7 @@ export function MediaManager({
 
         <div className="admin-media-actions">
           <button className="button button-primary" type="button" disabled={uploading} onClick={() => void uploadMedia()}>
-            {uploading ? "Envoi..." : "Ajouter un média"}
+            {uploading ? "Envoi..." : "Ajouter l’image"}
           </button>
         </div>
       </div>
@@ -266,9 +295,9 @@ export function MediaManager({
       <AdminError error={error} />
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}
 
-      {loading ? <p className="admin-media-empty">Chargement des médias...</p> : null}
+      {loading ? <p className="admin-media-empty">Chargement des images...</p> : null}
 
-      {!loading && mediaItems.length === 0 ? <p className="admin-media-empty">Aucun média pour ce contenu.</p> : null}
+      {!loading && mediaItems.length === 0 ? <p className="admin-media-empty">Aucune image pour ce contenu.</p> : null}
 
       {!loading && mediaItems.length > 0 ? (
         <div className="admin-media-list">
@@ -279,32 +308,31 @@ export function MediaManager({
             return (
               <article className="admin-media-card" key={media.id}>
                 <a className="admin-media-preview" href={media.path} target="_blank" rel="noreferrer">
-                  <img src={media.path} alt={media.alt ?? "Média"} loading="lazy" />
+                  <img src={media.path} alt={media.alt ?? "Image du contenu"} loading="lazy" />
                 </a>
 
                 <div className="admin-media-fields">
-                  <label className="admin-field" htmlFor={`media-kind-${media.id}`}>
-                    <span>Type</span>
-                    <select
-                      id={`media-kind-${media.id}`}
+                  <div className="admin-field admin-field-wide">
+                    <span>Rôle de l’image</span>
+                    <MediaKindChoices
                       value={form.kind}
-                      onChange={(event) => updateEditField(media.id, "kind", event.target.value as AdminMediaKind)}
-                    >
-                      {mediaKinds.map((kind) => (
-                        <option key={kind} value={kind}>
-                          {kind}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      onChange={(kind) => updateEditField(media.id, "kind", kind)}
+                      disabled={isBusy}
+                    />
+                  </div>
 
                   <label className="admin-field" htmlFor={`media-alt-${media.id}`}>
-                    <span>Alt</span>
-                    <input id={`media-alt-${media.id}`} value={form.alt} onChange={(event) => updateEditField(media.id, "alt", event.target.value)} />
+                    <span>Texte d’accessibilité</span>
+                    <input
+                      id={`media-alt-${media.id}`}
+                      value={form.alt}
+                      onChange={(event) => updateEditField(media.id, "alt", event.target.value)}
+                      placeholder="Facultatif"
+                    />
                   </label>
 
                   <label className="admin-field" htmlFor={`media-sort-order-${media.id}`}>
-                    <span>Ordre</span>
+                    <span>Position d’affichage</span>
                     <input
                       id={`media-sort-order-${media.id}`}
                       type="number"

@@ -38,9 +38,8 @@ final class AdminContentRepository
         }
 
         $sql .= '
-            ORDER BY content_items.sort_order ASC,
-                     content_items.published_at DESC,
-                     content_items.id DESC';
+            ORDER BY content_items.display_date ASC,
+                     content_items.id ASC';
 
         $statement = $this->db->prepare($sql);
         $statement->execute($params);
@@ -89,13 +88,16 @@ final class AdminContentRepository
                 description,
                 status,
                 source_context,
+                source_label,
                 client_permission,
                 sketchfab_url,
                 external_url,
                 external_platform,
+                platform_label,
                 price_label,
                 sort_order,
-                published_at
+                published_at,
+                display_date
             ) VALUES (
                 :type,
                 :title,
@@ -104,13 +106,16 @@ final class AdminContentRepository
                 :description,
                 :status,
                 :source_context,
+                :source_label,
                 :client_permission,
                 :sketchfab_url,
                 :external_url,
                 :external_platform,
+                :platform_label,
                 :price_label,
                 :sort_order,
-                $publishedAtSql
+                $publishedAtSql,
+                :display_date
             )
         ";
 
@@ -146,13 +151,16 @@ final class AdminContentRepository
                 description = :description,
                 status = :status,
                 source_context = :source_context,
+                source_label = :source_label,
                 client_permission = :client_permission,
                 sketchfab_url = :sketchfab_url,
                 external_url = :external_url,
                 external_platform = :external_platform,
+                platform_label = :platform_label,
                 price_label = :price_label,
                 sort_order = :sort_order,
-                published_at = $publishedAtSql
+                published_at = $publishedAtSql,
+                display_date = :display_date
             WHERE id = :id
         ";
 
@@ -214,13 +222,16 @@ final class AdminContentRepository
                 content_items.description,
                 content_items.status,
                 content_items.source_context,
+                content_items.source_label,
                 content_items.client_permission,
                 content_items.sketchfab_url,
                 content_items.external_url,
                 content_items.external_platform,
+                content_items.platform_label,
                 content_items.price_label,
                 content_items.sort_order,
                 content_items.published_at,
+                content_items.display_date,
                 content_items.created_at,
                 content_items.updated_at
             FROM content_items';
@@ -240,13 +251,16 @@ final class AdminContentRepository
             'description' => $data['description'],
             'status' => $data['status'],
             'source_context' => $data['source_context'],
+            'source_label' => $data['source_label'],
             'client_permission' => $data['client_permission'] ? 1 : 0,
             'sketchfab_url' => $data['sketchfab_url'],
             'external_url' => $data['external_url'],
             'external_platform' => $data['external_platform'],
+            'platform_label' => $data['platform_label'],
             'price_label' => $data['price_label'],
             'sort_order' => $data['sort_order'],
             'published_at' => $data['published_at'],
+            'display_date' => $data['display_date'],
         ];
     }
 
@@ -295,13 +309,16 @@ final class AdminContentRepository
                 'description' => $item['description'],
                 'status' => (string) $item['status'],
                 'sourceContext' => (string) $item['source_context'],
+                'sourceLabel' => $item['source_label'],
                 'clientPermission' => (bool) $item['client_permission'],
                 'sketchfabUrl' => $item['sketchfab_url'],
                 'externalUrl' => $item['external_url'],
                 'externalPlatform' => $item['external_platform'],
+                'platformLabel' => $item['platform_label'],
                 'priceLabel' => $item['price_label'],
                 'sortOrder' => (int) $item['sort_order'],
                 'publishedAt' => $item['published_at'],
+                'displayDate' => $item['display_date'],
                 'createdAt' => $item['created_at'],
                 'updatedAt' => $item['updated_at'],
                 'media' => $mediaByItem[$id] ?? [],

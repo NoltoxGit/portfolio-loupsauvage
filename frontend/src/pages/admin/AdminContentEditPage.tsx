@@ -16,6 +16,20 @@ function sectionTitle(contentType: ContentType) {
   return contentType === "creation" ? "Création" : "Marketplace";
 }
 
+function pageTitle(contentType: ContentType, isNew: boolean) {
+  if (contentType === "creation") {
+    return isNew ? "Nouvelle création" : "Modifier la création";
+  }
+
+  return isNew ? "Nouvelle ressource" : "Modifier la ressource";
+}
+
+function pageIntro(contentType: ContentType) {
+  return contentType === "creation"
+    ? "Prépare une œuvre ou une commission avant de la mettre en ligne."
+    : "Prépare une ressource vendue ou publiée sur une plateforme externe.";
+}
+
 export function AdminContentEditPage({
   contentType,
   id,
@@ -54,12 +68,19 @@ export function AdminContentEditPage({
       <div className="admin-panel-heading admin-heading-actions">
         <div>
           <p className="eyebrow">{sectionTitle(contentType)}</p>
-          <h2>{isNew ? "Nouveau contenu" : "Édition contenu"}</h2>
-          <p>{contentType === "creation" ? "Type fixe : création." : "Type fixe : marketplace."}</p>
+          <h2>{pageTitle(contentType, isNew)}</h2>
+          <p>{pageIntro(contentType)}</p>
         </div>
-        <button className="button button-secondary" type="button" onClick={() => navigateTo(path)}>
-          Retour
-        </button>
+        <div className="admin-heading-button-group">
+          {!isNew ? (
+            <button className="button button-primary" type="button" onClick={() => navigateTo(`${path}/${id}/preview`)}>
+              Prévisualiser
+            </button>
+          ) : null}
+          <button className="button button-secondary" type="button" onClick={() => navigateTo(path)}>
+            Retour
+          </button>
+        </div>
       </div>
 
       {!isNew && loading ? <LoadingState label="Chargement du contenu..." /> : null}

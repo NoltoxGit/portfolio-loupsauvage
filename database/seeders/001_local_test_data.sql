@@ -6,13 +6,16 @@ INSERT INTO content_items (
     description,
     status,
     source_context,
+    source_label,
     client_permission,
     sketchfab_url,
     external_url,
     external_platform,
+    platform_label,
     price_label,
     sort_order,
-    published_at
+    published_at,
+    display_date
 ) VALUES
 (
     'creation',
@@ -22,13 +25,16 @@ INSERT INTO content_items (
     'Modèle de créature forestière avec silhouette lisible, textures naturelles et rendu adapté à un portfolio Minecraft.',
     'published',
     'personal',
+    NULL,
     0,
     'https://sketchfab.com/3d-models/forest-spirit-placeholder',
     NULL,
     NULL,
     NULL,
+    NULL,
     10,
-    '2026-06-01 10:00:00'
+    '2026-06-01 10:00:00',
+    '2026-06-01'
 ),
 (
     'creation',
@@ -38,13 +44,16 @@ INSERT INTO content_items (
     'Création fantasy destinée aux lobbies, maps aventure et présentations de commandes Minecraft.',
     'published',
     'private_commission',
+    NULL,
     1,
     NULL,
     NULL,
     NULL,
     NULL,
+    NULL,
     20,
-    '2026-06-02 10:00:00'
+    '2026-06-02 10:00:00',
+    '2026-06-02'
 ),
 (
     'marketplace',
@@ -54,13 +63,16 @@ INSERT INTO content_items (
     'Ressource marketplace avec rochers, buissons, branches et petits éléments organiques.',
     'published',
     'marketplace_product',
+    NULL,
     0,
     NULL,
     'https://builtbybit.com/resources/nature-props-pack',
     'builtbybit',
+    NULL,
     'From 12 EUR',
     30,
-    '2026-06-03 10:00:00'
+    '2026-06-03 10:00:00',
+    '2026-06-03'
 ),
 (
     'marketplace',
@@ -70,13 +82,16 @@ INSERT INTO content_items (
     'Ressource marketplace avec objets, panneaux et accessoires médiéval-fantasy.',
     'published',
     'marketplace_product',
+    NULL,
     0,
     NULL,
     'https://mcmodels.net/model/medieval-items-set',
     'mcmodels',
+    NULL,
     'From 18 EUR',
     40,
-    '2026-06-04 10:00:00'
+    '2026-06-04 10:00:00',
+    '2026-06-04'
 ),
 (
     'creation',
@@ -86,13 +101,16 @@ INSERT INTO content_items (
     'Ce contenu de test doit rester invisible dans les endpoints publics.',
     'draft',
     'private_commission',
+    'Dragon privé',
     0,
     NULL,
     NULL,
     NULL,
     NULL,
+    NULL,
     90,
-    NULL
+    NULL,
+    '2026-06-05'
 )
 ON DUPLICATE KEY UPDATE
     type = VALUES(type),
@@ -101,13 +119,16 @@ ON DUPLICATE KEY UPDATE
     description = VALUES(description),
     status = VALUES(status),
     source_context = VALUES(source_context),
+    source_label = VALUES(source_label),
     client_permission = VALUES(client_permission),
     sketchfab_url = VALUES(sketchfab_url),
     external_url = VALUES(external_url),
     external_platform = VALUES(external_platform),
+    platform_label = VALUES(platform_label),
     price_label = VALUES(price_label),
     sort_order = VALUES(sort_order),
-    published_at = VALUES(published_at);
+    published_at = VALUES(published_at),
+    display_date = VALUES(display_date);
 
 DELETE content_media
 FROM content_media
