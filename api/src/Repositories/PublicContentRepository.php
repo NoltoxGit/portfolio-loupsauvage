@@ -81,6 +81,8 @@ final class PublicContentRepository
                 content_items.external_platform,
                 content_items.platform_label,
                 content_items.price_label,
+                content_items.builtbybit_resource_id,
+                content_items.builtbybit_sync_json,
                 content_items.sort_order,
                 content_items.published_at,
                 content_items.display_date
@@ -138,11 +140,44 @@ final class PublicContentRepository
                 'externalPlatform' => $item['external_platform'],
                 'platformLabel' => $item['platform_label'],
                 'priceLabel' => $item['price_label'],
+                'builtbybitResourceId' => $item['builtbybit_resource_id'] ?? null,
+                'builtbybitSyncJson' => $this->publicSyncJson($item['builtbybit_sync_json'] ?? null),
                 'sortOrder' => (int) $item['sort_order'],
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],
                 'media' => $mediaByItem[$id] ?? [],
             ];
         }, $items);
+    }
+
+    private function decodeJson(mixed $value): mixed
+    {
+        if (!is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function publicSyncJson(mixed $value): ?array
+    {
+        $decoded = $this->decodeJson($value);
+
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        return [
+            'resourceId' => $decoded['resourceId'] ?? null,
+            'coverImageUrl' => $decoded['coverImageUrl'] ?? null,
+            'carouselImageUrls' => isset($decoded['carouselImageUrls']) && is_array($decoded['carouselImageUrls'])
+                ? $decoded['carouselImageUrls']
+                : [],
+        ];
     }
 }

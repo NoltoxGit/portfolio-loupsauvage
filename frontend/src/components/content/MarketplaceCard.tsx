@@ -1,17 +1,16 @@
 import type { ContentItem } from "../../types/content";
 import { useI18n } from "../../i18n/useI18n";
-import { coverMedia, mediaLabel, platformLabel, resolveMediaPath } from "./media";
+import { marketplaceImagePath, mediaBackgroundStyle, mediaLabel, platformLabel } from "./media";
 
 export function MarketplaceCard({ item }: { item: ContentItem }) {
   const { t } = useI18n();
-  const cover = coverMedia(item);
-  const image = resolveMediaPath(cover?.path);
+  const image = marketplaceImagePath(item);
   const href = item.externalUrl || "/marketplace";
   const external = /^https?:\/\//i.test(href);
 
   return (
     <article className="product-card" tabIndex={0}>
-      <div className="product-thumb visual-forest" aria-hidden="true">
+      <div className={`product-thumb visual-forest${image ? " has-media-backdrop" : ""}`} aria-hidden="true" style={mediaBackgroundStyle(image)}>
         {image ? <img className="showcase-image" src={image} alt="" loading="lazy" /> : null}
       </div>
       <div className="product-copy">

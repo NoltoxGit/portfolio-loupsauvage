@@ -46,4 +46,9 @@ return [
             'image/gif',
         ],
     ],
+
+    'builtbybit' => [
+        'api_base_url' => 'https://api.builtbybit.com',
+        'api_token' => '',
+    ],
 ];

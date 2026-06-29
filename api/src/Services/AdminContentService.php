@@ -140,6 +140,12 @@ final class AdminContentService
             ]);
         }
 
+        if ($this->violatesCreationVisualRule($existing, $status)) {
+            throw new ApiException('VALIDATION_ERROR', 'Creation cannot be published without an image or Sketchfab link.', 422, [
+                'media' => 'Ajoutez au moins une image ou un lien Sketchfab pour publier cette création.',
+            ]);
+        }
+
         $updated = $this->contents->updateStatus($id, $status);
 
         if ($updated === null) {
@@ -215,10 +221,16 @@ final class AdminContentService
             'external_platform' => $externalPlatform,
             'platform_label' => $this->nullableString($payload, 'platformLabel', $existing['platformLabel'] ?? null, 120, $fields),
             'price_label' => $this->nullableString($payload, 'priceLabel', $existing['priceLabel'] ?? null, 120, $fields),
+            'builtbybit_resource_id' => $this->nullableString($payload, 'builtbybitResourceId', $existing['builtbybitResourceId'] ?? null, 80, $fields),
+            'builtbybit_sync_json' => $this->nullableJson($payload, 'builtbybitSyncJson', $existing['builtbybitSyncJson'] ?? null, $fields),
             'sort_order' => $this->intValue($payload, 'sortOrder', (int) ($existing['sortOrder'] ?? 0), $fields),
             'published_at' => $this->nullableDateTime($payload, 'publishedAt', $existing['publishedAt'] ?? null, $fields),
             'display_date' => $this->requiredDate($payload, 'displayDate', $existing['displayDate'] ?? null, $fields),
         ];
+
+        if ($data['sketchfab_url'] !== null && !$this->isValidSketchfabUrl($data['sketchfab_url'])) {
+            $fields['sketchfabUrl'] = 'Sketchfab URL is invalid.';
+        }
 
         if ($this->violatesPrivateCommissionRule([
             'type' => $data['type'],
@@ -226,6 +238,15 @@ final class AdminContentService
             'clientPermission' => $data['client_permission'],
         ], $data['status'])) {
             $fields['clientPermission'] = 'Client permission is required before publishing this creation.';
+        }
+
+        if ($this->violatesCreationVisualRule([
+            'id' => $existing['id'] ?? null,
+            'type' => $data['type'],
+            'sketchfabUrl' => $data['sketchfab_url'],
+            'media' => $existing['media'] ?? [],
+        ], $data['status'])) {
+            $fields['media'] = 'Ajoutez au moins une image ou un lien Sketchfab pour publier cette création.';
         }
 
         if ($fields !== []) {
@@ -244,6 +265,53 @@ final class AdminContentService
             && ($content['type'] ?? null) === 'creation'
             && ($content['sourceContext'] ?? null) === 'private_commission'
             && (bool) ($content['clientPermission'] ?? false) === false;
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     */
+    private function violatesCreationVisualRule(array $content, string $targetStatus): bool
+    {
+        if ($targetStatus !== 'published' || ($content['type'] ?? null) !== 'creation') {
+            return false;
+        }
+
+        $sketchfabUrl = isset($content['sketchfabUrl']) && is_scalar($content['sketchfabUrl'])
+            ? trim((string) $content['sketchfabUrl'])
+            : '';
+
+        if ($sketchfabUrl !== '' && $this->isValidSketchfabUrl($sketchfabUrl)) {
+            return false;
+        }
+
+        if (isset($content['id']) && is_numeric($content['id']) && $this->contents->mediaCount((int) $content['id']) > 0) {
+            return false;
+        }
+
+        if (isset($content['media']) && is_array($content['media']) && count($content['media']) > 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isValidSketchfabUrl(string $value): bool
+    {
+        $parts = parse_url($value);
+
+        if (!is_array($parts)) {
+            return false;
+        }
+
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = (string) ($parts['path'] ?? '');
+
+        if ($host !== 'sketchfab.com' && !str_ends_with($host, '.sketchfab.com')) {
+            return false;
+        }
+
+        return preg_match('~/models/[a-z0-9]+/embed$~i', $path) === 1
+            || preg_match('~/(?:3d-models/[^/]*-|models/)([a-f0-9]{24,40})~i', $path) === 1;
     }
 
     /**
@@ -338,6 +406,39 @@ final class AdminContentService
         }
 
         return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $fields
+     */
+    private function nullableJson(array $payload, string $key, mixed $fallback, array &$fields): ?string
+    {
+        $value = array_key_exists($key, $payload) ? $payload[$key] : $fallback;
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            json_decode($value, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $fields[$key] = 'This field must be valid JSON.';
+                return null;
+            }
+
+            return $value;
+        }
+
+        $encoded = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if (!is_string($encoded)) {
+            $fields[$key] = 'This field must be JSON serializable.';
+            return null;
+        }
+
+        return $encoded;
     }
 
     /**

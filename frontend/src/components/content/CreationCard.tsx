@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import type { ContentItem } from "../../types/content";
 import { useI18n } from "../../i18n/useI18n";
-import { coverMedia, mediaLabel, resolveMediaPath, sourceContextLabel } from "./media";
+import { mediaBackgroundStyle, mediaLabel, primaryImagePath, sourceContextLabel } from "./media";
+import { hasSketchfabModel, SketchfabEmbed } from "./SketchfabEmbed";
 
 export function CreationCard({
   item,
@@ -15,8 +16,8 @@ export function CreationCard({
   href?: string;
 }) {
   const { t } = useI18n();
-  const cover = coverMedia(item);
-  const image = resolveMediaPath(cover?.path);
+  const image = primaryImagePath(item);
+  const hasSketchfab = !image && hasSketchfabModel(item.sketchfabUrl);
   const span = archive ? 4 : index % 5 === 0 ? 4 : 3;
   const style = {
     "--creation-span": span,
@@ -32,9 +33,11 @@ export function CreationCard({
       style={style}
       aria-label={item.title}
     >
-      <div className="creation-visual visual-forest" aria-hidden="true">
+      <div className={`creation-visual visual-forest${image ? " has-media-backdrop" : ""}${hasSketchfab ? " has-sketchfab-preview" : ""}`} aria-hidden="true" style={mediaBackgroundStyle(image)}>
         {image ? (
           <img className="showcase-image" src={image} alt="" loading="lazy" data-image-position="center" />
+        ) : hasSketchfab ? (
+          <SketchfabEmbed title={item.title} url={item.sketchfabUrl} compact interactive={false} />
         ) : (
           <>
             <span className="visual-cube cube-a"></span>

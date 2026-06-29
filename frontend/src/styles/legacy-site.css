@@ -1549,12 +1549,32 @@ h3 {
 .product-thumb {
   position: relative;
   min-height: 160px;
+  background: #1b261d;
   overflow: hidden;
+}
+
+.creation-visual.has-media-backdrop::before,
+.pack-card-visual.has-media-backdrop::before,
+.product-thumb.has-media-backdrop::before,
+.creation-main-media.has-media-backdrop::before,
+.creation-thumb::before {
+  position: absolute;
+  inset: -18px;
+  z-index: 0;
+  background:
+    linear-gradient(rgba(18, 28, 20, 0.24), rgba(18, 28, 20, 0.34)),
+    var(--media-backdrop-image);
+  background-position: center;
+  background-size: cover;
+  content: "";
+  filter: blur(14px) saturate(1.08);
+  transform: scale(1.08);
 }
 
 .showcase-image {
   position: absolute;
   inset: 0;
+  z-index: 1;
   box-sizing: border-box;
   display: block;
   width: 100%;
@@ -1578,6 +1598,7 @@ h3 {
 .product-thumb::after {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background: linear-gradient(180deg, rgba(30, 30, 30, 0) 45%, rgba(30, 30, 30, 0.18) 100%);
   content: "";
   pointer-events: none;
@@ -1670,14 +1691,47 @@ h3 {
   gap: 12px;
 }
 
+.creation-media-viewer {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.creation-media-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.creation-media-tab {
+  border: 1px solid rgba(31, 111, 58, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--green-dark);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  padding: 9px 14px;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.creation-media-tab.is-active,
+.creation-media-tab:focus-visible {
+  border-color: var(--green);
+  background: var(--green-dark);
+  color: #ffffff;
+  outline: none;
+}
+
 .creation-main-media {
   position: relative;
   min-height: clamp(320px, 48vw, 560px);
   border: 1px solid rgba(31, 111, 58, 0.12);
   border-radius: var(--radius);
-  background:
-    linear-gradient(135deg, rgba(230, 246, 233, 0.86), rgba(255, 255, 255, 0.95)),
-    var(--paper);
+  background: #1b261d;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -1685,6 +1739,7 @@ h3 {
 .creation-main-image {
   position: absolute;
   inset: 0;
+  z-index: 1;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -1717,7 +1772,7 @@ h3 {
   aspect-ratio: 1 / 1;
   border: 2px solid transparent;
   border-radius: 10px;
-  background: var(--green-soft);
+  background: #1b261d;
   cursor: pointer;
   overflow: hidden;
   padding: 0;
@@ -1730,6 +1785,8 @@ h3 {
 }
 
 .creation-thumb-image {
+  position: relative;
+  z-index: 1;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -1767,6 +1824,19 @@ h3 {
   background: var(--ink);
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.sketchfab-frame.is-compact {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sketchfab-frame.is-passive {
+  pointer-events: none;
 }
 
 .sketchfab-frame iframe {

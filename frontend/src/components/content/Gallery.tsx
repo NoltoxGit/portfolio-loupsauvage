@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ContentItem } from "../../types/content";
 import { useI18n } from "../../i18n/useI18n";
-import { resolveMediaPath } from "./media";
+import { mediaBackgroundStyle, resolveMediaPath } from "./media";
 
 export function Gallery({ item }: { item: ContentItem }) {
   const { t } = useI18n();
@@ -20,7 +20,7 @@ export function Gallery({ item }: { item: ContentItem }) {
 
   return (
     <div className="creation-detail-gallery">
-      <div className="creation-main-media" data-gallery-main>
+      <div className="creation-main-media has-media-backdrop" data-gallery-main style={mediaBackgroundStyle(images[active].path)}>
         <img className="creation-main-image" src={images[active].path} alt={images[active].alt || item.title} loading="eager" />
       </div>
 
@@ -32,6 +32,7 @@ export function Gallery({ item }: { item: ContentItem }) {
               className={`creation-thumb${active === index ? " is-active" : ""}`}
               type="button"
               onClick={() => setActive(index)}
+              style={mediaBackgroundStyle(image.path)}
             >
               <img className="creation-thumb-image" src={image.path} alt={image.alt || item.title} loading="lazy" />
             </button>

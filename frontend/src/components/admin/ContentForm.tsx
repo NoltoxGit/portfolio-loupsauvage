@@ -2,13 +2,15 @@ import { FormEvent, ReactNode, useEffect, useState } from "react";
 import {
   archiveAdminContent,
   createAdminContent,
+  previewBuiltByBitResource,
   updateAdminContent,
   updateAdminContentStatus,
 } from "../../api/admin";
-import type { AdminContentItem, AdminContentPayload } from "../../types/admin";
+import type { AdminContentItem, AdminContentPayload, BuiltByBitPreview } from "../../types/admin";
 import type { ContentStatus, ContentType, ExternalPlatform, SourceContext } from "../../types/content";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 import { MediaManager } from "./MediaManager";
+import { hasSketchfabModel } from "../content/SketchfabEmbed";
 
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
 const externalPlatforms: ExternalPlatform[] = ["builtbybit", "mcmodels", "sketchfab", "other"];
@@ -47,6 +49,8 @@ interface ContentFormState {
   externalPlatform: ExternalPlatform | "";
   platformLabel: string;
   priceLabel: string;
+  builtbybitResourceId: string;
+  builtbybitSyncJson: unknown | null;
   sortOrder: string;
   publishedAt: string;
   displayDate: string;
@@ -113,6 +117,8 @@ function defaultState(contentType: ContentType): ContentFormState {
     externalPlatform: contentType === "marketplace" ? "other" : "",
     platformLabel: "",
     priceLabel: "",
+    builtbybitResourceId: "",
+    builtbybitSyncJson: null,
     sortOrder: "0",
     publishedAt: nowInputDateTime(),
     displayDate: currentDate,
@@ -134,6 +140,8 @@ function stateFromItem(item: AdminContentItem): ContentFormState {
     externalPlatform: item.type === "marketplace" ? item.externalPlatform ?? "other" : item.externalPlatform ?? "",
     platformLabel: item.platformLabel ?? "",
     priceLabel: item.priceLabel ?? "",
+    builtbybitResourceId: item.builtbybitResourceId ?? "",
+    builtbybitSyncJson: item.builtbybitSyncJson ?? null,
     sortOrder: String(item.sortOrder),
     publishedAt: toInputDateTime(item.publishedAt) || displayDateToDateTime(item.displayDate),
     displayDate: item.displayDate ?? item.publishedAt?.slice(0, 10) ?? todayDate(),
@@ -196,12 +204,19 @@ export function ContentForm({
   const [error, setError] = useState<unknown>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [mediaCount, setMediaCount] = useState(() => initialItem?.media.length ?? 0);
+  const [builtByBitInput, setBuiltByBitInput] = useState("");
+  const [builtByBitPreview, setBuiltByBitPreview] = useState<BuiltByBitPreview | null>(null);
+  const [builtByBitLoading, setBuiltByBitLoading] = useState(false);
 
   useEffect(() => {
     setForm(initialItem ? stateFromItem(initialItem) : defaultState(contentType));
     setSlugManuallyEdited(Boolean(initialItem?.slug));
     setError(null);
     setNotice(null);
+    setMediaCount(initialItem?.media.length ?? 0);
+    setBuiltByBitInput("");
+    setBuiltByBitPreview(null);
   }, [contentType, initialItem]);
 
   const updateField = <K extends keyof ContentFormState>(key: K, value: ContentFormState[K]) => {
@@ -248,6 +263,8 @@ export function ContentForm({
       externalPlatform: form.externalPlatform === "" ? null : form.externalPlatform,
       platformLabel: isMarketplace && form.externalPlatform === "other" ? trimOrNull(form.platformLabel) : null,
       priceLabel: trimOrNull(form.priceLabel),
+      builtbybitResourceId: isMarketplace ? trimOrNull(form.builtbybitResourceId) : null,
+      builtbybitSyncJson: isMarketplace ? form.builtbybitSyncJson : null,
       sortOrder: Number.parseInt(form.sortOrder, 10) || 0,
       publishedAt: fromInputDateTime(form.publishedAt),
       displayDate: publicationDate,
@@ -263,11 +280,91 @@ export function ContentForm({
     setError(nextError);
   };
 
+  const canPublishCreation = (status: ContentStatus) => {
+    if (isMarketplace || status !== "published") {
+      return true;
+    }
+
+    return hasSketchfabModel(form.sketchfabUrl) || mediaCount > 0;
+  };
+
+  const guardPublishCreation = (status: ContentStatus) => {
+    if (canPublishCreation(status)) {
+      return true;
+    }
+
+    setError(null);
+    setNotice("Ajoutez au moins une image ou un lien Sketchfab pour publier cette création.");
+    return false;
+  };
+
+  const previewBuiltByBit = async () => {
+    const input = builtByBitInput.trim();
+
+    if (!input) {
+      setError(null);
+      setNotice("Colle une URL BuiltByBit ou un ID de ressource.");
+      return;
+    }
+
+    setBuiltByBitLoading(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      setBuiltByBitPreview(await previewBuiltByBitResource({ input }, csrfToken));
+      setNotice("Import BuiltByBit prêt à vérifier.");
+    } catch (nextError) {
+      handleError(nextError);
+    } finally {
+      setBuiltByBitLoading(false);
+    }
+  };
+
+  const applyBuiltByBitPreview = () => {
+    if (!builtByBitPreview) {
+      return;
+    }
+
+    const replacements = [
+      form.title,
+      form.shortDescription,
+      form.description,
+      form.externalUrl,
+      form.priceLabel,
+      form.builtbybitResourceId,
+    ].some((value) => value.trim() !== "");
+
+    if (replacements && !window.confirm("Utiliser ces informations BuiltByBit et remplacer les champs déjà remplis ?")) {
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      title: builtByBitPreview.title || current.title,
+      slug: current.slug || slugify(builtByBitPreview.title),
+      shortDescription: builtByBitPreview.summary || current.shortDescription,
+      description: builtByBitPreview.descriptionBbcode || current.description,
+      externalUrl: builtByBitPreview.externalUrl || current.externalUrl,
+      externalPlatform: "builtbybit",
+      platformLabel: "",
+      priceLabel: builtByBitPreview.priceLabel || current.priceLabel,
+      builtbybitResourceId: builtByBitPreview.resourceId,
+      builtbybitSyncJson: builtByBitPreview.rawSyncJson,
+    }));
+    setNotice("Informations BuiltByBit appliquées. Enregistre pour les conserver.");
+  };
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
     setNotice(null);
+
+    if (!guardPublishCreation(form.status)) {
+      setSubmitting(false);
+      return;
+    }
 
     try {
       const saved =
@@ -277,6 +374,7 @@ export function ContentForm({
 
       setForm(stateFromItem(saved));
       setSlugManuallyEdited(true);
+      setMediaCount(saved.media.length);
       setNotice("Contenu enregistré.");
       onSaved(saved);
     } catch (nextError) {
@@ -288,6 +386,10 @@ export function ContentForm({
 
   const changeStatus = async (status: ContentStatus) => {
     if (!initialItem) {
+      if (!guardPublishCreation(status)) {
+        return;
+      }
+
       updateField("status", status);
       return;
     }
@@ -301,8 +403,13 @@ export function ContentForm({
     setNotice(null);
 
     try {
+      if (!guardPublishCreation(status)) {
+        return;
+      }
+
       const saved = await updateAdminContentStatus(initialItem.id, { status }, csrfToken);
       setForm(stateFromItem(saved));
+      setMediaCount(saved.media.length);
       setNotice(`Visibilité passée en ${statusLabels[status]}.`);
       onSaved(saved);
     } catch (nextError) {
@@ -503,6 +610,55 @@ export function ContentForm({
             </SectionTitle>
           </div>
 
+          <div className="admin-import-panel">
+            <div className="admin-import-copy">
+              <span>Importer depuis BuiltByBit</span>
+              <p>Colle une URL ou un ID de ressource pour pre-remplir la fiche sans exposer le token cote navigateur.</p>
+            </div>
+            <div className="admin-import-row">
+              <label className="admin-field" htmlFor="builtbybit-import-input">
+                <span>URL ou ID</span>
+                <input
+                  id="builtbybit-import-input"
+                  value={builtByBitInput}
+                  onChange={(event) => setBuiltByBitInput(event.target.value)}
+                  placeholder="https://builtbybit.com/resources/..."
+                />
+              </label>
+              <button className="button button-secondary" type="button" disabled={builtByBitLoading} onClick={() => void previewBuiltByBit()}>
+                {builtByBitLoading ? "Previsualisation..." : "Previsualiser l'import"}
+              </button>
+            </div>
+
+            {builtByBitPreview ? (
+              <div className="admin-import-preview">
+                {builtByBitPreview.coverImageUrl ? <img src={builtByBitPreview.coverImageUrl} alt="" loading="lazy" /> : null}
+                <div>
+                  <span>Ressource #{builtByBitPreview.resourceId}</span>
+                  <h4>{builtByBitPreview.title}</h4>
+                  <p>{builtByBitPreview.summary || builtByBitPreview.descriptionBbcode || "Aucun resume fourni."}</p>
+                  <dl>
+                    <div>
+                      <dt>Prix</dt>
+                      <dd>{builtByBitPreview.priceLabel || "Non renseigne"}</dd>
+                    </div>
+                    <div>
+                      <dt>Lien</dt>
+                      <dd>{builtByBitPreview.externalUrl}</dd>
+                    </div>
+                    <div>
+                      <dt>Images</dt>
+                      <dd>{[builtByBitPreview.coverImageUrl, ...builtByBitPreview.carouselImageUrls].filter(Boolean).length}</dd>
+                    </div>
+                  </dl>
+                  <button className="button button-primary" type="button" onClick={applyBuiltByBitPreview}>
+                    Utiliser ces informations
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
           <div className="admin-form-grid">
             <label className="admin-field" htmlFor="content-external-url">
               <FieldTitle help="Adresse de la page de vente ou de téléchargement.">
@@ -561,7 +717,14 @@ export function ContentForm({
         </div>
       )}
 
-      {initialItem ? <MediaManager contentId={initialItem.id} csrfToken={csrfToken} onUnauthenticated={onUnauthenticated} /> : null}
+      {initialItem ? (
+        <MediaManager
+          contentId={initialItem.id}
+          csrfToken={csrfToken}
+          onMediaChanged={(items) => setMediaCount(items.length)}
+          onUnauthenticated={onUnauthenticated}
+        />
+      ) : null}
 
       <AdminError error={error} />
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}
