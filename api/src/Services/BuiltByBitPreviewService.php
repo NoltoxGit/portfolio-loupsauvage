@@ -171,6 +171,14 @@ final class BuiltByBitPreviewService
             $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
             curl_close($curl);
         } else {
+            if (!in_array('https', stream_get_wrappers(), true)) {
+                throw new ApiException(
+                    'BUILTBYBIT_HTTPS_UNAVAILABLE',
+                    'PHP cannot perform HTTPS requests. Enable the curl or openssl extension.',
+                    502
+                );
+            }
+
             $context = stream_context_create([
                 'http' => [
                     'method' => 'GET',
@@ -179,7 +187,7 @@ final class BuiltByBitPreviewService
                     'timeout' => 12,
                 ],
             ]);
-            $body = file_get_contents($url, false, $context);
+            $body = @file_get_contents($url, false, $context);
             $responseHeaders = $http_response_header ?? [];
             $status = $this->statusFromHeaders($responseHeaders);
         }

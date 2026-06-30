@@ -8,6 +8,7 @@ const errorMessages: Record<string, string> = {
   UNAUTHENTICATED: "Session admin expirée. Reconnecte-toi.",
   UPLOAD_ERROR: "Envoi impossible. Vérifie le fichier puis réessaie.",
   BUILTBYBIT_TOKEN_MISSING: "Le token BuiltByBit n’est pas configuré sur le serveur.",
+  BUILTBYBIT_HTTPS_UNAVAILABLE: "PHP ne peut pas faire de requêtes HTTPS. Active l’extension curl ou openssl.",
   BUILTBYBIT_RATE_LIMITED: "BuiltByBit limite temporairement les requêtes. Réessaie dans quelques instants.",
   BUILTBYBIT_AUTH_FAILED: "L’authentification BuiltByBit a échoué côté serveur.",
   BUILTBYBIT_NOT_FOUND: "Cette ressource BuiltByBit est introuvable.",
