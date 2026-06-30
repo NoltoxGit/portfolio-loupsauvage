@@ -7,6 +7,14 @@ const errorMessages: Record<string, string> = {
   CSRF_INVALID: "Session ou action expirée. Recharge la page puis réessaie.",
   UNAUTHENTICATED: "Session admin expirée. Reconnecte-toi.",
   UPLOAD_ERROR: "Envoi impossible. Vérifie le fichier puis réessaie.",
+  BUILTBYBIT_TOKEN_MISSING: "Le token BuiltByBit n’est pas configuré sur le serveur.",
+  BUILTBYBIT_RATE_LIMITED: "BuiltByBit limite temporairement les requêtes. Réessaie dans quelques instants.",
+  BUILTBYBIT_AUTH_FAILED: "L’authentification BuiltByBit a échoué côté serveur.",
+  BUILTBYBIT_NOT_FOUND: "Cette ressource BuiltByBit est introuvable.",
+  BUILTBYBIT_INVALID_RESPONSE: "BuiltByBit a retourné une réponse illisible.",
+  BUILTBYBIT_RESPONSE_INCOMPLETE: "La ressource BuiltByBit ne contient pas assez d’informations.",
+  BUILTBYBIT_REQUEST_FAILED: "La requête vers BuiltByBit a échoué.",
+  BUILTBYBIT_ERROR: "BuiltByBit a retourné une erreur.",
 };
 
 export function isUnauthenticatedError(error: unknown) {

@@ -19,7 +19,7 @@ export function CreationMediaViewer({ item }: { item: ContentItem }) {
   if (hasMedia && hasSketchfab) {
     return (
       <div className="creation-media-viewer">
-        <div className="creation-media-tabs" role="tablist" aria-label="Media de la creation">
+        <div className="creation-media-tabs" role="tablist" aria-label="Médias de la création">
           <button
             className={`creation-media-tab${mode === "media" ? " is-active" : ""}`}
             type="button"
@@ -27,7 +27,7 @@ export function CreationMediaViewer({ item }: { item: ContentItem }) {
             aria-selected={mode === "media"}
             onClick={() => setMode("media")}
           >
-            Medias
+            Médias
           </button>
           <button
             className={`creation-media-tab${mode === "sketchfab" ? " is-active" : ""}`}

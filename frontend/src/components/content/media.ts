@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { ContentItem, ContentMedia } from "../../types/content";
 
 export function resolveMediaPath(path: string | null | undefined): string {
@@ -9,7 +10,60 @@ export function resolveMediaPath(path: string | null | undefined): string {
 }
 
 export function coverMedia(item: ContentItem): ContentMedia | null {
-  return item.media.find((media) => media.kind === "cover") ?? item.media[0] ?? null;
+  return imageMedia(item).find((media) => media.kind === "cover") ?? imageMedia(item)[0] ?? null;
+}
+
+export function imageMedia(item: ContentItem): ContentMedia[] {
+  return item.media.filter((media) => Boolean(resolveMediaPath(media.path)));
+}
+
+export function primaryMedia(item: ContentItem): ContentMedia | null {
+  const media = imageMedia(item);
+
+  return (
+    media.find((entry) => entry.kind === "cover") ??
+    media.find((entry) => entry.kind === "thumbnail") ??
+    media[0] ??
+    null
+  );
+}
+
+export function hasImageMedia(item: ContentItem): boolean {
+  return primaryMedia(item) !== null;
+}
+
+export function primaryImagePath(item: ContentItem): string {
+  const media = primaryMedia(item);
+
+  return media ? resolveMediaPath(media.path) : "";
+}
+
+export function marketplaceImagePath(item: ContentItem): string {
+  const localPath = primaryImagePath(item);
+
+  if (localPath) {
+    return localPath;
+  }
+
+  const sync = item.builtbybitSyncJson;
+
+  if (sync && typeof sync === "object" && "coverImageUrl" in sync && typeof sync.coverImageUrl === "string") {
+    return resolveMediaPath(sync.coverImageUrl);
+  }
+
+  return "";
+}
+
+export function mediaBackgroundStyle(path: string | null | undefined) {
+  const resolved = resolveMediaPath(path);
+
+  if (!resolved) {
+    return undefined;
+  }
+
+  return {
+    "--media-backdrop-image": `url("${resolved.replace(/"/g, "%22")}")`,
+  } as CSSProperties & Record<string, string>;
 }
 
 export function mediaLabel(item: ContentItem): string {

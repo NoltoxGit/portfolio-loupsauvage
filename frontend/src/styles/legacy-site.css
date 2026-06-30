@@ -3323,3 +3323,23 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+.creation-card .showcase-image,
+.product-card .showcase-image {
+  object-fit: cover;
+  padding: 0;
+  transform: scale(1);
+}
+
+.creation-card:hover .showcase-image,
+.creation-card:focus-visible .showcase-image,
+.product-card:hover .showcase-image,
+.product-card:focus-visible .showcase-image,
+.product-card:focus-within:not(:focus) .showcase-image {
+  transform: scale(1.04);
+}
+
+.creation-thumb-image {
+  object-fit: cover;
+  padding: 0;
+}

@@ -613,7 +613,7 @@ export function ContentForm({
           <div className="admin-import-panel">
             <div className="admin-import-copy">
               <span>Importer depuis BuiltByBit</span>
-              <p>Colle une URL ou un ID de ressource pour pre-remplir la fiche sans exposer le token cote navigateur.</p>
+              <p>Colle une URL ou un ID de ressource pour préremplir la fiche sans exposer le token côté navigateur.</p>
             </div>
             <div className="admin-import-row">
               <label className="admin-field" htmlFor="builtbybit-import-input">
@@ -626,7 +626,7 @@ export function ContentForm({
                 />
               </label>
               <button className="button button-secondary" type="button" disabled={builtByBitLoading} onClick={() => void previewBuiltByBit()}>
-                {builtByBitLoading ? "Previsualisation..." : "Previsualiser l'import"}
+                {builtByBitLoading ? "Prévisualisation..." : "Prévisualiser l’import"}
               </button>
             </div>
 
@@ -636,11 +636,11 @@ export function ContentForm({
                 <div>
                   <span>Ressource #{builtByBitPreview.resourceId}</span>
                   <h4>{builtByBitPreview.title}</h4>
-                  <p>{builtByBitPreview.summary || builtByBitPreview.descriptionBbcode || "Aucun resume fourni."}</p>
+                  <p>{builtByBitPreview.summary || builtByBitPreview.descriptionBbcode || "Aucun résumé fourni."}</p>
                   <dl>
                     <div>
                       <dt>Prix</dt>
-                      <dd>{builtByBitPreview.priceLabel || "Non renseigne"}</dd>
+                      <dd>{builtByBitPreview.priceLabel || "Non renseigné"}</dd>
                     </div>
                     <div>
                       <dt>Lien</dt>

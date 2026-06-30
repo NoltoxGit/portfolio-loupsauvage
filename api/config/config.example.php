@@ -23,7 +23,7 @@ return [
         'session_secure' => false,
         'session_same_site' => 'Lax',
         'session_lifetime' => 0,
-        'session_remember_lifetime' => 30 * 24 * 60 * 60,
+        'session_remember_lifetime' => 2592000,
     ],
 
     'database' => [
