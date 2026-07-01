@@ -33,8 +33,10 @@ final class BuiltByBitPreviewService
 
         $title = $this->firstString($resource, ['Title', 'title', 'Name', 'name']);
         $summary = $this->firstString($resource, ['TagLine', 'tagLine', 'Summary', 'summary', 'ShortDescription', 'shortDescription']);
-        $descriptionBbcode = $this->firstString($description, ['bbcode', 'BBCode', 'raw', 'Raw']);
-        $descriptionHtml = $this->firstString($description, ['html', 'Html', 'HTML']);
+        $descriptionBbcode = $this->firstString($description, ['bbcode', 'BBCode', 'raw', 'Raw'])
+            ?: $this->firstString($resource, ['description_raw', 'descriptionRaw', 'description_bbcode', 'descriptionBbcode', 'description']);
+        $descriptionHtml = $this->firstString($description, ['html', 'Html', 'HTML'])
+            ?: $this->firstString($resource, ['description_html', 'descriptionHtml']);
         $externalUrl = $this->resourceUrl($resourceId, $resource);
         $coverImageUrl = $this->coverImageUrl($resource);
         $carouselImageUrls = $this->carouselImageUrls($resource);
@@ -118,18 +120,41 @@ final class BuiltByBitPreviewService
     private function requestResource(string $resourceId, string $token): array
     {
         $baseUrl = rtrim($this->config->string('builtbybit.api_base_url', 'https://api.builtbybit.com'), '/');
-        $url = $baseUrl . '/v2/resources/discover/resources?resource_ids=' . rawurlencode($resourceId) . '&with=Description,Creator';
+        $url = $baseUrl . '/v2/resources/creator/resources?resource_ids=' . rawurlencode($resourceId);
         $response = $this->getJson($url, $token);
 
         if (isset($response['result']) && $response['result'] === 'error') {
-            throw new ApiException('BUILTBYBIT_ERROR', $this->firstString($response, ['message', 'error']) ?: 'BuiltByBit returned an error.', 502);
+            $errorDetails = $this->builtByBitErrorDetails($response);
+
+            if ($this->isScopeError($errorDetails)) {
+                throw new ApiException(
+                    'BUILTBYBIT_CREATOR_SCOPE_REQUIRED',
+                    'BuiltByBit token is missing the resources.creator.resources.view scope.',
+                    502,
+                    [
+                        'scope' => 'Activez resources.creator.resources.view dans les paramètres du token API.',
+                        'builtByBitCode' => $errorDetails['code'],
+                        'builtByBitMessage' => $errorDetails['message'],
+                    ]
+                );
+            }
+
+            throw new ApiException(
+                'BUILTBYBIT_ERROR',
+                $errorDetails['message'] ?: 'BuiltByBit returned an error.',
+                502,
+                [
+                    'builtByBitCode' => $errorDetails['code'],
+                    'builtByBitMessage' => $errorDetails['message'],
+                ]
+            );
         }
 
         $resource = $this->findResource($response, $resourceId);
 
         if ($resource === null) {
-            throw new ApiException('BUILTBYBIT_NOT_FOUND', 'BuiltByBit resource was not found.', 404, [
-                'input' => 'No resource was returned for this id.',
+            throw new ApiException('BUILTBYBIT_RESOURCE_NOT_OWNED', 'BuiltByBit resource was not returned by the creator endpoint.', 404, [
+                'input' => 'Cette ressource BuiltByBit n’appartient probablement pas au compte associé au token, ou l’ID est incorrect.',
             ]);
         }
 
@@ -225,7 +250,7 @@ final class BuiltByBitPreviewService
             }
 
             throw new ApiException(
-                $this->errorCodeForStatus($status),
+                $this->errorCodeForStatus($status, $errorDetails),
                 $this->errorMessageForStatus($status, $errorDetails['message']),
                 $this->internalStatusForBuiltByBitStatus($status),
                 $fields
@@ -272,8 +297,15 @@ final class BuiltByBitPreviewService
         return '';
     }
 
-    private function errorCodeForStatus(int $status): string
+    /**
+     * @param array{code: string, message: string} $errorDetails
+     */
+    private function errorCodeForStatus(int $status, array $errorDetails): string
     {
+        if ($this->isScopeError($errorDetails)) {
+            return 'BUILTBYBIT_CREATOR_SCOPE_REQUIRED';
+        }
+
         return match ($status) {
             401, 403 => 'BUILTBYBIT_AUTH_FAILED',
             404 => 'BUILTBYBIT_NOT_FOUND',
@@ -312,11 +344,28 @@ final class BuiltByBitPreviewService
     private function builtByBitErrorDetails(array $decoded): array
     {
         $error = isset($decoded['error']) && is_array($decoded['error']) ? $decoded['error'] : null;
+        $errorText = isset($decoded['error']) && is_scalar($decoded['error']) ? trim((string) $decoded['error']) : '';
 
         return [
-            'code' => $this->firstString($error, ['code', 'Code']) ?: $this->firstString($decoded, ['code', 'Code']),
-            'message' => $this->firstString($error, ['message', 'Message']) ?: $this->firstString($decoded, ['message', 'Message', 'error']),
+            'code' => $this->firstString($error, ['code', 'Code', 'error_code', 'errorCode'])
+                ?: $this->firstString($decoded, ['code', 'Code', 'error_code', 'errorCode'])
+                ?: $errorText,
+            'message' => $this->firstString($error, ['message', 'Message', 'error_description', 'errorDescription'])
+                ?: $this->firstString($decoded, ['message', 'Message', 'error_description', 'errorDescription'])
+                ?: $errorText,
         ];
+    }
+
+    /**
+     * @param array{code: string, message: string} $errorDetails
+     */
+    private function isScopeError(array $errorDetails): bool
+    {
+        $needle = strtolower($errorDetails['code'] . ' ' . $errorDetails['message']);
+
+        return str_contains($needle, 'tokenscopenotenabled')
+            || str_contains($needle, 'scope not enabled')
+            || str_contains($needle, 'scope');
     }
 
     private function bodyExcerpt(string $body): string
@@ -486,17 +535,60 @@ final class BuiltByBitPreviewService
      */
     private function priceLabel(array $resource): string
     {
-        $value = $this->firstString($resource, ['FinalPrice', 'finalPrice', 'final_price', 'ListPrice', 'listPrice', 'list_price', 'Price', 'price']);
+        foreach (['FinalPrice', 'finalPrice', 'final_price', 'ListPrice', 'listPrice', 'list_price', 'Price', 'price'] as $key) {
+            if (!array_key_exists($key, $resource)) {
+                continue;
+            }
 
-        if ($value === '') {
+            $value = $this->priceValue($resource[$key]);
+
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    private function priceValue(mixed $value): string
+    {
+        if (is_scalar($value)) {
+            $price = trim((string) $value);
+
+            if ($price === '') {
+                return '';
+            }
+
+            if (is_numeric($price) && (float) $price <= 0.0) {
+                return 'Gratuit';
+            }
+
+            return $price;
+        }
+
+        if (!is_array($value)) {
             return '';
         }
 
-        if (is_numeric($value) && (float) $value <= 0.0) {
+        $label = $this->firstString($value, ['formatted', 'Formatted', 'display', 'Display', 'label', 'Label']);
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        $amount = $this->firstString($value, ['amount', 'Amount', 'value', 'Value']);
+
+        if ($amount === '') {
+            return '';
+        }
+
+        if (is_numeric($amount) && (float) $amount <= 0.0) {
             return 'Gratuit';
         }
 
-        return $value;
+        $currency = $this->firstString($value, ['currency', 'Currency', 'currency_code', 'currencyCode', 'code', 'Code']);
+
+        return trim($amount . ' ' . $currency);
     }
 
     /**

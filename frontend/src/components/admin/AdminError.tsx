@@ -10,6 +10,12 @@ const errorMessages: Record<string, string> = {
   BUILTBYBIT_TOKEN_MISSING: "Le token BuiltByBit n’est pas configuré sur le serveur.",
   BUILTBYBIT_HTTPS_UNAVAILABLE: "PHP ne peut pas faire de requêtes HTTPS. Active l’extension curl ou openssl.",
   BUILTBYBIT_CURL_FAILED: "La connexion à BuiltByBit a échoué côté serveur.",
+  BUILTBYBIT_SCOPE_REQUIRED:
+    "Le token BuiltByBit n’a pas le scope requis. Active resources.creator.resources.view dans les paramètres du token API.",
+  BUILTBYBIT_CREATOR_SCOPE_REQUIRED:
+    "Le token BuiltByBit n’a pas le scope requis. Active resources.creator.resources.view dans les paramètres du token API.",
+  BUILTBYBIT_RESOURCE_NOT_OWNED:
+    "Cette ressource BuiltByBit n’appartient probablement pas au compte associé au token, ou l’ID est incorrect.",
   BUILTBYBIT_RATE_LIMITED: "BuiltByBit limite temporairement les requêtes. Réessaie dans quelques instants.",
   BUILTBYBIT_AUTH_FAILED: "L’authentification BuiltByBit a échoué côté serveur.",
   BUILTBYBIT_NOT_FOUND: "Cette ressource BuiltByBit est introuvable.",
