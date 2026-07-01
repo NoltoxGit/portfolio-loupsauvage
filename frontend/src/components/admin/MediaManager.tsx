@@ -1,6 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { deleteAdminMedia, listAdminMedia, updateAdminMedia, uploadAdminMedia } from "../../api/admin";
 import type { AdminMediaItem, AdminMediaKind } from "../../types/admin";
+import { mediaBackgroundStyle } from "../content/media";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 
 const mediaKinds: AdminMediaKind[] = ["cover", "gallery", "render", "thumbnail"];
@@ -78,10 +79,12 @@ function MediaKindChoices({
 export function MediaManager({
   contentId,
   csrfToken,
+  onMediaChanged,
   onUnauthenticated,
 }: {
   contentId: number;
   csrfToken: string;
+  onMediaChanged?: (items: AdminMediaItem[]) => void;
   onUnauthenticated: () => void;
 }) {
   const [mediaItems, setMediaItems] = useState<AdminMediaItem[]>([]);
@@ -119,12 +122,13 @@ export function MediaManager({
 
       setMediaItems(items);
       setEditForms(forms);
+      onMediaChanged?.(items);
     } catch (nextError) {
       handleError(nextError);
     } finally {
       setLoading(false);
     }
-  }, [contentId, handleError]);
+  }, [contentId, handleError, onMediaChanged]);
 
   useEffect(() => {
     void loadMedia();
@@ -307,7 +311,7 @@ export function MediaManager({
 
             return (
               <article className="admin-media-card" key={media.id}>
-                <a className="admin-media-preview" href={media.path} target="_blank" rel="noreferrer">
+                <a className="admin-media-preview has-media-backdrop" href={media.path} target="_blank" rel="noreferrer" style={mediaBackgroundStyle(media.path)}>
                   <img src={media.path} alt={media.alt ?? "Image du contenu"} loading="lazy" />
                 </a>
 

@@ -37,6 +37,8 @@ export interface AdminContentPayload {
   externalPlatform?: ExternalPlatform | null;
   platformLabel?: string | null;
   priceLabel?: string | null;
+  builtbybitResourceId?: string | null;
+  builtbybitSyncJson?: unknown | null;
   sortOrder?: number;
   publishedAt?: string | null;
   displayDate: string;
@@ -98,4 +100,22 @@ export interface AdminMediaDeleteResult {
   id: number;
   deleted: boolean;
   fileDeleted: boolean;
+}
+
+export interface BuiltByBitPreviewPayload {
+  input: string;
+}
+
+export interface BuiltByBitPreview {
+  resourceId: string;
+  title: string;
+  summary: string;
+  descriptionBbcode: string;
+  descriptionHtmlPreview: string;
+  externalUrl: string;
+  coverImageUrl: string;
+  carouselImageUrls: string[];
+  priceLabel: string;
+  categoryLabel: string;
+  rawSyncJson: unknown;
 }

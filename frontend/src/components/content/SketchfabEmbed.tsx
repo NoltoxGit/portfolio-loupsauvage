@@ -1,6 +1,6 @@
 import { useI18n } from "../../i18n/useI18n";
 
-function sketchfabEmbedUrl(value: string | null): string {
+export function sketchfabEmbedUrl(value: string | null): string {
   const raw = String(value || "").trim();
   if (!raw) return "";
 
@@ -19,7 +19,21 @@ function sketchfabEmbedUrl(value: string | null): string {
   return "";
 }
 
-export function SketchfabEmbed({ title, url }: { title: string; url: string | null }) {
+export function hasSketchfabModel(url: string | null): boolean {
+  return Boolean(sketchfabEmbedUrl(url));
+}
+
+export function SketchfabEmbed({
+  title,
+  url,
+  compact = false,
+  interactive = true,
+}: {
+  title: string;
+  url: string | null;
+  compact?: boolean;
+  interactive?: boolean;
+}) {
   const { t } = useI18n();
   const embedUrl = sketchfabEmbedUrl(url);
 
@@ -28,8 +42,14 @@ export function SketchfabEmbed({ title, url }: { title: string; url: string | nu
   }
 
   return (
-    <div className="sketchfab-frame">
-      <iframe title={`Sketchfab - ${title}`} src={embedUrl} allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen></iframe>
+    <div className={`sketchfab-frame${compact ? " is-compact" : ""}${interactive ? "" : " is-passive"}`}>
+      <iframe
+        title={`Sketchfab - ${title}`}
+        src={embedUrl}
+        allow="autoplay; fullscreen; xr-spatial-tracking"
+        allowFullScreen
+        tabIndex={interactive ? undefined : -1}
+      ></iframe>
     </div>
   );
 }

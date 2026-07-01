@@ -27,6 +27,12 @@ export interface ContentItem {
   externalPlatform: ExternalPlatform | null;
   platformLabel: string | null;
   priceLabel: string | null;
+  builtbybitResourceId: string | null;
+  builtbybitSyncJson: {
+    resourceId?: string | null;
+    coverImageUrl?: string | null;
+    carouselImageUrls?: string[];
+  } | null;
   sortOrder: number;
   publishedAt: string | null;
   displayDate: string;

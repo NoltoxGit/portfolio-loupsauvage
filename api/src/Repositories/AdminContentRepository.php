@@ -95,6 +95,8 @@ final class AdminContentRepository
                 external_platform,
                 platform_label,
                 price_label,
+                builtbybit_resource_id,
+                builtbybit_sync_json,
                 sort_order,
                 published_at,
                 display_date
@@ -113,6 +115,8 @@ final class AdminContentRepository
                 :external_platform,
                 :platform_label,
                 :price_label,
+                :builtbybit_resource_id,
+                :builtbybit_sync_json,
                 :sort_order,
                 $publishedAtSql,
                 :display_date
@@ -158,6 +162,8 @@ final class AdminContentRepository
                 external_platform = :external_platform,
                 platform_label = :platform_label,
                 price_label = :price_label,
+                builtbybit_resource_id = :builtbybit_resource_id,
+                builtbybit_sync_json = :builtbybit_sync_json,
                 sort_order = :sort_order,
                 published_at = $publishedAtSql,
                 display_date = :display_date
@@ -210,6 +216,18 @@ final class AdminContentRepository
         return $this->updateStatus($id, 'archived');
     }
 
+    public function mediaCount(int $contentItemId): int
+    {
+        $statement = $this->db->prepare('
+            SELECT COUNT(*)
+            FROM content_media
+            WHERE content_item_id = :content_item_id
+        ');
+        $statement->execute(['content_item_id' => $contentItemId]);
+
+        return (int) $statement->fetchColumn();
+    }
+
     private function baseSelect(): string
     {
         return '
@@ -229,6 +247,8 @@ final class AdminContentRepository
                 content_items.external_platform,
                 content_items.platform_label,
                 content_items.price_label,
+                content_items.builtbybit_resource_id,
+                content_items.builtbybit_sync_json,
                 content_items.sort_order,
                 content_items.published_at,
                 content_items.display_date,
@@ -258,10 +278,23 @@ final class AdminContentRepository
             'external_platform' => $data['external_platform'],
             'platform_label' => $data['platform_label'],
             'price_label' => $data['price_label'],
+            'builtbybit_resource_id' => $data['builtbybit_resource_id'],
+            'builtbybit_sync_json' => $data['builtbybit_sync_json'],
             'sort_order' => $data['sort_order'],
             'published_at' => $data['published_at'],
             'display_date' => $data['display_date'],
         ];
+    }
+
+    private function decodeJson(mixed $value): mixed
+    {
+        if (!is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : null;
     }
 
     /**
@@ -316,6 +349,8 @@ final class AdminContentRepository
                 'externalPlatform' => $item['external_platform'],
                 'platformLabel' => $item['platform_label'],
                 'priceLabel' => $item['price_label'],
+                'builtbybitResourceId' => $item['builtbybit_resource_id'],
+                'builtbybitSyncJson' => $this->decodeJson($item['builtbybit_sync_json'] ?? null),
                 'sortOrder' => (int) $item['sort_order'],
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],

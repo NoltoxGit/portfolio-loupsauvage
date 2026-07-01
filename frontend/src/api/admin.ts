@@ -12,6 +12,8 @@ import type {
   AdminPricingActivePayload,
   AdminPricingPayload,
   AdminPricingPlan,
+  BuiltByBitPreview,
+  BuiltByBitPreviewPayload,
 } from "../types/admin";
 
 const csrfHeaders = (csrfToken: string) => ({
@@ -132,4 +134,11 @@ export const deleteAdminMedia = (id: number, csrfToken: string) =>
   apiRequest<AdminMediaDeleteResult>(`/admin/media/${queryString({ id })}`, {
     method: "DELETE",
     headers: csrfHeaders(csrfToken),
+  });
+
+export const previewBuiltByBitResource = (payload: BuiltByBitPreviewPayload, csrfToken: string) =>
+  apiRequest<BuiltByBitPreview>("/admin/integrations/builtbybit/preview/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
   });

@@ -1,7 +1,6 @@
 import { getCreation } from "../../api/publicSite";
-import { Gallery } from "../../components/content/Gallery";
+import { CreationMediaViewer } from "../../components/content/CreationMediaViewer";
 import { sourceContextLabel } from "../../components/content/media";
-import { SketchfabEmbed } from "../../components/content/SketchfabEmbed";
 import { Layout } from "../../components/layout/Layout";
 import { ErrorState } from "../../components/state/ErrorState";
 import { LoadingState } from "../../components/state/LoadingState";
@@ -34,7 +33,7 @@ export function CreationDetailPage({ slug }: { slug: string }) {
               {t("pages.creationDetail.back")}
             </a>
             <div className="creation-detail-layout">
-              <Gallery item={data} />
+              <CreationMediaViewer item={data} />
               <div className="creation-detail-copy">
                 <p className="eyebrow">{sourceContextLabel(data, t("cards.commission"), t("cards.creation"))}</p>
                 <h1>{data.title}</h1>
@@ -51,15 +50,6 @@ export function CreationDetailPage({ slug }: { slug: string }) {
             </div>
           </section>
 
-          <section className="section creation-model-section" aria-labelledby="creation-model-title">
-            <div className="section-inner">
-              <div className="section-heading">
-                <p className="eyebrow">{t("pages.creationDetail.modelEyebrow")}</p>
-                <h2 id="creation-model-title">{t("pages.creationDetail.modelTitle")}</h2>
-              </div>
-              <SketchfabEmbed title={data.title} url={data.sketchfabUrl} />
-            </div>
-          </section>
         </>
       )}
     </Layout>
