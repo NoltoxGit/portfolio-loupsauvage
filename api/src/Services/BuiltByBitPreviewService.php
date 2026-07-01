@@ -46,6 +46,7 @@ final class BuiltByBitPreviewService
         if ($title === '') {
             throw new ApiException('BUILTBYBIT_RESPONSE_INCOMPLETE', 'BuiltByBit response is missing a resource title.', 502, [
                 'title' => 'Resource title was not present in the BuiltByBit response.',
+                'availableKeys' => implode(', ', array_slice(array_keys($resource), 0, 30)),
             ]);
         }
 
@@ -149,6 +150,8 @@ final class BuiltByBitPreviewService
         $status = 0;
         $responseHeaders = [];
         $body = false;
+        $curlErrno = 0;
+        $curlError = '';
 
         if (function_exists('curl_init')) {
             $curl = curl_init($url);
@@ -168,8 +171,10 @@ final class BuiltByBitPreviewService
             ]);
 
             $body = curl_exec($curl);
+            $curlErrno = curl_errno($curl);
+            $curlError = curl_error($curl);
             $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-            curl_close($curl);
+            unset($curl);
         } else {
             if (!in_array('https', stream_get_wrappers(), true)) {
                 throw new ApiException(
@@ -192,28 +197,48 @@ final class BuiltByBitPreviewService
             $status = $this->statusFromHeaders($responseHeaders);
         }
 
-        if ($status === 429) {
-            throw new ApiException('BUILTBYBIT_RATE_LIMITED', 'BuiltByBit rate limit reached.', 429, [
-                'retryAfter' => $this->headerValue($responseHeaders, 'Retry-After'),
+        if ($body === false || $curlErrno > 0) {
+            throw new ApiException('BUILTBYBIT_CURL_FAILED', 'BuiltByBit request failed before a response was received.', 502, [
+                'curlErrno' => (string) $curlErrno,
+                'curlError' => $curlError,
+                'status' => (string) $status,
             ]);
         }
 
-        if ($status === 401 || $status === 403) {
-            throw new ApiException('BUILTBYBIT_AUTH_FAILED', 'BuiltByBit authentication failed.', 502);
+        $bodyText = (string) $body;
+
+        if ($status < 200 || $status >= 300) {
+            $decodedError = json_decode($bodyText, true);
+            $errorDetails = is_array($decodedError) ? $this->builtByBitErrorDetails($decodedError) : [
+                'code' => '',
+                'message' => '',
+            ];
+            $fields = [
+                'status' => (string) $status,
+                'builtByBitCode' => $errorDetails['code'],
+                'builtByBitMessage' => $errorDetails['message'],
+            ];
+            $retryAfter = $this->headerValue($responseHeaders, 'Retry-After');
+
+            if ($retryAfter !== '') {
+                $fields['retryAfter'] = $retryAfter;
+            }
+
+            throw new ApiException(
+                $this->errorCodeForStatus($status),
+                $this->errorMessageForStatus($status, $errorDetails['message']),
+                $this->internalStatusForBuiltByBitStatus($status),
+                $fields
+            );
         }
 
-        if ($status === 404) {
-            throw new ApiException('BUILTBYBIT_NOT_FOUND', 'BuiltByBit resource was not found.', 404);
-        }
-
-        if ($body === false || $status < 200 || $status >= 300) {
-            throw new ApiException('BUILTBYBIT_REQUEST_FAILED', 'BuiltByBit request failed.', 502);
-        }
-
-        $decoded = json_decode((string) $body, true);
+        $decoded = json_decode($bodyText, true);
 
         if (!is_array($decoded)) {
-            throw new ApiException('BUILTBYBIT_INVALID_RESPONSE', 'BuiltByBit returned invalid JSON.', 502);
+            throw new ApiException('BUILTBYBIT_INVALID_RESPONSE', 'BuiltByBit returned invalid JSON.', 502, [
+                'status' => (string) $status,
+                'bodyExcerpt' => $this->bodyExcerpt($bodyText),
+            ]);
         }
 
         return $decoded;
@@ -247,12 +272,84 @@ final class BuiltByBitPreviewService
         return '';
     }
 
+    private function errorCodeForStatus(int $status): string
+    {
+        return match ($status) {
+            401, 403 => 'BUILTBYBIT_AUTH_FAILED',
+            404 => 'BUILTBYBIT_NOT_FOUND',
+            429 => 'BUILTBYBIT_RATE_LIMITED',
+            default => 'BUILTBYBIT_REQUEST_FAILED',
+        };
+    }
+
+    private function errorMessageForStatus(int $status, string $builtByBitMessage): string
+    {
+        if ($builtByBitMessage !== '') {
+            return $builtByBitMessage;
+        }
+
+        return match ($status) {
+            401, 403 => 'BuiltByBit authentication failed.',
+            404 => 'BuiltByBit resource was not found.',
+            429 => 'BuiltByBit rate limit reached.',
+            default => 'BuiltByBit request failed.',
+        };
+    }
+
+    private function internalStatusForBuiltByBitStatus(int $status): int
+    {
+        return match ($status) {
+            404 => 404,
+            429 => 429,
+            default => 502,
+        };
+    }
+
+    /**
+     * @param array<string, mixed> $decoded
+     * @return array{code: string, message: string}
+     */
+    private function builtByBitErrorDetails(array $decoded): array
+    {
+        $error = isset($decoded['error']) && is_array($decoded['error']) ? $decoded['error'] : null;
+
+        return [
+            'code' => $this->firstString($error, ['code', 'Code']) ?: $this->firstString($decoded, ['code', 'Code']),
+            'message' => $this->firstString($error, ['message', 'Message']) ?: $this->firstString($decoded, ['message', 'Message', 'error']),
+        ];
+    }
+
+    private function bodyExcerpt(string $body): string
+    {
+        $body = trim($body);
+
+        if (strlen($body) <= 1000) {
+            return $body;
+        }
+
+        return substr($body, 0, 1000);
+    }
+
     /**
      * @param array<string, mixed> $response
      * @return array<string, mixed>|null
      */
     private function findResource(array $response, string $resourceId): ?array
     {
+        if (isset($response['data']) && is_array($response['data'])) {
+            foreach (['resources', 'Resources'] as $resourceKey) {
+                if (!isset($response['data'][$resourceKey])) {
+                    continue;
+                }
+
+                $resource = $this->resourceFromValue($response['data'][$resourceKey], $resourceId);
+
+                if ($resource !== null) {
+                    return $resource;
+                }
+            }
+        }
+
         foreach (['resources', 'Resources', 'data', 'Data'] as $key) {
             if (!isset($response[$key])) {
                 continue;
