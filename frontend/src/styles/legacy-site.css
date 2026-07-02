@@ -65,14 +65,14 @@ body {
 }
 
 #root > [data-page],
-.admin-page.with-public-chrome {
+#root > .with-public-chrome {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
 #root > [data-page] > main,
-.admin-page.with-public-chrome > main {
+#root > .with-public-chrome > main {
   flex: 1 0 auto;
 }
 
@@ -1121,7 +1121,8 @@ h3 {
 
 .admin-login-panel {
   width: min(520px, calc(100% - 32px));
-  margin: 0 auto 80px;
+  margin: auto;
+  padding: 48px 0 80px;
 }
 
 .admin-login-card {
