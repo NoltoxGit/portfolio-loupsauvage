@@ -227,7 +227,6 @@ final class AdminContentService
             'price_label' => $this->nullableString($payload, 'priceLabel', $existing['priceLabel'] ?? null, 120, $fields),
             'builtbybit_resource_id' => $this->nullableString($payload, 'builtbybitResourceId', $existing['builtbybitResourceId'] ?? null, 80, $fields),
             'builtbybit_sync_json' => $this->nullableJson($payload, 'builtbybitSyncJson', $existing['builtbybitSyncJson'] ?? null, $fields),
-            'sort_order' => $this->intValue($payload, 'sortOrder', (int) ($existing['sortOrder'] ?? 0), $fields),
             'published_at' => $this->nullableDateTime($payload, 'publishedAt', $existing['publishedAt'] ?? null, $fields),
             'display_date' => $this->requiredDate($payload, 'displayDate', $existing['displayDate'] ?? null, $fields),
         ];
@@ -496,27 +495,6 @@ final class AdminContentService
         }
 
         $fields[$key] = 'This field must be boolean.';
-
-        return $fallback;
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     * @param array<string, string> $fields
-     */
-    private function intValue(array $payload, string $key, int $fallback, array &$fields): int
-    {
-        if (!array_key_exists($key, $payload)) {
-            return $fallback;
-        }
-
-        $value = $payload[$key];
-
-        if (is_int($value) || (is_string($value) && preg_match('/^-?\d+$/', trim($value)) === 1)) {
-            return (int) $value;
-        }
-
-        $fields[$key] = 'This field must be an integer.';
 
         return $fallback;
     }

@@ -82,7 +82,6 @@ final class PublicContentRepository
                 content_items.price_label,
                 content_items.builtbybit_resource_id,
                 content_items.builtbybit_sync_json,
-                content_items.sort_order,
                 content_items.published_at,
                 content_items.display_date
             FROM content_items';
@@ -140,7 +139,6 @@ final class PublicContentRepository
                 'priceLabel' => $item['price_label'],
                 'builtbybitResourceId' => $item['builtbybit_resource_id'] ?? null,
                 'builtbybitSyncJson' => $this->publicSyncJson($item['builtbybit_sync_json'] ?? null),
-                'sortOrder' => (int) $item['sort_order'],
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],
                 'media' => $mediaByItem[$id] ?? [],

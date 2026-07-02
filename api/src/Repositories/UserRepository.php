@@ -18,15 +18,12 @@ final class UserRepository
     public function findActiveOwnerByEmail(string $email): ?array
     {
         $statement = $this->db->prepare('
-            SELECT id, username, email, password_hash, role, is_active
+            SELECT id, username, email, password_hash
             FROM users
-            WHERE email = :email AND role = :role AND is_active = 1
+            WHERE email = :email
             LIMIT 1
         ');
-        $statement->execute([
-            'email' => $email,
-            'role' => 'owner',
-        ]);
+        $statement->execute(['email' => $email]);
 
         $user = $statement->fetch();
 
@@ -39,15 +36,12 @@ final class UserRepository
     public function findOwnerById(int $id): ?array
     {
         $statement = $this->db->prepare('
-            SELECT id, username, email, role, is_active, last_login_at, created_at, updated_at
+            SELECT id, username, email, last_login_at, created_at, updated_at
             FROM users
-            WHERE id = :id AND role = :role AND is_active = 1
+            WHERE id = :id
             LIMIT 1
         ');
-        $statement->execute([
-            'id' => $id,
-            'role' => 'owner',
-        ]);
+        $statement->execute(['id' => $id]);
 
         $user = $statement->fetch();
 
@@ -63,20 +57,17 @@ final class UserRepository
     public function upsertOwner(string $username, string $email, string $passwordHash): void
     {
         $statement = $this->db->prepare('
-            INSERT INTO users (username, email, password_hash, role, is_active)
-            VALUES (:username, :email, :password_hash, :role, 1)
+            INSERT INTO users (username, email, password_hash)
+            VALUES (:username, :email, :password_hash)
             ON DUPLICATE KEY UPDATE
                 username = VALUES(username),
-                password_hash = VALUES(password_hash),
-                role = VALUES(role),
-                is_active = 1
+                password_hash = VALUES(password_hash)
         ');
 
         $statement->execute([
             'username' => $username,
             'email' => $email,
             'password_hash' => $passwordHash,
-            'role' => 'owner',
         ]);
     }
 
@@ -90,7 +81,7 @@ final class UserRepository
             'id' => (int) $user['id'],
             'username' => (string) $user['username'],
             'email' => (string) $user['email'],
-            'role' => (string) $user['role'],
+            'role' => 'owner',
         ];
     }
 }

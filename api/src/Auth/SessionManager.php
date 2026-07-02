@@ -47,7 +47,6 @@ final class SessionManager
         session_regenerate_id(true);
 
         $_SESSION['owner_user_id'] = $ownerId;
-        $_SESSION['owner_role'] = 'owner';
         $_SESSION['remember_me'] = $rememberMe;
 
         return $this->csrfToken();
@@ -83,9 +82,7 @@ final class SessionManager
 
     public function isOwner(): bool
     {
-        $this->start();
-
-        return $this->ownerId() !== null && ($_SESSION['owner_role'] ?? null) === 'owner';
+        return $this->ownerId() !== null;
     }
 
     public function csrfToken(): string
