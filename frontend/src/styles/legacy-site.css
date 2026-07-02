@@ -94,6 +94,9 @@ body::before {
 main,
 .site-footer {
   position: relative;
+}
+
+.site-footer {
   z-index: 1;
 }
 
@@ -102,7 +105,30 @@ main,
 }
 
 body.has-model-modal .nature-particles {
-  z-index: 9999;
+  z-index: 2;
+}
+
+.creation-card,
+.creation-visual,
+.creation-media-viewer,
+.creation-detail-gallery,
+.creation-main-media,
+.creation-thumbs,
+.creation-thumb,
+.sketchfab-frame,
+.pack-card,
+.pack-card-visual,
+.product-card,
+.product-thumb,
+.admin-media-manager,
+.admin-model-manager,
+.admin-media-preview,
+.admin-media-card,
+.admin-gallery-preview,
+.admin-gallery-thumb,
+.admin-preview-surface {
+  position: relative;
+  z-index: 3;
 }
 
 body.nav-open {

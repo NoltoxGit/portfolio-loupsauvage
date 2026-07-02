@@ -832,9 +832,9 @@
     radial-gradient(circle at 25% 15%, rgba(63, 174, 90, 0.2), transparent 36%),
     #111a13;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.35);
-  height: calc(100vh - max(16px, 2vh));
+  height: min(88vh, 880px);
   overflow: hidden;
-  width: calc(100vw - max(16px, 1.6vw));
+  width: min(92vw, 1320px);
 }
 
 .model-modal-panel .model-viewer {
@@ -971,8 +971,8 @@ body.has-model-modal .site-footer {
 
   .model-modal-panel {
     border-radius: calc(var(--radius) - 4px);
-    height: calc(100vh - 12px);
-    width: calc(100vw - 12px);
+    height: calc(100vh - 24px);
+    width: calc(100vw - 24px);
   }
 
   .admin-media-preview {
