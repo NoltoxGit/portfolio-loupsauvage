@@ -39,7 +39,6 @@ interface ContentFormState {
   title: string;
   slug: string;
   shortDescription: string;
-  description: string;
   status: ContentStatus;
   sourceContext: SourceContext;
   sourceLabel: string;
@@ -107,7 +106,6 @@ function defaultState(contentType: ContentType): ContentFormState {
     title: "",
     slug: "",
     shortDescription: "",
-    description: "",
     status: "draft",
     sourceContext: contentType === "marketplace" ? "marketplace_product" : "personal",
     sourceLabel: "",
@@ -130,7 +128,6 @@ function stateFromItem(item: AdminContentItem): ContentFormState {
     title: item.title,
     slug: item.slug,
     shortDescription: item.shortDescription ?? "",
-    description: item.description ?? "",
     status: item.status,
     sourceContext: item.sourceContext,
     sourceLabel: item.sourceLabel ?? "",
@@ -253,7 +250,6 @@ export function ContentForm({
       title: form.title,
       slug: form.slug,
       shortDescription: trimOrNull(form.shortDescription),
-      description: trimOrNull(form.description),
       status: form.status,
       sourceContext,
       sourceLabel: !isMarketplace && sourceContext === "other" ? trimOrNull(form.sourceLabel) : null,
@@ -329,7 +325,6 @@ export function ContentForm({
     const replacements = [
       form.title,
       form.shortDescription,
-      form.description,
       form.externalUrl,
       form.priceLabel,
       form.builtbybitResourceId,
@@ -344,7 +339,6 @@ export function ContentForm({
       title: builtByBitPreview.title || current.title,
       slug: current.slug || slugify(builtByBitPreview.title),
       shortDescription: builtByBitPreview.summary || current.shortDescription,
-      description: builtByBitPreview.descriptionBbcode || current.description,
       externalUrl: builtByBitPreview.externalUrl || current.externalUrl,
       externalPlatform: "builtbybit",
       platformLabel: "",
@@ -519,26 +513,14 @@ export function ContentForm({
           </label>
 
           <label className="admin-field admin-field-wide" htmlFor="content-short-description">
-            <FieldTitle help="Texte court affiché sur les cartes et les listes publiques.">
-              Résumé court
+            <FieldTitle help="Texte court affiché sur les cartes et les pages publiques.">
+              Texte affiché
             </FieldTitle>
             <textarea
               id="content-short-description"
               rows={3}
               value={form.shortDescription}
               onChange={(event) => updateField("shortDescription", event.target.value)}
-            />
-          </label>
-
-          <label className="admin-field admin-field-wide" htmlFor="content-description">
-            <FieldTitle help="Texte principal de la fiche. Les données dynamiques restent dans la base et ne sont pas traduites automatiquement.">
-              Description complète
-            </FieldTitle>
-            <textarea
-              id="content-description"
-              rows={7}
-              value={form.description}
-              onChange={(event) => updateField("description", event.target.value)}
             />
           </label>
         </div>
@@ -636,7 +618,7 @@ export function ContentForm({
                 <div>
                   <span>Ressource #{builtByBitPreview.resourceId}</span>
                   <h4>{builtByBitPreview.title}</h4>
-                  <p>{builtByBitPreview.summary || builtByBitPreview.descriptionBbcode || "Aucun résumé fourni."}</p>
+                  <p>{builtByBitPreview.summary || "Aucun résumé fourni."}</p>
                   <dl>
                     <div>
                       <dt>Prix</dt>

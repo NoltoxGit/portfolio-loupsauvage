@@ -1593,13 +1593,19 @@ h3 {
     transform 220ms ease;
 }
 
+.creation-card .showcase-image,
+.product-card .showcase-image {
+  padding: 0;
+  object-fit: cover;
+}
+
 .creation-visual::after,
 .pack-card-visual::after,
 .product-thumb::after {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0) 45%, rgba(30, 30, 30, 0.18) 100%);
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0) 38%, rgba(30, 30, 30, 0.34) 100%);
   content: "";
   pointer-events: none;
 }
@@ -1622,12 +1628,12 @@ h3 {
   justify-content: flex-end;
   padding: var(--creation-content-padding, 22px);
   background:
-    linear-gradient(180deg, rgba(31, 111, 58, 0.1) 0%, rgba(21, 63, 39, 0.9) 100%),
-    linear-gradient(90deg, rgba(30, 30, 30, 0.42), rgba(30, 30, 30, 0.08));
+    linear-gradient(180deg, rgba(31, 111, 58, 0) 24%, rgba(21, 63, 39, 0.78) 76%, rgba(13, 38, 24, 0.94) 100%),
+    linear-gradient(90deg, rgba(30, 30, 30, 0.22), rgba(30, 30, 30, 0.05));
   color: #ffffff;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
-  transform: translateY(10px);
+  transform: translateY(0);
   transition:
     opacity 170ms ease,
     transform 170ms ease;
@@ -2534,8 +2540,8 @@ h3 {
   border-color: rgba(31, 111, 58, 0.14);
   background: rgba(230, 246, 233, 0.72);
   color: var(--green-dark);
-  opacity: 0;
-  transform: translateY(4px);
+  opacity: 1;
+  transform: none;
 }
 
 .product-card:hover .card-cta,

@@ -35,7 +35,7 @@ export function ContentPreview({ item }: { item: AdminContentItem }) {
         <div className="creation-detail-copy">
           <p className="eyebrow">{sourceContextLabel(item)}</p>
           <h1>{item.title}</h1>
-          <p>{item.description || item.shortDescription}</p>
+          {item.shortDescription ? <p>{item.shortDescription}</p> : null}
         </div>
       </div>
     </div>

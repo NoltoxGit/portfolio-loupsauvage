@@ -1,9 +1,14 @@
+SET @seed_owner_id := (
+    SELECT CASE WHEN COUNT(*) = 1 THEN MIN(id) ELSE NULL END
+    FROM users
+    WHERE role = 'owner' AND is_active = 1
+);
+
 INSERT INTO content_items (
     type,
     title,
     slug,
     short_description,
-    description,
     status,
     source_context,
     source_label,
@@ -15,14 +20,16 @@ INSERT INTO content_items (
     price_label,
     sort_order,
     published_at,
-    display_date
+    display_date,
+    created_by_user_id,
+    updated_by_user_id,
+    published_by_user_id
 ) VALUES
 (
     'creation',
     'Forest Spirit',
     'forest-spirit',
-    'Créature forestière blocky pour serveur Minecraft.',
-    'Modèle de créature forestière avec silhouette lisible, textures naturelles et rendu adapté à un portfolio Minecraft.',
+    'Creature forestiere blocky pour serveur Minecraft.',
     'published',
     'personal',
     NULL,
@@ -34,14 +41,16 @@ INSERT INTO content_items (
     NULL,
     10,
     '2026-06-01 10:00:00',
-    '2026-06-01'
+    '2026-06-01',
+    @seed_owner_id,
+    @seed_owner_id,
+    @seed_owner_id
 ),
 (
     'creation',
     'Crystal Golem',
     'crystal-golem',
-    'Golem magique avec cristaux et détails fantasy.',
-    'Création fantasy destinée aux lobbies, maps aventure et présentations de commandes Minecraft.',
+    'Golem magique avec cristaux et details fantasy.',
     'published',
     'private_commission',
     NULL,
@@ -53,14 +62,16 @@ INSERT INTO content_items (
     NULL,
     20,
     '2026-06-02 10:00:00',
-    '2026-06-02'
+    '2026-06-02',
+    @seed_owner_id,
+    @seed_owner_id,
+    @seed_owner_id
 ),
 (
     'marketplace',
     'Nature Props Pack',
     'nature-props-pack',
-    'Pack de décorations naturelles pour maps Minecraft.',
-    'Ressource marketplace avec rochers, buissons, branches et petits éléments organiques.',
+    'Pack de decorations naturelles pour maps Minecraft.',
     'published',
     'marketplace_product',
     NULL,
@@ -72,14 +83,16 @@ INSERT INTO content_items (
     'From 12 EUR',
     30,
     '2026-06-03 10:00:00',
-    '2026-06-03'
+    '2026-06-03',
+    @seed_owner_id,
+    @seed_owner_id,
+    @seed_owner_id
 ),
 (
     'marketplace',
     'Medieval Items Set',
     'medieval-items-set',
-    'Set médiéval pour boutiques, lobbies et maps.',
-    'Ressource marketplace avec objets, panneaux et accessoires médiéval-fantasy.',
+    'Set medieval pour boutiques, lobbies et maps.',
     'published',
     'marketplace_product',
     NULL,
@@ -91,17 +104,19 @@ INSERT INTO content_items (
     'From 18 EUR',
     40,
     '2026-06-04 10:00:00',
-    '2026-06-04'
+    '2026-06-04',
+    @seed_owner_id,
+    @seed_owner_id,
+    @seed_owner_id
 ),
 (
     'creation',
     'Private Dragon Draft',
     'private-dragon-draft',
-    'Brouillon privé non visible publiquement.',
-    'Ce contenu de test doit rester invisible dans les endpoints publics.',
+    'Brouillon prive non visible publiquement.',
     'draft',
     'private_commission',
-    'Dragon privé',
+    'Dragon prive',
     0,
     NULL,
     NULL,
@@ -110,13 +125,15 @@ INSERT INTO content_items (
     NULL,
     90,
     NULL,
-    '2026-06-05'
+    '2026-06-05',
+    @seed_owner_id,
+    @seed_owner_id,
+    NULL
 )
 ON DUPLICATE KEY UPDATE
     type = VALUES(type),
     title = VALUES(title),
     short_description = VALUES(short_description),
-    description = VALUES(description),
     status = VALUES(status),
     source_context = VALUES(source_context),
     source_label = VALUES(source_label),
@@ -128,7 +145,10 @@ ON DUPLICATE KEY UPDATE
     price_label = VALUES(price_label),
     sort_order = VALUES(sort_order),
     published_at = VALUES(published_at),
-    display_date = VALUES(display_date);
+    display_date = VALUES(display_date),
+    created_by_user_id = VALUES(created_by_user_id),
+    updated_by_user_id = VALUES(updated_by_user_id),
+    published_by_user_id = VALUES(published_by_user_id);
 
 DELETE content_media
 FROM content_media
@@ -146,29 +166,31 @@ INSERT INTO content_media (
     kind,
     path,
     alt,
-    sort_order
+    sort_order,
+    uploaded_by_user_id,
+    updated_by_user_id
 )
-SELECT id, 'cover', '/assets/hero-zordix.webp', 'Aperçu Forest Spirit', 10
+SELECT id, 'cover', '/assets/hero-zordix.webp', 'Apercu Forest Spirit', 10, @seed_owner_id, @seed_owner_id
 FROM content_items
 WHERE slug = 'forest-spirit'
 UNION ALL
-SELECT id, 'gallery', '/uploads/placeholders/forest-spirit-render.webp', 'Render placeholder Forest Spirit', 20
+SELECT id, 'gallery', '/uploads/placeholders/forest-spirit-render.webp', 'Render placeholder Forest Spirit', 20, @seed_owner_id, @seed_owner_id
 FROM content_items
 WHERE slug = 'forest-spirit'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/crystal-golem-cover.webp', 'Aperçu Crystal Golem', 10
+SELECT id, 'cover', '/uploads/placeholders/crystal-golem-cover.webp', 'Apercu Crystal Golem', 10, @seed_owner_id, @seed_owner_id
 FROM content_items
 WHERE slug = 'crystal-golem'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/nature-props-pack-cover.webp', 'Aperçu Nature Props Pack', 10
+SELECT id, 'cover', '/uploads/placeholders/nature-props-pack-cover.webp', 'Apercu Nature Props Pack', 10, @seed_owner_id, @seed_owner_id
 FROM content_items
 WHERE slug = 'nature-props-pack'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/medieval-items-set-cover.webp', 'Aperçu Medieval Items Set', 10
+SELECT id, 'cover', '/uploads/placeholders/medieval-items-set-cover.webp', 'Apercu Medieval Items Set', 10, @seed_owner_id, @seed_owner_id
 FROM content_items
 WHERE slug = 'medieval-items-set'
 UNION ALL
-SELECT id, 'cover', '/uploads/placeholders/private-dragon-draft-cover.webp', 'Aperçu brouillon Private Dragon Draft', 10
+SELECT id, 'cover', '/uploads/placeholders/private-dragon-draft-cover.webp', 'Apercu brouillon Private Dragon Draft', 10, @seed_owner_id, @seed_owner_id
 FROM content_items
 WHERE slug = 'private-dragon-draft';
 
@@ -180,37 +202,49 @@ INSERT INTO pricing_plans (
     description,
     features_json,
     sort_order,
-    is_active
+    is_active,
+    created_by_user_id,
+    updated_by_user_id,
+    published_by_user_id
 ) VALUES
 (
     'simple-model',
-    'Modèle simple',
+    'Modele simple',
     'Starter',
-    'À partir de 15 EUR',
-    'Modèle léger pour item, prop ou petite créature.',
-    '["Item ou petit prop", "Texture simple incluse", "Idéal pour tester une idée"]',
+    'A partir de 15 EUR',
+    'Modele leger pour item, prop ou petite creature.',
+    '["Item ou petit prop", "Texture simple incluse", "Ideal pour tester une idee"]',
     10,
-    1
+    1,
+    @seed_owner_id,
+    @seed_owner_id,
+    @seed_owner_id
 ),
 (
     'detailed-model',
-    'Modèle détaillé',
-    'Le plus demandé',
-    'À partir de 35 EUR',
-    'Création plus complète avec silhouette travaillée et rendu propre.',
-    '["Détails et silhouette soignés", "Texture prête à utiliser", "Render de présentation"]',
+    'Modele detaille',
+    'Le plus demande',
+    'A partir de 35 EUR',
+    'Creation plus complete avec silhouette travaillee et rendu propre.',
+    '["Details et silhouette soignes", "Texture prete a utiliser", "Render de presentation"]',
     20,
-    1
+    1,
+    @seed_owner_id,
+    @seed_owner_id,
+    @seed_owner_id
 ),
 (
     'inactive-test-plan',
     'Offre inactive de test',
-    'Masquée',
-    'Non affiché',
+    'Masquee',
+    'Non affiche',
     'Cette offre doit rester invisible dans les endpoints publics.',
-    '["Invisible côté public"]',
+    '["Invisible cote public"]',
     90,
-    0
+    0,
+    @seed_owner_id,
+    @seed_owner_id,
+    NULL
 )
 ON DUPLICATE KEY UPDATE
     title = VALUES(title),
@@ -219,4 +253,7 @@ ON DUPLICATE KEY UPDATE
     description = VALUES(description),
     features_json = VALUES(features_json),
     sort_order = VALUES(sort_order),
-    is_active = VALUES(is_active);
+    is_active = VALUES(is_active),
+    created_by_user_id = VALUES(created_by_user_id),
+    updated_by_user_id = VALUES(updated_by_user_id),
+    published_by_user_id = VALUES(published_by_user_id);

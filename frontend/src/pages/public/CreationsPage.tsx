@@ -35,7 +35,22 @@ export function CreationsPage() {
             <h2 id="archive-grid-title">{t("pages.creations.galleryTitle")}</h2>
             <p>{t("pages.creations.galleryText")}</p>
           </div>
-          {loading ? <LoadingState /> : error || !data ? <ErrorState /> : <div className="creations-grid creations-archive-grid">{data.map((item, index) => <CreationCard key={item.id} item={item} index={index} archive />)}</div>}
+          {loading ? (
+            <LoadingState />
+          ) : error || !data ? (
+            <ErrorState />
+          ) : data.length === 0 ? (
+            <div className="empty-state">
+              <strong>Aucune creation publiee pour le moment.</strong>
+              <p>Les prochains projets apparaitront ici des leur mise en ligne.</p>
+            </div>
+          ) : (
+            <div className="creations-grid creations-archive-grid">
+              {data.map((item, index) => (
+                <CreationCard key={item.id} item={item} index={index} archive />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>

@@ -18,7 +18,7 @@ final class AdminPricingRepository
     public function list(): array
     {
         $statement = $this->db->prepare('
-            SELECT id, slug, title, subtitle, price_label, description, features_json, sort_order, is_active, created_at, updated_at
+            SELECT id, slug, title, subtitle, price_label, description, features_json, sort_order, is_active, created_by_user_id, updated_by_user_id, published_by_user_id, created_at, updated_at
             FROM pricing_plans
             ORDER BY sort_order ASC, id ASC
         ');
@@ -33,7 +33,7 @@ final class AdminPricingRepository
     public function findById(int $id): ?array
     {
         $statement = $this->db->prepare('
-            SELECT id, slug, title, subtitle, price_label, description, features_json, sort_order, is_active, created_at, updated_at
+            SELECT id, slug, title, subtitle, price_label, description, features_json, sort_order, is_active, created_by_user_id, updated_by_user_id, published_by_user_id, created_at, updated_at
             FROM pricing_plans
             WHERE id = :id
             LIMIT 1
@@ -60,7 +60,10 @@ final class AdminPricingRepository
                 description,
                 features_json,
                 sort_order,
-                is_active
+                is_active,
+                created_by_user_id,
+                updated_by_user_id,
+                published_by_user_id
             ) VALUES (
                 :slug,
                 :title,
@@ -69,7 +72,10 @@ final class AdminPricingRepository
                 :description,
                 :features_json,
                 :sort_order,
-                :is_active
+                :is_active,
+                :created_by_user_id,
+                :updated_by_user_id,
+                :published_by_user_id
             )
         ');
         $statement->execute($this->params($data));
@@ -96,9 +102,12 @@ final class AdminPricingRepository
                 description = :description,
                 features_json = :features_json,
                 sort_order = :sort_order,
-                is_active = :is_active
+                is_active = :is_active,
+                updated_by_user_id = :updated_by_user_id,
+                published_by_user_id = :published_by_user_id
             WHERE id = :id
         ');
+        unset($params['created_by_user_id']);
         $statement->execute($params);
 
         return $this->findById($id);
@@ -107,16 +116,26 @@ final class AdminPricingRepository
     /**
      * @return array<string, mixed>|null
      */
-    public function setActive(int $id, bool $isActive): ?array
+    public function setActive(int $id, bool $isActive, ?int $ownerId = null): ?array
     {
         $statement = $this->db->prepare('
             UPDATE pricing_plans
-            SET is_active = :is_active
+            SET
+                is_active = :is_active,
+                updated_by_user_id = :updated_by_user_id,
+                published_by_user_id = CASE
+                    WHEN :is_active_for_publish = 1 AND published_by_user_id IS NULL
+                        THEN :published_by_user_id
+                    ELSE published_by_user_id
+                END
             WHERE id = :id
         ');
         $statement->execute([
             'id' => $id,
             'is_active' => $isActive ? 1 : 0,
+            'is_active_for_publish' => $isActive ? 1 : 0,
+            'updated_by_user_id' => $ownerId,
+            'published_by_user_id' => $isActive ? $ownerId : null,
         ]);
 
         return $this->findById($id);
@@ -137,6 +156,9 @@ final class AdminPricingRepository
             'features_json' => json_encode($data['features'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'sort_order' => $data['sort_order'],
             'is_active' => $data['is_active'] ? 1 : 0,
+            'created_by_user_id' => $data['created_by_user_id'] ?? null,
+            'updated_by_user_id' => $data['updated_by_user_id'] ?? null,
+            'published_by_user_id' => $data['published_by_user_id'] ?? null,
         ];
     }
 
@@ -158,6 +180,9 @@ final class AdminPricingRepository
             'features' => is_array($features) ? array_values($features) : [],
             'sortOrder' => (int) $plan['sort_order'],
             'isActive' => (bool) $plan['is_active'],
+            'createdByUserId' => isset($plan['created_by_user_id']) ? (int) $plan['created_by_user_id'] : null,
+            'updatedByUserId' => isset($plan['updated_by_user_id']) ? (int) $plan['updated_by_user_id'] : null,
+            'publishedByUserId' => isset($plan['published_by_user_id']) ? (int) $plan['published_by_user_id'] : null,
             'createdAt' => $plan['created_at'],
             'updatedAt' => $plan['updated_at'],
         ];

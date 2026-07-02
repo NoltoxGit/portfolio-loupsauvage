@@ -67,7 +67,7 @@ export function mediaBackgroundStyle(path: string | null | undefined) {
 }
 
 export function mediaLabel(item: ContentItem): string {
-  return item.shortDescription || item.description || item.title;
+  return item.shortDescription || item.title;
 }
 
 export function sourceContextLabel(item: ContentItem, commissionLabel = "Commission", creationLabel = "Création"): string {

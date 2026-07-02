@@ -67,6 +67,7 @@ final class AdminMediaRepository
         string $path,
         ?string $alt,
         int $sortOrder,
+        ?int $ownerId = null,
     ): array {
         $statement = $this->db->prepare('
             INSERT INTO content_media (
@@ -74,13 +75,17 @@ final class AdminMediaRepository
                 kind,
                 path,
                 alt,
-                sort_order
+                sort_order,
+                uploaded_by_user_id,
+                updated_by_user_id
             ) VALUES (
                 :content_item_id,
                 :kind,
                 :path,
                 :alt,
-                :sort_order
+                :sort_order,
+                :uploaded_by_user_id,
+                :updated_by_user_id
             )
         ');
         $statement->execute([
@@ -89,6 +94,8 @@ final class AdminMediaRepository
             'path' => $path,
             'alt' => $alt,
             'sort_order' => $sortOrder,
+            'uploaded_by_user_id' => $ownerId,
+            'updated_by_user_id' => $ownerId,
         ]);
 
         return $this->findById((int) $this->db->lastInsertId()) ?? [];
@@ -97,14 +104,15 @@ final class AdminMediaRepository
     /**
      * @return array<string, mixed>|null
      */
-    public function update(int $id, string $kind, ?string $alt, int $sortOrder): ?array
+    public function update(int $id, string $kind, ?string $alt, int $sortOrder, ?int $ownerId = null): ?array
     {
         $statement = $this->db->prepare('
             UPDATE content_media
             SET
                 kind = :kind,
                 alt = :alt,
-                sort_order = :sort_order
+                sort_order = :sort_order,
+                updated_by_user_id = :updated_by_user_id
             WHERE id = :id
         ');
         $statement->execute([
@@ -112,6 +120,7 @@ final class AdminMediaRepository
             'kind' => $kind,
             'alt' => $alt,
             'sort_order' => $sortOrder,
+            'updated_by_user_id' => $ownerId,
         ]);
 
         return $this->findById($id);
@@ -136,6 +145,8 @@ final class AdminMediaRepository
                 path,
                 alt,
                 sort_order,
+                uploaded_by_user_id,
+                updated_by_user_id,
                 created_at
             FROM content_media';
     }
@@ -153,6 +164,8 @@ final class AdminMediaRepository
             'path' => (string) $row['path'],
             'alt' => $row['alt'],
             'sortOrder' => (int) $row['sort_order'],
+            'uploadedByUserId' => isset($row['uploaded_by_user_id']) ? (int) $row['uploaded_by_user_id'] : null,
+            'updatedByUserId' => isset($row['updated_by_user_id']) ? (int) $row['updated_by_user_id'] : null,
             'createdAt' => $row['created_at'],
         ];
     }
