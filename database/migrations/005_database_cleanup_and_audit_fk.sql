@@ -1,6 +1,11 @@
 -- Phase 10C-fix: database cleanup and audit foreign keys.
--- users(id) is the existing owner table/key. This migration does not alter the users table.
+-- users(id) is the existing owner table/key.
+-- This migration removes obsolete mono-owner flags while keeping users identity/auth columns.
 -- content_items.sort_order is removed because content ordering is display_date ASC, id ASC.
+
+ALTER TABLE users
+    DROP COLUMN IF EXISTS role,
+    DROP COLUMN IF EXISTS is_active;
 
 ALTER TABLE content_items
     DROP INDEX IF EXISTS idx_content_sort_order,
