@@ -23,7 +23,8 @@ try {
     }
 
     $db = (new Connection($config))->pdo();
-    (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize($method !== 'GET');
+    $auth = (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize($method !== 'GET');
+    $ownerId = ownerIdFromAuth($auth);
 
     $service = new AdminContentService(new AdminContentRepository($db));
 
@@ -40,16 +41,16 @@ try {
     }
 
     if ($method === 'POST') {
-        Response::success($service->create($request->json()), 201);
+        Response::success($service->create($request->json(), $ownerId), 201);
         return;
     }
 
     if ($method === 'PUT') {
-        Response::success($service->update(queryId($request->query()), $request->json()));
+        Response::success($service->update(queryId($request->query()), $request->json(), $ownerId));
         return;
     }
 
-    Response::success($service->archive(queryId($request->query())));
+    Response::success($service->archive(queryId($request->query()), $ownerId));
 } catch (ApiException $error) {
     Response::error($error->apiCode(), $error->getMessage(), $error->status(), $error->fields());
 } catch (Throwable $error) {
@@ -70,4 +71,14 @@ function queryId(array $query): int
     }
 
     return (int) $id;
+}
+
+/**
+ * @param array<string, mixed> $auth
+ */
+function ownerIdFromAuth(array $auth): ?int
+{
+    $owner = $auth['owner'] ?? null;
+
+    return is_array($owner) && isset($owner['id']) && is_numeric($owner['id']) ? (int) $owner['id'] : null;
 }

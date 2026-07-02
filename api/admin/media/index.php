@@ -23,7 +23,8 @@ try {
     }
 
     $db = (new Connection($config))->pdo();
-    (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize($method !== 'GET');
+    $auth = (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize($method !== 'GET');
+    $ownerId = ownerIdFromAuth($auth);
 
     $service = new AdminMediaService(new AdminMediaRepository($db), $config);
 
@@ -33,7 +34,7 @@ try {
     }
 
     if ($method === 'PUT') {
-        Response::success($service->update($request->query(), $request->json()));
+        Response::success($service->update($request->query(), $request->json(), $ownerId));
         return;
     }
 
@@ -42,4 +43,14 @@ try {
     Response::error($error->apiCode(), $error->getMessage(), $error->status(), $error->fields());
 } catch (Throwable $error) {
     Response::error('SERVER_ERROR', 'Unable to handle admin media request.', 500);
+}
+
+/**
+ * @param array<string, mixed> $auth
+ */
+function ownerIdFromAuth(array $auth): ?int
+{
+    $owner = $auth['owner'] ?? null;
+
+    return is_array($owner) && isset($owner['id']) && is_numeric($owner['id']) ? (int) $owner['id'] : null;
 }

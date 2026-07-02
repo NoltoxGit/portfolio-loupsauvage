@@ -40,9 +40,12 @@ final class AdminPricingService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function create(array $payload): array
+    public function create(array $payload, ?int $ownerId = null): array
     {
         $data = $this->validatePayload($payload, null);
+        $data['created_by_user_id'] = $ownerId;
+        $data['updated_by_user_id'] = $ownerId;
+        $data['published_by_user_id'] = $data['is_active'] ? $ownerId : null;
 
         try {
             return $this->pricing->create($data);
@@ -56,7 +59,7 @@ final class AdminPricingService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function update(int $id, array $payload): array
+    public function update(int $id, array $payload, ?int $ownerId = null): array
     {
         $existing = $this->pricing->findById($id);
 
@@ -65,6 +68,8 @@ final class AdminPricingService
         }
 
         $data = $this->validatePayload($payload, $existing);
+        $data['updated_by_user_id'] = $ownerId;
+        $data['published_by_user_id'] = $this->publishedByUserId($data['is_active'], $existing, $ownerId);
 
         try {
             $updated = $this->pricing->update($id, $data);
@@ -84,7 +89,7 @@ final class AdminPricingService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function setActive(int $id, array $payload): array
+    public function setActive(int $id, array $payload, ?int $ownerId = null): array
     {
         if (!array_key_exists('isActive', $payload)) {
             throw new ApiException('VALIDATION_ERROR', 'Invalid pricing active payload.', 422, [
@@ -99,7 +104,7 @@ final class AdminPricingService
             throw new ApiException('VALIDATION_ERROR', 'Invalid pricing active payload.', 422, $fields);
         }
 
-        $updated = $this->pricing->setActive($id, $isActive);
+        $updated = $this->pricing->setActive($id, $isActive, $ownerId);
 
         if ($updated === null) {
             throw new ApiException('NOT_FOUND', 'Pricing plan not found.', 404);
@@ -133,6 +138,24 @@ final class AdminPricingService
         }
 
         return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $existing
+     */
+    private function publishedByUserId(bool $isActive, array $existing, ?int $ownerId): ?int
+    {
+        if (!$isActive) {
+            return isset($existing['publishedByUserId']) && is_numeric($existing['publishedByUserId'])
+                ? (int) $existing['publishedByUserId']
+                : null;
+        }
+
+        if (isset($existing['publishedByUserId']) && is_numeric($existing['publishedByUserId'])) {
+            return (int) $existing['publishedByUserId'];
+        }
+
+        return $ownerId;
     }
 
     /**

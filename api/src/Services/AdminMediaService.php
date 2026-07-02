@@ -43,7 +43,7 @@ final class AdminMediaService
      * @param array<string, mixed> $files
      * @return array<string, mixed>
      */
-    public function upload(array $payload, array $files): array
+    public function upload(array $payload, array $files, ?int $ownerId = null): array
     {
         $contentItemId = $this->positiveInt($payload, 'contentItemId');
         $this->ensureContentExists($contentItemId);
@@ -81,7 +81,7 @@ final class AdminMediaService
         }
 
         try {
-            return $this->media->create($contentItemId, $kind, $publicPath, $alt, $sortOrder);
+            return $this->media->create($contentItemId, $kind, $publicPath, $alt, $sortOrder, $ownerId);
         } catch (Throwable $error) {
             $this->deletePhysicalFile($publicPath);
             throw $error;
@@ -93,7 +93,7 @@ final class AdminMediaService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function update(array $query, array $payload): array
+    public function update(array $query, array $payload, ?int $ownerId = null): array
     {
         $id = $this->positiveInt($query, 'id');
         $existing = $this->findExisting($id);
@@ -103,6 +103,7 @@ final class AdminMediaService
             $this->requiredKind($payload),
             $this->optionalString($payload, 'alt', $existing['alt'], 255),
             $this->intValue($payload, 'sortOrder', (int) $existing['sortOrder']),
+            $ownerId,
         );
 
         if ($updated === null) {

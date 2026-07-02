@@ -22,11 +22,12 @@ try {
     }
 
     $db = (new Connection($config))->pdo();
-    (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize(true);
+    $auth = (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize(true);
+    $ownerId = ownerIdFromAuth($auth);
 
     $service = new AdminPricingService(new AdminPricingRepository($db));
 
-    Response::success($service->setActive(queryId($request->query()), $request->json()));
+    Response::success($service->setActive(queryId($request->query()), $request->json(), $ownerId));
 } catch (ApiException $error) {
     Response::error($error->apiCode(), $error->getMessage(), $error->status(), $error->fields());
 } catch (Throwable $error) {
@@ -47,4 +48,14 @@ function queryId(array $query): int
     }
 
     return (int) $id;
+}
+
+/**
+ * @param array<string, mixed> $auth
+ */
+function ownerIdFromAuth(array $auth): ?int
+{
+    $owner = $auth['owner'] ?? null;
+
+    return is_array($owner) && isset($owner['id']) && is_numeric($owner['id']) ? (int) $owner['id'] : null;
 }

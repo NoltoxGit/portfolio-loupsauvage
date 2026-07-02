@@ -9,6 +9,8 @@ export interface ContentMedia {
   path: string;
   alt: string | null;
   sortOrder: number;
+  uploadedByUserId?: number | null;
+  updatedByUserId?: number | null;
 }
 
 export interface ContentItem {
@@ -17,7 +19,6 @@ export interface ContentItem {
   title: string;
   slug: string;
   shortDescription: string | null;
-  description: string | null;
   status?: ContentStatus;
   sourceContext: SourceContext;
   sourceLabel: string | null;
@@ -37,4 +38,7 @@ export interface ContentItem {
   publishedAt: string | null;
   displayDate: string;
   media: ContentMedia[];
+  createdByUserId?: number | null;
+  updatedByUserId?: number | null;
+  publishedByUserId?: number | null;
 }

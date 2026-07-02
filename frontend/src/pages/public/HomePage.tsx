@@ -51,7 +51,22 @@ export function HomePage() {
             <h2 id="creations-title">{t("pages.home.creationsTitle")}</h2>
             <p>{t("pages.home.creationsText")}</p>
           </div>
-          {loading ? <LoadingState /> : error || !data ? <ErrorState /> : <div className="creations-grid">{data.latestCreations.map((item, index) => <CreationCard key={item.id} item={item} index={index} />)}</div>}
+          {loading ? (
+            <LoadingState />
+          ) : error || !data ? (
+            <ErrorState />
+          ) : data.latestCreations.length === 0 ? (
+            <div className="empty-state">
+              <strong>Aucune creation publiee.</strong>
+              <p>Cette section se remplira avec les prochaines mises en ligne.</p>
+            </div>
+          ) : (
+            <div className="creations-grid">
+              {data.latestCreations.map((item, index) => (
+                <CreationCard key={item.id} item={item} index={index} />
+              ))}
+            </div>
+          )}
           <div className="section-action">
             <a className="button button-dark" href="/creations">
               {t("pages.home.creationsAll")}
@@ -86,7 +101,22 @@ export function HomePage() {
             <h2 id="tarifs-title">{t("pages.home.pricingTitle")}</h2>
             <p>{t("pages.home.pricingText")}</p>
           </div>
-          {loading ? <LoadingState /> : error || !data ? <ErrorState /> : <div className="pricing-grid">{data.pricing.map((plan, index) => <PricingCard key={plan.id} plan={plan} index={index} />)}</div>}
+          {loading ? (
+            <LoadingState />
+          ) : error || !data ? (
+            <ErrorState />
+          ) : data.pricing.length === 0 ? (
+            <div className="empty-state">
+              <strong>Aucune offre active.</strong>
+              <p>Les tarifs reviendront ici quand une offre sera publiee.</p>
+            </div>
+          ) : (
+            <div className="pricing-grid">
+              {data.pricing.map((plan, index) => (
+                <PricingCard key={plan.id} plan={plan} index={index} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -100,7 +130,22 @@ export function HomePage() {
               {t("pages.home.bestCta")}
             </a>
           </div>
-          {loading ? <LoadingState /> : error || !data ? <ErrorState /> : <div className="marketplace-products">{data.marketplace.map((item) => <MarketplaceCard key={item.id} item={item} />)}</div>}
+          {loading ? (
+            <LoadingState />
+          ) : error || !data ? (
+            <ErrorState />
+          ) : data.marketplace.length === 0 ? (
+            <div className="empty-state">
+              <strong>Aucune ressource marketplace publiee.</strong>
+              <p>Les packs disponibles apparaitront ici une fois mis en ligne.</p>
+            </div>
+          ) : (
+            <div className="marketplace-products">
+              {data.marketplace.map((item) => (
+                <MarketplaceCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

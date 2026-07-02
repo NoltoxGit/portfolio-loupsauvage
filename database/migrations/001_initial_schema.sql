@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS content_items (
     title VARCHAR(190) NOT NULL,
     slug VARCHAR(220) NOT NULL UNIQUE,
     short_description TEXT NULL,
-    description MEDIUMTEXT NULL,
     status ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
     source_context ENUM('personal', 'private_commission', 'marketplace_product', 'other') NOT NULL DEFAULT 'personal',
     client_permission TINYINT(1) NOT NULL DEFAULT 0,
@@ -26,11 +25,17 @@ CREATE TABLE IF NOT EXISTS content_items (
     price_label VARCHAR(120) NULL,
     sort_order INT NOT NULL DEFAULT 0,
     published_at DATETIME NULL,
+    created_by_user_id BIGINT UNSIGNED NULL,
+    updated_by_user_id BIGINT UNSIGNED NULL,
+    published_by_user_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_content_type_status (type, status),
     INDEX idx_content_published_at (published_at),
-    INDEX idx_content_sort_order (sort_order)
+    INDEX idx_content_sort_order (sort_order),
+    INDEX idx_content_created_by_user (created_by_user_id),
+    INDEX idx_content_updated_by_user (updated_by_user_id),
+    INDEX idx_content_published_by_user (published_by_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS content_media (
@@ -40,13 +45,17 @@ CREATE TABLE IF NOT EXISTS content_media (
     path VARCHAR(500) NOT NULL,
     alt VARCHAR(255) NULL,
     sort_order INT NOT NULL DEFAULT 0,
+    uploaded_by_user_id BIGINT UNSIGNED NULL,
+    updated_by_user_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_content_media_item
         FOREIGN KEY (content_item_id)
         REFERENCES content_items(id)
         ON DELETE CASCADE,
     INDEX idx_media_item (content_item_id),
-    INDEX idx_media_kind (kind)
+    INDEX idx_media_kind (kind),
+    INDEX idx_media_uploaded_by_user (uploaded_by_user_id),
+    INDEX idx_media_updated_by_user (updated_by_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS pricing_plans (
@@ -59,7 +68,13 @@ CREATE TABLE IF NOT EXISTS pricing_plans (
     features_json JSON NULL,
     sort_order INT NOT NULL DEFAULT 0,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by_user_id BIGINT UNSIGNED NULL,
+    updated_by_user_id BIGINT UNSIGNED NULL,
+    published_by_user_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_pricing_active_order (is_active, sort_order)
+    INDEX idx_pricing_active_order (is_active, sort_order),
+    INDEX idx_pricing_created_by_user (created_by_user_id),
+    INDEX idx_pricing_updated_by_user (updated_by_user_id),
+    INDEX idx_pricing_published_by_user (published_by_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

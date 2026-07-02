@@ -22,13 +22,24 @@ try {
     }
 
     $db = (new Connection($config))->pdo();
-    (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize(true);
+    $auth = (new RequireOwner(new SessionManager($config), new UserRepository($db)))->authorize(true);
+    $ownerId = ownerIdFromAuth($auth);
 
     $service = new AdminMediaService(new AdminMediaRepository($db), $config);
 
-    Response::success($service->upload($_POST, $_FILES), 201);
+    Response::success($service->upload($_POST, $_FILES, $ownerId), 201);
 } catch (ApiException $error) {
     Response::error($error->apiCode(), $error->getMessage(), $error->status(), $error->fields());
 } catch (Throwable $error) {
     Response::error('SERVER_ERROR', 'Unable to upload media.', 500);
+}
+
+/**
+ * @param array<string, mixed> $auth
+ */
+function ownerIdFromAuth(array $auth): ?int
+{
+    $owner = $auth['owner'] ?? null;
+
+    return is_array($owner) && isset($owner['id']) && is_numeric($owner['id']) ? (int) $owner['id'] : null;
 }

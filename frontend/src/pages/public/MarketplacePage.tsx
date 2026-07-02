@@ -27,7 +27,22 @@ export function MarketplacePage() {
             <h2 id="marketplace-grid-title">{t("pages.marketplace.gridTitle")}</h2>
             <p>{t("pages.marketplace.gridText")}</p>
           </div>
-          {loading ? <LoadingState /> : error || !data ? <ErrorState /> : <div className="marketplace-products">{data.map((item) => <MarketplaceCard key={item.id} item={item} />)}</div>}
+          {loading ? (
+            <LoadingState />
+          ) : error || !data ? (
+            <ErrorState />
+          ) : data.length === 0 ? (
+            <div className="empty-state">
+              <strong>Aucun produit publie pour le moment.</strong>
+              <p>Les ressources marketplace seront listees ici des leur publication.</p>
+            </div>
+          ) : (
+            <div className="marketplace-products">
+              {data.map((item) => (
+                <MarketplaceCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>

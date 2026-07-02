@@ -74,9 +74,12 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function create(array $payload): array
+    public function create(array $payload, ?int $ownerId = null): array
     {
         $data = $this->validatePayload($payload, null);
+        $data['created_by_user_id'] = $ownerId;
+        $data['updated_by_user_id'] = $ownerId;
+        $data['published_by_user_id'] = $data['status'] === 'published' ? $ownerId : null;
 
         try {
             return $this->contents->create($data);
@@ -90,7 +93,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function update(int $id, array $payload): array
+    public function update(int $id, array $payload, ?int $ownerId = null): array
     {
         $existing = $this->contents->findById($id);
 
@@ -99,6 +102,8 @@ final class AdminContentService
         }
 
         $data = $this->validatePayload($payload, $existing);
+        $data['updated_by_user_id'] = $ownerId;
+        $data['published_by_user_id'] = $this->publishedByUserId($data['status'], $existing, $ownerId);
 
         try {
             $updated = $this->contents->update($id, $data);
@@ -118,7 +123,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function updateStatus(int $id, array $payload): array
+    public function updateStatus(int $id, array $payload, ?int $ownerId = null): array
     {
         $status = isset($payload['status']) ? trim((string) $payload['status']) : '';
 
@@ -146,7 +151,7 @@ final class AdminContentService
             ]);
         }
 
-        $updated = $this->contents->updateStatus($id, $status);
+        $updated = $this->contents->updateStatus($id, $status, $ownerId);
 
         if ($updated === null) {
             throw new ApiException('NOT_FOUND', 'Content item not found.', 404);
@@ -158,7 +163,7 @@ final class AdminContentService
     /**
      * @return array<string, mixed>
      */
-    public function archive(int $id): array
+    public function archive(int $id, ?int $ownerId = null): array
     {
         $existing = $this->contents->findById($id);
 
@@ -166,7 +171,7 @@ final class AdminContentService
             throw new ApiException('NOT_FOUND', 'Content item not found.', 404);
         }
 
-        $archived = $this->contents->archive($id);
+        $archived = $this->contents->archive($id, $ownerId);
 
         if ($archived === null) {
             throw new ApiException('NOT_FOUND', 'Content item not found.', 404);
@@ -211,7 +216,6 @@ final class AdminContentService
             'title' => $this->requiredString($payload, 'title', $existing['title'] ?? null, 190, $fields),
             'slug' => $this->requiredSlug($payload, 'slug', $existing['slug'] ?? null, 220, $fields),
             'short_description' => $this->nullableString($payload, 'shortDescription', $existing['shortDescription'] ?? null, 65535, $fields),
-            'description' => $this->nullableString($payload, 'description', $existing['description'] ?? null, 16777215, $fields),
             'status' => $status,
             'source_context' => $sourceContext,
             'source_label' => $this->nullableString($payload, 'sourceLabel', $existing['sourceLabel'] ?? null, 120, $fields),
@@ -312,6 +316,24 @@ final class AdminContentService
 
         return preg_match('~/models/[a-z0-9]+/embed$~i', $path) === 1
             || preg_match('~/(?:3d-models/[^/]*-|models/)([a-f0-9]{24,40})~i', $path) === 1;
+    }
+
+    /**
+     * @param array<string, mixed> $existing
+     */
+    private function publishedByUserId(string $status, array $existing, ?int $ownerId): ?int
+    {
+        if ($status !== 'published') {
+            return isset($existing['publishedByUserId']) && is_numeric($existing['publishedByUserId'])
+                ? (int) $existing['publishedByUserId']
+                : null;
+        }
+
+        if (isset($existing['publishedByUserId']) && is_numeric($existing['publishedByUserId'])) {
+            return (int) $existing['publishedByUserId'];
+        }
+
+        return $ownerId;
     }
 
     /**

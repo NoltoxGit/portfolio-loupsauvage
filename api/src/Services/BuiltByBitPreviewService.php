@@ -29,21 +29,12 @@ final class BuiltByBitPreviewService
         }
 
         $resource = $this->requestResource($resourceId, $token);
-        $description = $this->objectValue($resource, 'Description') ?: $this->objectValue($resource, 'description');
 
         $title = $this->firstString($resource, ['Title', 'title', 'Name', 'name']);
         $summary = $this->firstString($resource, ['TagLine', 'tagLine', 'Summary', 'summary', 'ShortDescription', 'shortDescription']);
-        $descriptionBbcode = $this->firstString($description, ['bbcode', 'BBCode', 'raw', 'Raw'])
-            ?: $this->firstString($resource, ['description_raw', 'descriptionRaw', 'description_bbcode', 'descriptionBbcode', 'description']);
-        $descriptionHtml = $this->firstString($description, ['html', 'Html', 'HTML'])
-            ?: $this->firstString($resource, ['description_html', 'descriptionHtml']);
         $externalUrl = $this->resourceUrl($resourceId, $resource);
         $coverImageUrl = $this->coverImageUrl($resource);
         $carouselImageUrls = $this->carouselImageUrls($resource);
-
-        if ($summary === '' && $descriptionBbcode !== '') {
-            $summary = substr(trim((string) preg_replace('/\[[^\]]+\]/', '', $descriptionBbcode)), 0, 240);
-        }
 
         if ($title === '') {
             throw new ApiException('BUILTBYBIT_RESPONSE_INCOMPLETE', 'BuiltByBit response is missing a resource title.', 502, [
@@ -56,8 +47,6 @@ final class BuiltByBitPreviewService
             'resourceId' => $resourceId,
             'title' => $title,
             'summary' => $summary,
-            'descriptionBbcode' => $descriptionBbcode,
-            'descriptionHtmlPreview' => $descriptionHtml,
             'externalUrl' => $externalUrl,
             'coverImageUrl' => $coverImageUrl,
             'carouselImageUrls' => $carouselImageUrls,
@@ -67,7 +56,6 @@ final class BuiltByBitPreviewService
                 'resourceId' => $resourceId,
                 'title' => $title,
                 'summary' => $summary,
-                'descriptionBbcode' => $descriptionBbcode,
                 'externalUrl' => $externalUrl,
                 'coverImageUrl' => $coverImageUrl,
                 'carouselImageUrls' => $carouselImageUrls,
@@ -486,7 +474,7 @@ final class BuiltByBitPreviewService
      */
     private function coverImageUrl(array $resource): string
     {
-        return $this->firstString($resource, [
+        return $this->normalizeBuiltByBitImageUrl($this->firstString($resource, [
             'IconUrl',
             'iconUrl',
             'icon_url',
@@ -495,7 +483,7 @@ final class BuiltByBitPreviewService
             'cover_image_url',
             'ThumbnailUrl',
             'thumbnailUrl',
-        ]);
+        ]));
     }
 
     /**
@@ -524,10 +512,24 @@ final class BuiltByBitPreviewService
                 }
             }
 
-            return array_values(array_filter(array_unique($urls)));
+            $normalizedUrls = [];
+            foreach ($urls as $url) {
+                $normalizedUrls[] = $this->normalizeBuiltByBitImageUrl($url);
+            }
+
+            return array_values(array_filter(array_unique($normalizedUrls)));
         }
 
         return [];
+    }
+
+    private function normalizeBuiltByBitImageUrl(string $url): string
+    {
+        if (preg_match('~^http://(?:www\.)?builtbybit\.com/~i', $url) === 1) {
+            return preg_replace('~^http://~i', 'https://', $url) ?? $url;
+        }
+
+        return $url;
     }
 
     /**

@@ -85,7 +85,6 @@ final class AdminContentRepository
                 title,
                 slug,
                 short_description,
-                description,
                 status,
                 source_context,
                 source_label,
@@ -99,13 +98,15 @@ final class AdminContentRepository
                 builtbybit_sync_json,
                 sort_order,
                 published_at,
-                display_date
+                display_date,
+                created_by_user_id,
+                updated_by_user_id,
+                published_by_user_id
             ) VALUES (
                 :type,
                 :title,
                 :slug,
                 :short_description,
-                :description,
                 :status,
                 :source_context,
                 :source_label,
@@ -119,7 +120,10 @@ final class AdminContentRepository
                 :builtbybit_sync_json,
                 :sort_order,
                 $publishedAtSql,
-                :display_date
+                :display_date,
+                :created_by_user_id,
+                :updated_by_user_id,
+                :published_by_user_id
             )
         ";
 
@@ -152,7 +156,6 @@ final class AdminContentRepository
                 title = :title,
                 slug = :slug,
                 short_description = :short_description,
-                description = :description,
                 status = :status,
                 source_context = :source_context,
                 source_label = :source_label,
@@ -166,12 +169,15 @@ final class AdminContentRepository
                 builtbybit_sync_json = :builtbybit_sync_json,
                 sort_order = :sort_order,
                 published_at = $publishedAtSql,
-                display_date = :display_date
+                display_date = :display_date,
+                updated_by_user_id = :updated_by_user_id,
+                published_by_user_id = :published_by_user_id
             WHERE id = :id
         ";
 
         $params = $this->params($data);
         $params['id'] = $id;
+        unset($params['created_by_user_id']);
 
         if ($publishedAtSql !== ':published_at') {
             unset($params['published_at']);
@@ -186,12 +192,18 @@ final class AdminContentRepository
     /**
      * @return array<string, mixed>|null
      */
-    public function updateStatus(int $id, string $status): ?array
+    public function updateStatus(int $id, string $status, ?int $ownerId = null): ?array
     {
         $statement = $this->db->prepare("
             UPDATE content_items
             SET
                 status = :status,
+                updated_by_user_id = :updated_by_user_id,
+                published_by_user_id = CASE
+                    WHEN :status_for_publish = 'published' AND published_by_user_id IS NULL
+                        THEN :published_by_user_id
+                    ELSE published_by_user_id
+                END,
                 published_at = CASE
                     WHEN :status_for_publish = 'published' AND published_at IS NULL
                         THEN CURRENT_TIMESTAMP
@@ -203,6 +215,8 @@ final class AdminContentRepository
             'id' => $id,
             'status' => $status,
             'status_for_publish' => $status,
+            'updated_by_user_id' => $ownerId,
+            'published_by_user_id' => $status === 'published' ? $ownerId : null,
         ]);
 
         return $this->findById($id);
@@ -211,9 +225,9 @@ final class AdminContentRepository
     /**
      * @return array<string, mixed>|null
      */
-    public function archive(int $id): ?array
+    public function archive(int $id, ?int $ownerId = null): ?array
     {
-        return $this->updateStatus($id, 'archived');
+        return $this->updateStatus($id, 'archived', $ownerId);
     }
 
     public function mediaCount(int $contentItemId): int
@@ -237,7 +251,6 @@ final class AdminContentRepository
                 content_items.title,
                 content_items.slug,
                 content_items.short_description,
-                content_items.description,
                 content_items.status,
                 content_items.source_context,
                 content_items.source_label,
@@ -252,6 +265,9 @@ final class AdminContentRepository
                 content_items.sort_order,
                 content_items.published_at,
                 content_items.display_date,
+                content_items.created_by_user_id,
+                content_items.updated_by_user_id,
+                content_items.published_by_user_id,
                 content_items.created_at,
                 content_items.updated_at
             FROM content_items';
@@ -268,7 +284,6 @@ final class AdminContentRepository
             'title' => $data['title'],
             'slug' => $data['slug'],
             'short_description' => $data['short_description'],
-            'description' => $data['description'],
             'status' => $data['status'],
             'source_context' => $data['source_context'],
             'source_label' => $data['source_label'],
@@ -283,6 +298,9 @@ final class AdminContentRepository
             'sort_order' => $data['sort_order'],
             'published_at' => $data['published_at'],
             'display_date' => $data['display_date'],
+            'created_by_user_id' => $data['created_by_user_id'] ?? null,
+            'updated_by_user_id' => $data['updated_by_user_id'] ?? null,
+            'published_by_user_id' => $data['published_by_user_id'] ?? null,
         ];
     }
 
@@ -311,7 +329,7 @@ final class AdminContentRepository
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
         $statement = $this->db->prepare("
-            SELECT id, content_item_id, kind, path, alt, sort_order
+            SELECT id, content_item_id, kind, path, alt, sort_order, uploaded_by_user_id, updated_by_user_id
             FROM content_media
             WHERE content_item_id IN ($placeholders)
             ORDER BY sort_order ASC, id ASC
@@ -327,6 +345,8 @@ final class AdminContentRepository
                 'path' => (string) $media['path'],
                 'alt' => $media['alt'],
                 'sortOrder' => (int) $media['sort_order'],
+                'uploadedByUserId' => isset($media['uploaded_by_user_id']) ? (int) $media['uploaded_by_user_id'] : null,
+                'updatedByUserId' => isset($media['updated_by_user_id']) ? (int) $media['updated_by_user_id'] : null,
             ];
         }
 
@@ -339,7 +359,6 @@ final class AdminContentRepository
                 'title' => (string) $item['title'],
                 'slug' => (string) $item['slug'],
                 'shortDescription' => $item['short_description'],
-                'description' => $item['description'],
                 'status' => (string) $item['status'],
                 'sourceContext' => (string) $item['source_context'],
                 'sourceLabel' => $item['source_label'],
@@ -354,6 +373,9 @@ final class AdminContentRepository
                 'sortOrder' => (int) $item['sort_order'],
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],
+                'createdByUserId' => isset($item['created_by_user_id']) ? (int) $item['created_by_user_id'] : null,
+                'updatedByUserId' => isset($item['updated_by_user_id']) ? (int) $item['updated_by_user_id'] : null,
+                'publishedByUserId' => isset($item['published_by_user_id']) ? (int) $item['published_by_user_id'] : null,
                 'createdAt' => $item['created_at'],
                 'updatedAt' => $item['updated_at'],
                 'media' => $mediaByItem[$id] ?? [],

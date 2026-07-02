@@ -27,7 +27,6 @@ export interface AdminContentPayload {
   title: string;
   slug: string;
   shortDescription?: string | null;
-  description?: string | null;
   status: ContentStatus;
   sourceContext: SourceContext;
   sourceLabel?: string | null;
@@ -71,6 +70,9 @@ export interface AdminPricingActivePayload {
 
 export type AdminPricingPlan = PricingPlan & {
   isActive: boolean;
+  createdByUserId?: number | null;
+  updatedByUserId?: number | null;
+  publishedByUserId?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -79,6 +81,8 @@ export type AdminMediaKind = ContentMedia["kind"];
 
 export type AdminMediaItem = ContentMedia & {
   contentItemId: number;
+  uploadedByUserId?: number | null;
+  updatedByUserId?: number | null;
   createdAt: string;
 };
 
@@ -110,8 +114,6 @@ export interface BuiltByBitPreview {
   resourceId: string;
   title: string;
   summary: string;
-  descriptionBbcode: string;
-  descriptionHtmlPreview: string;
   externalUrl: string;
   coverImageUrl: string;
   carouselImageUrls: string[];
