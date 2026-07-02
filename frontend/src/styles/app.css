@@ -814,13 +814,14 @@
 .model-modal {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 10000;
   align-items: center;
   background: rgba(7, 11, 8, 0.88);
   backdrop-filter: blur(18px) saturate(0.92);
   display: flex;
+  isolation: isolate;
   justify-content: center;
-  padding: 3vh 2vw;
+  padding: max(8px, 1vh) max(8px, 0.8vw);
 }
 
 .model-modal-panel {
@@ -831,9 +832,9 @@
     radial-gradient(circle at 25% 15%, rgba(63, 174, 90, 0.2), transparent 36%),
     #111a13;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.35);
-  height: min(94vh, 980px);
+  height: calc(100vh - max(16px, 2vh));
   overflow: hidden;
-  width: min(96vw, 1440px);
+  width: calc(100vw - max(16px, 1.6vw));
 }
 
 .model-modal-panel .model-viewer {
@@ -860,6 +861,11 @@
 
 body.has-model-modal {
   overflow: hidden;
+}
+
+body.has-model-modal .site-header,
+body.has-model-modal .site-footer {
+  z-index: 0;
 }
 
 .admin-list-icon.is-published {
@@ -960,13 +966,13 @@ body.has-model-modal {
   }
 
   .model-modal {
-    padding: 10px;
+    padding: 6px;
   }
 
   .model-modal-panel {
     border-radius: calc(var(--radius) - 4px);
-    height: calc(100vh - 20px);
-    width: calc(100vw - 20px);
+    height: calc(100vh - 12px);
+    width: calc(100vw - 12px);
   }
 
   .admin-media-preview {

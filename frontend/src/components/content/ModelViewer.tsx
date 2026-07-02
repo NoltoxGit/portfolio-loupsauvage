@@ -5,7 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { resolveMediaPath } from "./media";
 
 const watermarkUrl = "https://api.skins.minestrator.com/avatar/LoupSauvage?size=512";
-const MODEL_FRAME_PADDING = 1.15;
+const MODEL_FRAME_PADDING = 1.05;
 const PREVIEW_CAPTURE_WIDTH = 2048;
 const PREVIEW_CAPTURE_HEIGHT = 1280;
 
