@@ -128,7 +128,7 @@ final class PublicContentRepository
                 'type' => (string) $item['type'],
                 'title' => (string) $item['title'],
                 'slug' => (string) $item['slug'],
-                'shortDescription' => $item['short_description'],
+                'shortDescription' => (string) $item['type'] === 'creation' ? null : $item['short_description'],
                 'sourceContext' => (string) $item['source_context'],
                 'sourceLabel' => $item['source_label'],
                 'clientPermission' => (bool) $item['client_permission'],

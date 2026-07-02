@@ -353,7 +353,7 @@ final class AdminContentRepository
                 'type' => (string) $item['type'],
                 'title' => (string) $item['title'],
                 'slug' => (string) $item['slug'],
-                'shortDescription' => $item['short_description'],
+                'shortDescription' => (string) $item['type'] === 'creation' ? null : $item['short_description'],
                 'status' => (string) $item['status'],
                 'sourceContext' => (string) $item['source_context'],
                 'sourceLabel' => $item['source_label'],

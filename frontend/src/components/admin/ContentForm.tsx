@@ -246,7 +246,7 @@ export function ContentForm({
       type: contentType,
       title: form.title,
       slug: form.slug,
-      shortDescription: trimOrNull(form.shortDescription),
+      shortDescription: isMarketplace ? trimOrNull(form.shortDescription) : null,
       status: form.status,
       sourceContext,
       sourceLabel: !isMarketplace && sourceContext === "other" ? trimOrNull(form.sourceLabel) : null,
@@ -508,9 +508,10 @@ export function ContentForm({
             />
           </label>
 
+          {isMarketplace ? (
           <label className="admin-field admin-field-wide" htmlFor="content-short-description">
-            <FieldTitle help={isMarketplace ? "Court texte affiché sur la carte du produit." : "Texte court affiché sur les cartes et les pages publiques."}>
-              {isMarketplace ? "Accroche affichée" : "Texte affiché"}
+            <FieldTitle help="Court texte affiché sur la carte du produit.">
+              Accroche affichée
             </FieldTitle>
             <textarea
               id="content-short-description"
@@ -519,6 +520,7 @@ export function ContentForm({
               onChange={(event) => updateField("shortDescription", event.target.value)}
             />
           </label>
+          ) : null}
         </div>
       </div>
 

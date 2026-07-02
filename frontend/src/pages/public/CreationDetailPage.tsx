@@ -37,7 +37,6 @@ export function CreationDetailPage({ slug }: { slug: string }) {
               <div className="creation-detail-copy">
                 <p className="eyebrow">{sourceContextLabel(data, t("cards.commission"), t("cards.creation"))}</p>
                 <h1>{data.title}</h1>
-                {data.shortDescription ? <p>{data.shortDescription}</p> : null}
                 <div className="creation-detail-actions">
                   <a className="button button-primary" href="/#discord">
                     {t("pages.creationDetail.order")}

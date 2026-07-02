@@ -215,7 +215,9 @@ final class AdminContentService
             'type' => $type,
             'title' => $this->requiredString($payload, 'title', $existing['title'] ?? null, 190, $fields),
             'slug' => $this->requiredSlug($payload, 'slug', $existing['slug'] ?? null, 220, $fields),
-            'short_description' => $this->nullableString($payload, 'shortDescription', $existing['shortDescription'] ?? null, 65535, $fields),
+            'short_description' => $type === 'marketplace'
+                ? $this->nullableString($payload, 'shortDescription', $existing['shortDescription'] ?? null, 65535, $fields)
+                : null,
             'status' => $status,
             'source_context' => $sourceContext,
             'source_label' => $this->nullableString($payload, 'sourceLabel', $existing['sourceLabel'] ?? null, 120, $fields),
