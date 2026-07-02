@@ -18,7 +18,7 @@ export const translations = {
     nav: {
       creations: "Créations",
       pricing: "Tarifs",
-      bestSellers: "Best sellers",
+      marketplace: "Marketplace",
       discord: "Discord",
     },
     footer: {
@@ -68,11 +68,11 @@ export const translations = {
         pricingTitle: "Tarifs",
         pricingText:
           "Chaque projet est différent. Les tarifs s'adaptent à la complexité du modèle, au niveau de détail et au nombre d'assets souhaités.",
-        bestEyebrow: "Best sellers",
-        bestTitle: "Les packs les plus demandés",
+        bestEyebrow: "Marketplace",
+        bestTitle: "Ressources disponibles",
         bestText:
-          "Une sélection des modèles et packs qui plaisent le plus aux serveurs, créateurs et projets communautaires Minecraft.",
-        bestCta: "Commander un best seller",
+          "Retrouve mes packs, modèles et assets disponibles sur BuiltByBit, MCModels et d'autres plateformes de vente.",
+        bestCta: "Voir la marketplace",
         contactEyebrow: "Contact",
         contactTitle: "Une idée de modèle ou de pack ?",
         contactText:
@@ -115,9 +115,9 @@ export const translations = {
         eyebrow: "Marketplace",
         heading: "Ressources marketplace",
         text: "Des ressources publiées ou vendues sur BuiltByBit, MCModels, Sketchfab et autres plateformes.",
-        gridEyebrow: "Best sellers",
-        gridTitle: "Packs disponibles",
-        gridText: "Une sélection de ressources prêtes à intégrer dans vos projets Minecraft.",
+        gridEyebrow: "Ressources",
+        gridTitle: "Disponibles sur les plateformes",
+        gridText: "Une liste de ressources prêtes à intégrer dans vos projets Minecraft, avec leurs liens vers les plateformes de vente.",
       },
       pricing: {
         title: "Tarifs - LoupSauvage",
@@ -164,7 +164,7 @@ export const translations = {
     nav: {
       creations: "Creations",
       pricing: "Pricing",
-      bestSellers: "Best sellers",
+      marketplace: "Marketplace",
       discord: "Discord",
     },
     footer: {
@@ -214,11 +214,11 @@ export const translations = {
         pricingTitle: "Pricing",
         pricingText:
           "Every project is different. Pricing adapts to model complexity, detail level and the number of assets needed.",
-        bestEyebrow: "Best sellers",
-        bestTitle: "Most requested packs",
+        bestEyebrow: "Marketplace",
+        bestTitle: "Available resources",
         bestText:
-          "A selection of models and packs loved by servers, creators and Minecraft community projects.",
-        bestCta: "Order a best seller",
+          "Browse my packs, models and assets available on BuiltByBit, MCModels and other sales platforms.",
+        bestCta: "View the marketplace",
         contactEyebrow: "Contact",
         contactTitle: "Got a model or pack idea?",
         contactText:
@@ -261,9 +261,9 @@ export const translations = {
         eyebrow: "Marketplace",
         heading: "Marketplace resources",
         text: "Resources published or sold on BuiltByBit, MCModels, Sketchfab and other platforms.",
-        gridEyebrow: "Best sellers",
-        gridTitle: "Available packs",
-        gridText: "A selection of ready-to-use resources for your Minecraft projects.",
+        gridEyebrow: "Resources",
+        gridTitle: "Available on platforms",
+        gridText: "A list of ready-to-use resources for your Minecraft projects, with links to their sales platforms.",
       },
       pricing: {
         title: "Pricing - LoupSauvage",

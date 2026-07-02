@@ -47,7 +47,7 @@ export function Header() {
             {t("nav.pricing")}
           </a>
           <a href="/marketplace" onClick={() => setOpen(false)}>
-            {t("nav.bestSellers")}
+            {t("nav.marketplace")}
           </a>
           <a className="nav-discord" href={homeTarget("#discord")} onClick={() => setOpen(false)}>
             {t("nav.discord")}
