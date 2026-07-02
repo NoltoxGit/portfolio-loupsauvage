@@ -102,6 +102,24 @@ final class AdminModelService
     }
 
     /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    public function updateSettings(array $payload): array
+    {
+        $contentItemId = $this->positiveInt($payload, 'contentItemId');
+        $existing = $this->findExisting($contentItemId);
+        $yawDegrees = $this->yawDegrees($payload);
+        $updated = $this->models->saveViewerSettings($contentItemId, $yawDegrees);
+
+        if ($updated !== null) {
+            $this->deletePhysicalFile((string) ($existing['modelPreviewImagePath'] ?? ''));
+        }
+
+        return $updated ?? $this->findExisting($contentItemId);
+    }
+
+    /**
      * @param array<string, mixed> $query
      * @return array<string, mixed>
      */
@@ -148,6 +166,25 @@ final class AdminModelService
         }
 
         return (int) $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function yawDegrees(array $payload): int
+    {
+        $value = $payload['modelViewerYawDegrees'] ?? null;
+
+        if (!is_scalar($value) || preg_match('/^-?\d+$/', trim((string) $value)) !== 1) {
+            throw new ApiException('VALIDATION_ERROR', 'Invalid model viewer orientation.', 422, [
+                'modelViewerYawDegrees' => 'Une orientation en degrés est requise.',
+            ]);
+        }
+
+        $degrees = (int) $value;
+        $normalized = $degrees % 360;
+
+        return $normalized < 0 ? $normalized + 360 : $normalized;
     }
 
     /**

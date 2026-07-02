@@ -24,7 +24,8 @@ final class AdminModelRepository
                 title,
                 model_glb_path,
                 model_preview_image_path,
-                model_watermark_enabled
+                model_watermark_enabled,
+                model_viewer_yaw_degrees
             FROM content_items
             WHERE id = :id
             LIMIT 1
@@ -78,6 +79,26 @@ final class AdminModelRepository
     /**
      * @return array<string, mixed>|null
      */
+    public function saveViewerSettings(int $contentItemId, int $yawDegrees): ?array
+    {
+        $statement = $this->db->prepare('
+            UPDATE content_items
+            SET
+                model_viewer_yaw_degrees = :model_viewer_yaw_degrees,
+                model_preview_image_path = NULL
+            WHERE id = :id
+        ');
+        $statement->execute([
+            'id' => $contentItemId,
+            'model_viewer_yaw_degrees' => $yawDegrees,
+        ]);
+
+        return $this->findByContentId($contentItemId);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
     public function clearModel(int $contentItemId): ?array
     {
         $statement = $this->db->prepare('
@@ -85,7 +106,8 @@ final class AdminModelRepository
             SET
                 model_glb_path = NULL,
                 model_preview_image_path = NULL,
-                model_watermark_enabled = 1
+                model_watermark_enabled = 1,
+                model_viewer_yaw_degrees = 180
             WHERE id = :id
         ');
         $statement->execute(['id' => $contentItemId]);
@@ -106,6 +128,7 @@ final class AdminModelRepository
             'modelGlbPath' => $item['model_glb_path'],
             'modelPreviewImagePath' => $item['model_preview_image_path'],
             'modelWatermarkEnabled' => (bool) $item['model_watermark_enabled'],
+            'modelViewerYawDegrees' => (int) ($item['model_viewer_yaw_degrees'] ?? 180),
         ];
     }
 }

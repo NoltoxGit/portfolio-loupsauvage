@@ -85,6 +85,7 @@ final class PublicContentRepository
                 content_items.model_glb_path,
                 content_items.model_preview_image_path,
                 content_items.model_watermark_enabled,
+                content_items.model_viewer_yaw_degrees,
                 content_items.published_at,
                 content_items.display_date
             FROM content_items';
@@ -145,6 +146,7 @@ final class PublicContentRepository
                 'modelGlbPath' => $item['model_glb_path'] ?? null,
                 'modelPreviewImagePath' => $item['model_preview_image_path'] ?? null,
                 'modelWatermarkEnabled' => (bool) ($item['model_watermark_enabled'] ?? true),
+                'modelViewerYawDegrees' => (int) ($item['model_viewer_yaw_degrees'] ?? 180),
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],
                 'media' => $mediaByItem[$id] ?? [],

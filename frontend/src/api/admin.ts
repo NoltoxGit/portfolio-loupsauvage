@@ -12,6 +12,7 @@ import type {
   AdminModelDeleteResult,
   AdminModelInfo,
   AdminModelPreviewPayload,
+  AdminModelSettingsPayload,
   AdminModelUploadPayload,
   AdminPricingActivePayload,
   AdminPricingPayload,
@@ -155,6 +156,13 @@ export const uploadAdminModel = (payload: AdminModelUploadPayload, csrfToken: st
 export const saveAdminModelPreview = (payload: AdminModelPreviewPayload, csrfToken: string) =>
   apiRequest<AdminModelInfo>("/admin/model/preview/", {
     method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+  });
+
+export const updateAdminModelSettings = (payload: AdminModelSettingsPayload, csrfToken: string) =>
+  apiRequest<AdminModelInfo>("/admin/model/", {
+    method: "PUT",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
   });

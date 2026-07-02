@@ -534,6 +534,28 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.admin-model-pending {
+  border: 1px solid rgba(31, 111, 58, 0.12);
+  border-radius: calc(var(--radius) - 2px);
+  background: rgba(230, 246, 233, 0.54);
+  color: var(--muted);
+  display: grid;
+  gap: 4px;
+  min-width: min(260px, 100%);
+  padding: 12px;
+}
+
+.admin-model-pending strong {
+  color: var(--title-ink);
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.admin-model-pending span {
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
 .admin-model-current {
   border: 1px solid rgba(31, 111, 58, 0.12);
   border-radius: var(--radius);
@@ -553,6 +575,12 @@
 .admin-model-meta p {
   color: var(--muted);
   margin: 0;
+}
+
+.admin-model-orientation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .admin-media-heading {
@@ -658,6 +686,7 @@
 
 .model-preview-card {
   position: relative;
+  aspect-ratio: 16 / 10;
   border: 1px solid rgba(31, 111, 58, 0.16);
   border-radius: var(--radius);
   background:
@@ -787,11 +816,11 @@
   inset: 0;
   z-index: 120;
   align-items: center;
-  background: rgba(13, 19, 14, 0.78);
-  backdrop-filter: blur(10px);
+  background: rgba(7, 11, 8, 0.88);
+  backdrop-filter: blur(18px) saturate(0.92);
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: 3vh 2vw;
 }
 
 .model-modal-panel {
@@ -802,9 +831,9 @@
     radial-gradient(circle at 25% 15%, rgba(63, 174, 90, 0.2), transparent 36%),
     #111a13;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.35);
-  height: min(760px, calc(100vh - 48px));
+  height: min(94vh, 980px);
   overflow: hidden;
-  width: min(1120px, calc(100vw - 48px));
+  width: min(96vw, 1440px);
 }
 
 .model-modal-panel .model-viewer {
@@ -928,6 +957,16 @@ body.has-model-modal {
   .admin-model-upload,
   .admin-model-current {
     grid-template-columns: 1fr;
+  }
+
+  .model-modal {
+    padding: 10px;
+  }
+
+  .model-modal-panel {
+    border-radius: calc(var(--radius) - 4px);
+    height: calc(100vh - 20px);
+    width: calc(100vw - 20px);
   }
 
   .admin-media-preview {

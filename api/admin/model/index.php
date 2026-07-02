@@ -18,7 +18,7 @@ try {
     $request = new Request();
     $method = $request->method();
 
-    if (!in_array($method, ['POST', 'DELETE'], true)) {
+    if (!in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
         throw new ApiException('METHOD_NOT_ALLOWED', 'Method not allowed.', 405);
     }
 
@@ -29,6 +29,11 @@ try {
 
     if ($method === 'POST') {
         Response::success($service->upload($_POST, $_FILES), 201);
+        return;
+    }
+
+    if ($method === 'PUT') {
+        Response::success($service->updateSettings($request->json()));
         return;
     }
 

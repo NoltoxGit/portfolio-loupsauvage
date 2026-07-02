@@ -115,6 +115,11 @@ export interface AdminModelPreviewPayload {
   imageData: string;
 }
 
+export interface AdminModelSettingsPayload {
+  contentItemId: number;
+  modelViewerYawDegrees: number;
+}
+
 export interface AdminModelInfo {
   contentItemId: number;
   type: ContentType;
@@ -122,6 +127,7 @@ export interface AdminModelInfo {
   modelGlbPath: string | null;
   modelPreviewImagePath: string | null;
   modelWatermarkEnabled: boolean;
+  modelViewerYawDegrees: number;
 }
 
 export interface AdminModelDeleteResult {

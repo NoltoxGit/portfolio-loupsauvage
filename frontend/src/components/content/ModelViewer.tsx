@@ -5,6 +5,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { resolveMediaPath } from "./media";
 
 const watermarkUrl = "https://api.skins.minestrator.com/avatar/LoupSauvage?size=512";
+const MODEL_FRAME_PADDING = 1.15;
+const PREVIEW_CAPTURE_WIDTH = 2048;
+const PREVIEW_CAPTURE_HEIGHT = 1280;
 
 export interface ModelViewerProps {
   src: string;
@@ -12,6 +15,7 @@ export interface ModelViewerProps {
   interactive?: boolean;
   className?: string;
   watermark?: boolean;
+  yawDegrees?: number;
   onPreviewGenerated?: (imageData: string) => void;
   previewOnceKey?: string | number;
 }
@@ -22,6 +26,7 @@ export function ModelViewer({
   interactive = false,
   className = "",
   watermark = true,
+  yawDegrees = 180,
   onPreviewGenerated,
   previewOnceKey,
 }: ModelViewerProps) {
@@ -45,6 +50,7 @@ export function ModelViewer({
     let mixer: THREE.AnimationMixer | null = null;
     let activeAction: THREE.AnimationAction | null = null;
     let controls: OrbitControls | null = null;
+    let modelLoaded = false;
     const clock = new THREE.Clock();
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(36, 1, 0.01, 1000);
@@ -58,7 +64,7 @@ export function ModelViewer({
     setError(false);
 
     renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(onPreviewGenerated ? 1 : Math.min(window.devicePixelRatio || 1, 2));
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
 
@@ -75,9 +81,44 @@ export function ModelViewer({
     const resize = () => {
       const width = Math.max(1, container.clientWidth);
       const height = Math.max(1, container.clientHeight);
+
+      if (onPreviewGenerated) {
+        camera.aspect = PREVIEW_CAPTURE_WIDTH / PREVIEW_CAPTURE_HEIGHT;
+        camera.updateProjectionMatrix();
+        renderer.setSize(PREVIEW_CAPTURE_WIDTH, PREVIEW_CAPTURE_HEIGHT, false);
+        return;
+      }
+
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+    };
+
+    const emitPreview = () => {
+      const canvas = renderer.domElement;
+
+      if (canvas.toBlob) {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob || disposed) {
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (!disposed && typeof reader.result === "string") {
+                onPreviewGenerated?.(reader.result);
+              }
+            };
+            reader.readAsDataURL(blob);
+          },
+          "image/webp",
+          0.94,
+        );
+        return;
+      }
+
+      onPreviewGenerated?.(canvas.toDataURL("image/webp", 0.94));
     };
 
     const playClip = (clips: THREE.AnimationClip[], index: number) => {
@@ -103,6 +144,7 @@ export function ModelViewer({
         }
 
         const root = gltf.scene;
+        root.rotation.y += THREE.MathUtils.degToRad(yawDegrees);
         scene.add(root);
 
         const box = new THREE.Box3().setFromObject(root);
@@ -112,7 +154,7 @@ export function ModelViewer({
 
         root.position.sub(center);
 
-        const distance = maxDim * 2.25;
+        const distance = (maxDim / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))) * MODEL_FRAME_PADDING;
         camera.near = Math.max(0.01, maxDim / 100);
         camera.far = Math.max(100, maxDim * 100);
         camera.position.set(distance * 0.78, distance * 0.48, distance);
@@ -134,6 +176,8 @@ export function ModelViewer({
           mixer = new THREE.AnimationMixer(root);
           playClip(gltf.animations, activeAnimation);
         }
+
+        modelLoaded = true;
       },
       undefined,
       () => {
@@ -158,13 +202,13 @@ export function ModelViewer({
       if (
         onPreviewGenerated &&
         previewGeneratedRef.current !== previewOnceKey &&
-        scene.children.length > 3 &&
+        modelLoaded &&
         renderer.domElement.width > 1
       ) {
         previewGeneratedRef.current = previewOnceKey ?? "generated";
         window.setTimeout(() => {
           if (!disposed) {
-            onPreviewGenerated(renderer.domElement.toDataURL("image/webp", 0.86));
+            emitPreview();
           }
         }, 180);
       }
@@ -194,7 +238,7 @@ export function ModelViewer({
       });
       renderer.domElement.remove();
     };
-  }, [activeAnimation, interactive, onPreviewGenerated, playing, previewOnceKey, src]);
+  }, [activeAnimation, interactive, onPreviewGenerated, playing, previewOnceKey, src, yawDegrees]);
 
   return (
     <div className={`model-viewer ${className}`} aria-label={`Modèle 3D ${title}`}>

@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import {
   archiveAdminContent,
   createAdminContent,
@@ -6,11 +6,11 @@ import {
   updateAdminContent,
   updateAdminContentStatus,
 } from "../../api/admin";
-import type { AdminContentItem, AdminContentPayload, BuiltByBitPreview } from "../../types/admin";
+import type { AdminContentItem, AdminContentPayload, AdminModelInfo, BuiltByBitPreview } from "../../types/admin";
 import type { ContentStatus, ContentType, ExternalPlatform, SourceContext } from "../../types/content";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 import { MediaManager } from "./MediaManager";
-import { ModelManager } from "./ModelManager";
+import { ModelManager, type ModelManagerHandle } from "./ModelManager";
 import { hasSketchfabModel } from "../content/SketchfabEmbed";
 
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
@@ -175,21 +175,31 @@ function SectionTitle({ children, help }: { children: ReactNode; help: string })
   );
 }
 
-function AttachmentSetupNotice({ contentType }: { contentType: ContentType }) {
+function MediaSetupNotice({ contentType }: { contentType: ContentType }) {
   return (
     <section className="admin-media-manager admin-attachment-setup">
       <div className="admin-media-heading">
         <div>
-          <span>{contentType === "creation" ? "Images et modèle 3D" : "Images du produit"}</span>
+          <span>{contentType === "creation" ? "Images de la création" : "Images du produit"}</span>
           <h3>Médias disponibles après création</h3>
           <p>
-            Enregistre d’abord la fiche pour créer son identifiant. Tu pourras ensuite ajouter les images et le fichier GLB
-            directement sur cette page.
+            Enregistre la fiche pour créer son identifiant. Tu pourras ensuite ajouter les images d’illustration directement
+            sur cette page.
           </p>
         </div>
       </div>
     </section>
   );
+}
+
+function mergeModelInfo(item: AdminContentItem, model: AdminModelInfo): AdminContentItem {
+  return {
+    ...item,
+    modelGlbPath: model.modelGlbPath,
+    modelPreviewImagePath: model.modelPreviewImagePath,
+    modelWatermarkEnabled: model.modelWatermarkEnabled,
+    modelViewerYawDegrees: model.modelViewerYawDegrees,
+  };
 }
 
 export function ContentForm({
@@ -209,6 +219,7 @@ export function ContentForm({
 }) {
   const isEdit = Boolean(initialItem);
   const isMarketplace = contentType === "marketplace";
+  const modelManagerRef = useRef<ModelManagerHandle | null>(null);
   const [form, setForm] = useState<ContentFormState>(() =>
     initialItem ? stateFromItem(initialItem) : defaultState(contentType),
   );
@@ -219,6 +230,7 @@ export function ContentForm({
   const [submitting, setSubmitting] = useState(false);
   const [mediaCount, setMediaCount] = useState(() => initialItem?.media.length ?? 0);
   const [hasModel, setHasModel] = useState(() => Boolean(initialItem?.modelGlbPath));
+  const [hasPendingModel, setHasPendingModel] = useState(false);
   const [builtByBitInput, setBuiltByBitInput] = useState("");
   const [builtByBitPreview, setBuiltByBitPreview] = useState<BuiltByBitPreview | null>(null);
   const [builtByBitLoading, setBuiltByBitLoading] = useState(false);
@@ -230,6 +242,7 @@ export function ContentForm({
     setNotice(null);
     setMediaCount(initialItem?.media.length ?? 0);
     setHasModel(Boolean(initialItem?.modelGlbPath));
+    setHasPendingModel(false);
     setBuiltByBitInput("");
     setBuiltByBitPreview(null);
   }, [contentType, initialItem]);
@@ -298,7 +311,7 @@ export function ContentForm({
       return true;
     }
 
-    return hasSketchfabModel(form.sketchfabUrl) || mediaCount > 0 || hasModel;
+    return hasSketchfabModel(form.sketchfabUrl) || mediaCount > 0 || hasModel || hasPendingModel;
   };
 
   const guardPublishCreation = (status: ContentStatus) => {
@@ -378,16 +391,32 @@ export function ContentForm({
     }
 
     try {
+      const payload = toPayload();
+      const needsDeferredPublish =
+        contentType === "creation" &&
+        payload.status === "published" &&
+        hasPendingModel &&
+        !hasSketchfabModel(form.sketchfabUrl) &&
+        mediaCount === 0 &&
+        !hasModel;
+      const payloadToSave: AdminContentPayload = needsDeferredPublish ? { ...payload, status: "draft" } : payload;
       const saved =
         initialItem && isEdit
-          ? await updateAdminContent(initialItem.id, toPayload(), csrfToken)
-          : await createAdminContent(toPayload(), csrfToken);
+          ? await updateAdminContent(initialItem.id, payloadToSave, csrfToken)
+          : await createAdminContent(payloadToSave, csrfToken);
+      const uploadedModel = await modelManagerRef.current?.uploadPendingModel(saved);
+      let finalSaved = uploadedModel ? mergeModelInfo(saved, uploadedModel) : saved;
 
-      setForm(stateFromItem(saved));
+      if (needsDeferredPublish) {
+        finalSaved = await updateAdminContentStatus(saved.id, { status: "published" }, csrfToken);
+      }
+
+      setForm(stateFromItem(finalSaved));
       setSlugManuallyEdited(true);
-      setMediaCount(saved.media.length);
-      setNotice("Contenu enregistré.");
-      onSaved(saved);
+      setMediaCount(finalSaved.media.length);
+      setHasModel(Boolean(finalSaved.modelGlbPath));
+      setNotice(uploadedModel ? "Contenu enregistré avec le modèle GLB." : "Contenu enregistré.");
+      onSaved(finalSaved);
     } catch (nextError) {
       handleError(nextError);
     } finally {
@@ -593,8 +622,8 @@ export function ContentForm({
           ) : null}
 
           <label className="admin-field" htmlFor="content-sketchfab-url">
-            <FieldTitle help="Lien d’intégration ou page Sketchfab si la création possède une prévisualisation 3D.">
-              Lien Sketchfab
+            <FieldTitle help="Lien optionnel si tu veux conserver une preview externe en complément du modèle GLB et des images.">
+              Lien Sketchfab optionnel
             </FieldTitle>
             <input
               id="content-sketchfab-url"
@@ -718,12 +747,21 @@ export function ContentForm({
         </div>
       )}
 
+      <ModelManager
+        ref={modelManagerRef}
+        item={initialItem ?? null}
+        csrfToken={csrfToken}
+        onPendingModelChange={setHasPendingModel}
+        onModelChanged={(model) => setHasModel(Boolean(model.modelGlbPath))}
+        onUnauthenticated={onUnauthenticated}
+      />
+
       <AdminError error={error} />
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}
 
       <div className="admin-form-actions admin-form-primary-actions">
         <button className="button button-primary" type="submit" disabled={submitting}>
-          {submitting ? "Enregistrement..." : initialItem ? "Enregistrer" : "Créer puis ajouter les médias"}
+          {submitting ? "Enregistrement..." : initialItem ? "Enregistrer" : hasPendingModel ? "Créer avec le modèle" : "Créer"}
         </button>
         {initialItem && form.status === "draft" ? (
           <button className="button button-secondary" disabled={submitting} type="button" onClick={() => void changeStatus("published")}>
@@ -750,15 +788,9 @@ export function ContentForm({
             onMediaChanged={(items) => setMediaCount(items.length)}
             onUnauthenticated={onUnauthenticated}
           />
-          <ModelManager
-            item={initialItem}
-            csrfToken={csrfToken}
-            onModelChanged={(model) => setHasModel(Boolean(model.modelGlbPath))}
-            onUnauthenticated={onUnauthenticated}
-          />
         </>
       ) : (
-        <AttachmentSetupNotice contentType={contentType} />
+        <MediaSetupNotice contentType={contentType} />
       )}
     </>
   );

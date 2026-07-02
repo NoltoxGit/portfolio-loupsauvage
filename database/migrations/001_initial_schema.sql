@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS content_items (
     model_glb_path VARCHAR(500) NULL,
     model_preview_image_path VARCHAR(500) NULL,
     model_watermark_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    model_viewer_yaw_degrees SMALLINT NOT NULL DEFAULT 180,
     builtbybit_resource_id VARCHAR(80) NULL,
     builtbybit_sync_json JSON NULL,
     published_at DATETIME NULL,

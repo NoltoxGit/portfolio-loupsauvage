@@ -35,6 +35,7 @@ export interface ContentItem {
   modelGlbPath: string | null;
   modelPreviewImagePath: string | null;
   modelWatermarkEnabled: boolean;
+  modelViewerYawDegrees: number;
   publishedAt: string | null;
   displayDate: string;
   media: ContentMedia[];
