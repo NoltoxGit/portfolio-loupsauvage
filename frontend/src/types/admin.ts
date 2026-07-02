@@ -38,7 +38,6 @@ export interface AdminContentPayload {
   priceLabel?: string | null;
   builtbybitResourceId?: string | null;
   builtbybitSyncJson?: unknown | null;
-  sortOrder?: number;
   publishedAt?: string | null;
   displayDate: string;
 }

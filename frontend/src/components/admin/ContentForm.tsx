@@ -50,7 +50,6 @@ interface ContentFormState {
   priceLabel: string;
   builtbybitResourceId: string;
   builtbybitSyncJson: unknown | null;
-  sortOrder: string;
   publishedAt: string;
   displayDate: string;
 }
@@ -117,7 +116,6 @@ function defaultState(contentType: ContentType): ContentFormState {
     priceLabel: "",
     builtbybitResourceId: "",
     builtbybitSyncJson: null,
-    sortOrder: "0",
     publishedAt: nowInputDateTime(),
     displayDate: currentDate,
   };
@@ -139,7 +137,6 @@ function stateFromItem(item: AdminContentItem): ContentFormState {
     priceLabel: item.priceLabel ?? "",
     builtbybitResourceId: item.builtbybitResourceId ?? "",
     builtbybitSyncJson: item.builtbybitSyncJson ?? null,
-    sortOrder: String(item.sortOrder),
     publishedAt: toInputDateTime(item.publishedAt) || displayDateToDateTime(item.displayDate),
     displayDate: item.displayDate ?? item.publishedAt?.slice(0, 10) ?? todayDate(),
   };
@@ -261,7 +258,6 @@ export function ContentForm({
       priceLabel: trimOrNull(form.priceLabel),
       builtbybitResourceId: isMarketplace ? trimOrNull(form.builtbybitResourceId) : null,
       builtbybitSyncJson: isMarketplace ? form.builtbybitSyncJson : null,
-      sortOrder: Number.parseInt(form.sortOrder, 10) || 0,
       publishedAt: fromInputDateTime(form.publishedAt),
       displayDate: publicationDate,
     };
@@ -513,8 +509,8 @@ export function ContentForm({
           </label>
 
           <label className="admin-field admin-field-wide" htmlFor="content-short-description">
-            <FieldTitle help="Texte court affiché sur les cartes et les pages publiques.">
-              Texte affiché
+            <FieldTitle help={isMarketplace ? "Court texte affiché sur la carte du produit." : "Texte court affiché sur les cartes et les pages publiques."}>
+              {isMarketplace ? "Accroche affichée" : "Texte affiché"}
             </FieldTitle>
             <textarea
               id="content-short-description"

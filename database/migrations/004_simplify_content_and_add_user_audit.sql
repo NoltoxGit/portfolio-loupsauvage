@@ -1,7 +1,7 @@
 -- Phase 10C: simplify portfolio content and add nullable user audit columns.
 -- The existing users table is intentionally not modified here.
 -- users(id BIGINT UNSIGNED) is confirmed in 001_initial_schema.sql.
--- Foreign keys are intentionally not added in this migration to keep MariaDB/WebStrator compatibility safer.
+-- Foreign keys are added in 005 after invalid audit values are cleaned.
 
 ALTER TABLE content_items
     DROP COLUMN IF EXISTS description,
@@ -29,7 +29,6 @@ ALTER TABLE pricing_plans
 SET @phase_10c_owner_id := (
     SELECT CASE WHEN COUNT(*) = 1 THEN MIN(id) ELSE NULL END
     FROM users
-    WHERE role = 'owner' AND is_active = 1
 );
 
 UPDATE content_items

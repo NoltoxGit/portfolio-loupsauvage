@@ -16,6 +16,7 @@ export function MarketplaceCard({ item }: { item: ContentItem }) {
       <div className="product-copy">
         <span className="content-tag">{platformLabel(item.externalPlatform, t("cards.platformOther"), t("cards.platformPortfolio"), item.platformLabel)}</span>
         <h3>{item.title}</h3>
+        {item.shortDescription ? <p className="product-summary">{item.shortDescription}</p> : null}
         <p>{item.priceLabel || mediaLabel(item)}</p>
         <a className="text-link card-cta" href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}>
           {t("cards.view")}

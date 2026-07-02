@@ -34,7 +34,6 @@ export interface ContentItem {
     coverImageUrl?: string | null;
     carouselImageUrls?: string[];
   } | null;
-  sortOrder: number;
   publishedAt: string | null;
   displayDate: string;
   media: ContentMedia[];

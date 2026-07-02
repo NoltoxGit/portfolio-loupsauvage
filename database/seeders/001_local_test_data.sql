@@ -1,7 +1,6 @@
 SET @seed_owner_id := (
     SELECT CASE WHEN COUNT(*) = 1 THEN MIN(id) ELSE NULL END
     FROM users
-    WHERE role = 'owner' AND is_active = 1
 );
 
 INSERT INTO content_items (
@@ -18,7 +17,6 @@ INSERT INTO content_items (
     external_platform,
     platform_label,
     price_label,
-    sort_order,
     published_at,
     display_date,
     created_by_user_id,
@@ -39,7 +37,6 @@ INSERT INTO content_items (
     NULL,
     NULL,
     NULL,
-    10,
     '2026-06-01 10:00:00',
     '2026-06-01',
     @seed_owner_id,
@@ -60,7 +57,6 @@ INSERT INTO content_items (
     NULL,
     NULL,
     NULL,
-    20,
     '2026-06-02 10:00:00',
     '2026-06-02',
     @seed_owner_id,
@@ -81,7 +77,6 @@ INSERT INTO content_items (
     'builtbybit',
     NULL,
     'From 12 EUR',
-    30,
     '2026-06-03 10:00:00',
     '2026-06-03',
     @seed_owner_id,
@@ -102,7 +97,6 @@ INSERT INTO content_items (
     'mcmodels',
     NULL,
     'From 18 EUR',
-    40,
     '2026-06-04 10:00:00',
     '2026-06-04',
     @seed_owner_id,
@@ -123,7 +117,6 @@ INSERT INTO content_items (
     NULL,
     NULL,
     NULL,
-    90,
     NULL,
     '2026-06-05',
     @seed_owner_id,
@@ -143,7 +136,6 @@ ON DUPLICATE KEY UPDATE
     external_platform = VALUES(external_platform),
     platform_label = VALUES(platform_label),
     price_label = VALUES(price_label),
-    sort_order = VALUES(sort_order),
     published_at = VALUES(published_at),
     display_date = VALUES(display_date),
     created_by_user_id = VALUES(created_by_user_id),
