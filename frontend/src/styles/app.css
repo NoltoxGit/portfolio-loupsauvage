@@ -816,7 +816,7 @@
   inset: 0;
   z-index: 10000;
   align-items: center;
-  background: rgba(7, 11, 8, 0.88);
+  background: rgba(7, 11, 8, 0.78);
   backdrop-filter: blur(18px) saturate(0.92);
   display: flex;
   isolation: isolate;
@@ -832,9 +832,9 @@
     radial-gradient(circle at 25% 15%, rgba(63, 174, 90, 0.2), transparent 36%),
     #111a13;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.35);
-  height: min(88vh, 880px);
+  height: min(90vh, 940px);
   overflow: hidden;
-  width: min(92vw, 1320px);
+  width: min(94vw, 1400px);
 }
 
 .model-modal-panel .model-viewer {

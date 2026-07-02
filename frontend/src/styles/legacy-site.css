@@ -104,10 +104,6 @@ main,
   flex-shrink: 0;
 }
 
-body.has-model-modal .nature-particles {
-  z-index: 2;
-}
-
 .creation-card,
 .creation-visual,
 .creation-media-viewer,
@@ -175,9 +171,13 @@ a {
 .nature-particles {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
   overflow: hidden;
   pointer-events: none;
+}
+
+body.has-model-modal .nature-particles {
+  z-index: 9999;
 }
 
 .leaf {
@@ -627,7 +627,6 @@ h3 {
 
 .admin-page main {
   position: relative;
-  z-index: 1;
 }
 
 .admin-page:not(.is-authenticated) .admin-hero,
