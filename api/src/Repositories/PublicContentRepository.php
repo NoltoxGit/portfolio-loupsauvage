@@ -82,6 +82,9 @@ final class PublicContentRepository
                 content_items.price_label,
                 content_items.builtbybit_resource_id,
                 content_items.builtbybit_sync_json,
+                content_items.model_glb_path,
+                content_items.model_preview_image_path,
+                content_items.model_watermark_enabled,
                 content_items.published_at,
                 content_items.display_date
             FROM content_items';
@@ -128,7 +131,7 @@ final class PublicContentRepository
                 'type' => (string) $item['type'],
                 'title' => (string) $item['title'],
                 'slug' => (string) $item['slug'],
-                'shortDescription' => (string) $item['type'] === 'creation' ? null : $item['short_description'],
+                'shortDescription' => $item['short_description'],
                 'sourceContext' => (string) $item['source_context'],
                 'sourceLabel' => $item['source_label'],
                 'clientPermission' => (bool) $item['client_permission'],
@@ -139,6 +142,9 @@ final class PublicContentRepository
                 'priceLabel' => $item['price_label'],
                 'builtbybitResourceId' => $item['builtbybit_resource_id'] ?? null,
                 'builtbybitSyncJson' => $this->publicSyncJson($item['builtbybit_sync_json'] ?? null),
+                'modelGlbPath' => $item['model_glb_path'] ?? null,
+                'modelPreviewImagePath' => $item['model_preview_image_path'] ?? null,
+                'modelWatermarkEnabled' => (bool) ($item['model_watermark_enabled'] ?? true),
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],
                 'media' => $mediaByItem[$id] ?? [],

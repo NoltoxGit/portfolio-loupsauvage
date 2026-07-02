@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS content_items (
     external_platform ENUM('builtbybit', 'mcmodels', 'sketchfab', 'other') NULL,
     platform_label VARCHAR(120) NULL,
     price_label VARCHAR(120) NULL,
+    model_glb_path VARCHAR(500) NULL,
+    model_preview_image_path VARCHAR(500) NULL,
+    model_watermark_enabled TINYINT(1) NOT NULL DEFAULT 1,
     builtbybit_resource_id VARCHAR(80) NULL,
     builtbybit_sync_json JSON NULL,
     published_at DATETIME NULL,
@@ -66,10 +69,6 @@ CREATE TABLE IF NOT EXISTS content_media (
     uploaded_by_user_id BIGINT UNSIGNED NULL,
     updated_by_user_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_media_item (content_item_id),
-    INDEX idx_media_kind (kind),
-    INDEX idx_media_uploaded_by_user (uploaded_by_user_id),
-    INDEX idx_media_updated_by_user (updated_by_user_id),
     CONSTRAINT fk_content_media_item
         FOREIGN KEY (content_item_id)
         REFERENCES content_items(id)
@@ -83,7 +82,11 @@ CREATE TABLE IF NOT EXISTS content_media (
         FOREIGN KEY (updated_by_user_id)
         REFERENCES users(id)
         ON DELETE SET NULL
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    INDEX idx_media_item (content_item_id),
+    INDEX idx_media_kind (kind),
+    INDEX idx_media_uploaded_by_user (uploaded_by_user_id),
+    INDEX idx_media_updated_by_user (updated_by_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS pricing_plans (

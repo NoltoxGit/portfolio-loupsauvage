@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { ContentItem } from "../../types/content";
 import { useI18n } from "../../i18n/useI18n";
-import { mediaBackgroundStyle, mediaLabel, primaryImagePath, sourceContextLabel } from "./media";
+import { mediaBackgroundStyle, mediaLabel, modelPreviewImagePath, primaryImagePath, sourceContextLabel } from "./media";
 import { hasSketchfabModel, SketchfabEmbed } from "./SketchfabEmbed";
 
 export function CreationCard({
@@ -16,7 +16,7 @@ export function CreationCard({
   href?: string;
 }) {
   const { t } = useI18n();
-  const image = primaryImagePath(item);
+  const image = primaryImagePath(item) || modelPreviewImagePath(item);
   const hasSketchfab = !image && hasSketchfabModel(item.sketchfabUrl);
   const span = archive ? 4 : index % 5 === 0 ? 4 : 3;
   const style = {

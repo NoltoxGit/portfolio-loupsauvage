@@ -39,6 +39,8 @@ return [
         'public_path' => '/uploads',
         'filesystem_path' => __DIR__ . '/../../uploads',
         'max_size_bytes' => 10 * 1024 * 1024,
+        'model_max_size_bytes' => 50 * 1024 * 1024,
+        'model_preview_max_size_bytes' => 5 * 1024 * 1024,
         'allowed_mime_types' => [
             'image/jpeg',
             'image/png',

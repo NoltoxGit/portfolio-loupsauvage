@@ -97,10 +97,7 @@ final class AdminContentRepository
                 builtbybit_resource_id,
                 builtbybit_sync_json,
                 published_at,
-                display_date,
-                created_by_user_id,
-                updated_by_user_id,
-                published_by_user_id
+                display_date
             ) VALUES (
                 :type,
                 :title,
@@ -118,10 +115,7 @@ final class AdminContentRepository
                 :builtbybit_resource_id,
                 :builtbybit_sync_json,
                 $publishedAtSql,
-                :display_date,
-                :created_by_user_id,
-                :updated_by_user_id,
-                :published_by_user_id
+                :display_date
             )
         ";
 
@@ -166,15 +160,12 @@ final class AdminContentRepository
                 builtbybit_resource_id = :builtbybit_resource_id,
                 builtbybit_sync_json = :builtbybit_sync_json,
                 published_at = $publishedAtSql,
-                display_date = :display_date,
-                updated_by_user_id = :updated_by_user_id,
-                published_by_user_id = :published_by_user_id
+                display_date = :display_date
             WHERE id = :id
         ";
 
         $params = $this->params($data);
         $params['id'] = $id;
-        unset($params['created_by_user_id']);
 
         if ($publishedAtSql !== ':published_at') {
             unset($params['published_at']);
@@ -189,18 +180,12 @@ final class AdminContentRepository
     /**
      * @return array<string, mixed>|null
      */
-    public function updateStatus(int $id, string $status, ?int $ownerId = null): ?array
+    public function updateStatus(int $id, string $status): ?array
     {
         $statement = $this->db->prepare("
             UPDATE content_items
             SET
                 status = :status,
-                updated_by_user_id = :updated_by_user_id,
-                published_by_user_id = CASE
-                    WHEN :status_for_publish = 'published' AND published_by_user_id IS NULL
-                        THEN :published_by_user_id
-                    ELSE published_by_user_id
-                END,
                 published_at = CASE
                     WHEN :status_for_publish = 'published' AND published_at IS NULL
                         THEN CURRENT_TIMESTAMP
@@ -212,8 +197,6 @@ final class AdminContentRepository
             'id' => $id,
             'status' => $status,
             'status_for_publish' => $status,
-            'updated_by_user_id' => $ownerId,
-            'published_by_user_id' => $status === 'published' ? $ownerId : null,
         ]);
 
         return $this->findById($id);
@@ -222,9 +205,9 @@ final class AdminContentRepository
     /**
      * @return array<string, mixed>|null
      */
-    public function archive(int $id, ?int $ownerId = null): ?array
+    public function archive(int $id): ?array
     {
-        return $this->updateStatus($id, 'archived', $ownerId);
+        return $this->updateStatus($id, 'archived');
     }
 
     public function mediaCount(int $contentItemId): int
@@ -259,11 +242,11 @@ final class AdminContentRepository
                 content_items.price_label,
                 content_items.builtbybit_resource_id,
                 content_items.builtbybit_sync_json,
+                content_items.model_glb_path,
+                content_items.model_preview_image_path,
+                content_items.model_watermark_enabled,
                 content_items.published_at,
                 content_items.display_date,
-                content_items.created_by_user_id,
-                content_items.updated_by_user_id,
-                content_items.published_by_user_id,
                 content_items.created_at,
                 content_items.updated_at
             FROM content_items';
@@ -293,9 +276,6 @@ final class AdminContentRepository
             'builtbybit_sync_json' => $data['builtbybit_sync_json'],
             'published_at' => $data['published_at'],
             'display_date' => $data['display_date'],
-            'created_by_user_id' => $data['created_by_user_id'] ?? null,
-            'updated_by_user_id' => $data['updated_by_user_id'] ?? null,
-            'published_by_user_id' => $data['published_by_user_id'] ?? null,
         ];
     }
 
@@ -324,7 +304,7 @@ final class AdminContentRepository
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
         $statement = $this->db->prepare("
-            SELECT id, content_item_id, kind, path, alt, sort_order, uploaded_by_user_id, updated_by_user_id
+            SELECT id, content_item_id, kind, path, alt, sort_order
             FROM content_media
             WHERE content_item_id IN ($placeholders)
             ORDER BY sort_order ASC, id ASC
@@ -340,8 +320,6 @@ final class AdminContentRepository
                 'path' => (string) $media['path'],
                 'alt' => $media['alt'],
                 'sortOrder' => (int) $media['sort_order'],
-                'uploadedByUserId' => isset($media['uploaded_by_user_id']) ? (int) $media['uploaded_by_user_id'] : null,
-                'updatedByUserId' => isset($media['updated_by_user_id']) ? (int) $media['updated_by_user_id'] : null,
             ];
         }
 
@@ -353,7 +331,7 @@ final class AdminContentRepository
                 'type' => (string) $item['type'],
                 'title' => (string) $item['title'],
                 'slug' => (string) $item['slug'],
-                'shortDescription' => (string) $item['type'] === 'creation' ? null : $item['short_description'],
+                'shortDescription' => $item['short_description'],
                 'status' => (string) $item['status'],
                 'sourceContext' => (string) $item['source_context'],
                 'sourceLabel' => $item['source_label'],
@@ -365,11 +343,11 @@ final class AdminContentRepository
                 'priceLabel' => $item['price_label'],
                 'builtbybitResourceId' => $item['builtbybit_resource_id'],
                 'builtbybitSyncJson' => $this->decodeJson($item['builtbybit_sync_json'] ?? null),
+                'modelGlbPath' => $item['model_glb_path'],
+                'modelPreviewImagePath' => $item['model_preview_image_path'],
+                'modelWatermarkEnabled' => (bool) $item['model_watermark_enabled'],
                 'publishedAt' => $item['published_at'],
                 'displayDate' => $item['display_date'],
-                'createdByUserId' => isset($item['created_by_user_id']) ? (int) $item['created_by_user_id'] : null,
-                'updatedByUserId' => isset($item['updated_by_user_id']) ? (int) $item['updated_by_user_id'] : null,
-                'publishedByUserId' => isset($item['published_by_user_id']) ? (int) $item['published_by_user_id'] : null,
                 'createdAt' => $item['created_at'],
                 'updatedAt' => $item['updated_at'],
                 'media' => $mediaByItem[$id] ?? [],

@@ -9,6 +9,10 @@ import type {
   AdminMediaItem,
   AdminMediaUpdatePayload,
   AdminMediaUploadPayload,
+  AdminModelDeleteResult,
+  AdminModelInfo,
+  AdminModelPreviewPayload,
+  AdminModelUploadPayload,
   AdminPricingActivePayload,
   AdminPricingPayload,
   AdminPricingPlan,
@@ -132,6 +136,31 @@ export const updateAdminMedia = (id: number, payload: AdminMediaUpdatePayload, c
 
 export const deleteAdminMedia = (id: number, csrfToken: string) =>
   apiRequest<AdminMediaDeleteResult>(`/admin/media/${queryString({ id })}`, {
+    method: "DELETE",
+    headers: csrfHeaders(csrfToken),
+  });
+
+export const uploadAdminModel = (payload: AdminModelUploadPayload, csrfToken: string) => {
+  const body = new FormData();
+  body.set("contentItemId", String(payload.contentItemId));
+  body.set("file", payload.file);
+
+  return apiRequest<AdminModelInfo>("/admin/model/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body,
+  });
+};
+
+export const saveAdminModelPreview = (payload: AdminModelPreviewPayload, csrfToken: string) =>
+  apiRequest<AdminModelInfo>("/admin/model/preview/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminModel = (contentId: number, csrfToken: string) =>
+  apiRequest<AdminModelDeleteResult>(`/admin/model/${queryString({ contentId })}`, {
     method: "DELETE",
     headers: csrfHeaders(csrfToken),
   });

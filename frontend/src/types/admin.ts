@@ -105,6 +105,33 @@ export interface AdminMediaDeleteResult {
   fileDeleted: boolean;
 }
 
+export interface AdminModelUploadPayload {
+  contentItemId: number;
+  file: File;
+}
+
+export interface AdminModelPreviewPayload {
+  contentItemId: number;
+  imageData: string;
+}
+
+export interface AdminModelInfo {
+  contentItemId: number;
+  type: ContentType;
+  title: string;
+  modelGlbPath: string | null;
+  modelPreviewImagePath: string | null;
+  modelWatermarkEnabled: boolean;
+}
+
+export interface AdminModelDeleteResult {
+  contentItemId: number;
+  deleted: boolean;
+  fileDeleted: boolean;
+  previewDeleted: boolean;
+  item: AdminModelInfo;
+}
+
 export interface BuiltByBitPreviewPayload {
   input: string;
 }
@@ -113,6 +140,8 @@ export interface BuiltByBitPreview {
   resourceId: string;
   title: string;
   summary: string;
+  descriptionBbcode?: string;
+  descriptionHtmlPreview?: string;
   externalUrl: string;
   coverImageUrl: string;
   carouselImageUrls: string[];

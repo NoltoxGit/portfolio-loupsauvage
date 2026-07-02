@@ -38,6 +38,10 @@ export function primaryImagePath(item: ContentItem): string {
   return media ? resolveMediaPath(media.path) : "";
 }
 
+export function modelPreviewImagePath(item: ContentItem): string {
+  return resolveMediaPath(item.modelPreviewImagePath);
+}
+
 export function marketplaceImagePath(item: ContentItem): string {
   const localPath = primaryImagePath(item);
 
@@ -67,10 +71,6 @@ export function mediaBackgroundStyle(path: string | null | undefined) {
 }
 
 export function mediaLabel(item: ContentItem): string {
-  if (item.type === "creation") {
-    return item.title;
-  }
-
   return item.shortDescription || item.title;
 }
 

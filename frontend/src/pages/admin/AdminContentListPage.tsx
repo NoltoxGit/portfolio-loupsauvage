@@ -23,7 +23,7 @@ function sectionIntro(contentType: ContentType) {
 const statusLabels: Record<ContentStatus, string> = {
   draft: "Brouillon",
   published: "En ligne",
-  archived: "Archivé",
+  archived: "Supprimé",
 };
 
 function formatDate(value: string | null) {
@@ -62,6 +62,8 @@ export function AdminContentListPage({
     }
   }, [actionError, error, onUnauthenticated]);
 
+  const activeItems = data?.filter((item) => item.status !== "archived") ?? [];
+
   const runAction = async (action: () => Promise<unknown>) => {
     setActionError(null);
 
@@ -78,8 +80,8 @@ export function AdminContentListPage({
     }
   };
 
-  const archiveItem = (id: number) => {
-    if (!window.confirm("Archiver ce contenu ? Il ne sera plus visible publiquement.")) {
+  const deleteItem = (id: number) => {
+    if (!window.confirm("Supprimer ce contenu ? Il disparaîtra du site et des listes actives.")) {
       return;
     }
 
@@ -102,11 +104,11 @@ export function AdminContentListPage({
       {loading ? <LoadingState label="Chargement des contenus..." /> : null}
       <AdminError error={error ?? actionError} />
 
-      {!loading && data?.length === 0 ? <p className="admin-empty">Aucun contenu dans cette section.</p> : null}
+      {!loading && activeItems.length === 0 ? <p className="admin-empty">Aucun contenu actif dans cette section.</p> : null}
 
-      {data?.length ? (
+      {activeItems.length ? (
         <div className="admin-list">
-          {data.map((item) => (
+          {activeItems.map((item) => (
             <article className={`admin-list-item is-${contentType}`} key={item.id}>
               <div className={`admin-list-icon is-${item.status}`}>{statusLabels[item.status]}</div>
               <div className="admin-list-copy">
@@ -121,32 +123,33 @@ export function AdminContentListPage({
                 <button className="admin-mini-button" type="button" onClick={() => navigateTo(`${path}/${item.id}/preview`)}>
                   Prévisualiser
                 </button>
-                {item.status !== "published" ? (
+                {item.status === "draft" ? (
                   <button
                     className="admin-mini-button"
                     type="button"
                     onClick={() => void runAction(() => updateAdminContentStatus(item.id, { status: "published" }, csrfToken))}
                   >
-                    Mettre en ligne
+                    Publier
                   </button>
                 ) : null}
-                {item.status !== "draft" ? (
+                {item.status === "published" ? (
                   <button
                     className="admin-mini-button"
                     type="button"
                     onClick={() => void runAction(() => updateAdminContentStatus(item.id, { status: "draft" }, csrfToken))}
                   >
-                    Brouillon
+                    Masquer
                   </button>
                 ) : null}
-                <button
-                  className="admin-mini-button admin-danger"
-                  disabled={item.status === "archived"}
-                  type="button"
-                  onClick={() => archiveItem(item.id)}
-                >
-                  Archiver
-                </button>
+                {item.status !== "archived" ? (
+                  <button
+                    className="admin-mini-button admin-danger"
+                    type="button"
+                    onClick={() => deleteItem(item.id)}
+                  >
+                    Supprimer
+                  </button>
+                ) : null}
               </div>
             </article>
           ))}

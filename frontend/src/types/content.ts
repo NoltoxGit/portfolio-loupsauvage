@@ -9,8 +9,6 @@ export interface ContentMedia {
   path: string;
   alt: string | null;
   sortOrder: number;
-  uploadedByUserId?: number | null;
-  updatedByUserId?: number | null;
 }
 
 export interface ContentItem {
@@ -34,10 +32,10 @@ export interface ContentItem {
     coverImageUrl?: string | null;
     carouselImageUrls?: string[];
   } | null;
+  modelGlbPath: string | null;
+  modelPreviewImagePath: string | null;
+  modelWatermarkEnabled: boolean;
   publishedAt: string | null;
   displayDate: string;
   media: ContentMedia[];
-  createdByUserId?: number | null;
-  updatedByUserId?: number | null;
-  publishedByUserId?: number | null;
 }

@@ -23,7 +23,9 @@ final class UserRepository
             WHERE email = :email
             LIMIT 1
         ');
-        $statement->execute(['email' => $email]);
+        $statement->execute([
+            'email' => $email,
+        ]);
 
         $user = $statement->fetch();
 
@@ -41,7 +43,9 @@ final class UserRepository
             WHERE id = :id
             LIMIT 1
         ');
-        $statement->execute(['id' => $id]);
+        $statement->execute([
+            'id' => $id,
+        ]);
 
         $user = $statement->fetch();
 

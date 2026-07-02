@@ -10,6 +10,7 @@ import type { AdminContentItem, AdminContentPayload, BuiltByBitPreview } from ".
 import type { ContentStatus, ContentType, ExternalPlatform, SourceContext } from "../../types/content";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 import { MediaManager } from "./MediaManager";
+import { ModelManager } from "./ModelManager";
 import { hasSketchfabModel } from "../content/SketchfabEmbed";
 
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
@@ -18,7 +19,7 @@ const externalPlatforms: ExternalPlatform[] = ["builtbybit", "mcmodels", "sketch
 const statusLabels: Record<ContentStatus, string> = {
   draft: "Brouillon",
   published: "En ligne",
-  archived: "Archivé",
+  archived: "Supprimé",
 };
 
 const sourceLabels: Record<SourceContext, string> = {
@@ -174,6 +175,23 @@ function SectionTitle({ children, help }: { children: ReactNode; help: string })
   );
 }
 
+function AttachmentSetupNotice({ contentType }: { contentType: ContentType }) {
+  return (
+    <section className="admin-media-manager admin-attachment-setup">
+      <div className="admin-media-heading">
+        <div>
+          <span>{contentType === "creation" ? "Images et modèle 3D" : "Images du produit"}</span>
+          <h3>Médias disponibles après création</h3>
+          <p>
+            Enregistre d’abord la fiche pour créer son identifiant. Tu pourras ensuite ajouter les images et le fichier GLB
+            directement sur cette page.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function ContentForm({
   contentType,
   csrfToken,
@@ -194,11 +212,13 @@ export function ContentForm({
   const [form, setForm] = useState<ContentFormState>(() =>
     initialItem ? stateFromItem(initialItem) : defaultState(contentType),
   );
+  const selectableStatuses = form.status === "archived" ? statuses : statuses.filter((status) => status !== "archived");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(() => Boolean(initialItem?.slug));
   const [error, setError] = useState<unknown>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [mediaCount, setMediaCount] = useState(() => initialItem?.media.length ?? 0);
+  const [hasModel, setHasModel] = useState(() => Boolean(initialItem?.modelGlbPath));
   const [builtByBitInput, setBuiltByBitInput] = useState("");
   const [builtByBitPreview, setBuiltByBitPreview] = useState<BuiltByBitPreview | null>(null);
   const [builtByBitLoading, setBuiltByBitLoading] = useState(false);
@@ -209,6 +229,7 @@ export function ContentForm({
     setError(null);
     setNotice(null);
     setMediaCount(initialItem?.media.length ?? 0);
+    setHasModel(Boolean(initialItem?.modelGlbPath));
     setBuiltByBitInput("");
     setBuiltByBitPreview(null);
   }, [contentType, initialItem]);
@@ -246,7 +267,7 @@ export function ContentForm({
       type: contentType,
       title: form.title,
       slug: form.slug,
-      shortDescription: isMarketplace ? trimOrNull(form.shortDescription) : null,
+      shortDescription: trimOrNull(form.shortDescription),
       status: form.status,
       sourceContext,
       sourceLabel: !isMarketplace && sourceContext === "other" ? trimOrNull(form.sourceLabel) : null,
@@ -277,7 +298,7 @@ export function ContentForm({
       return true;
     }
 
-    return hasSketchfabModel(form.sketchfabUrl) || mediaCount > 0;
+    return hasSketchfabModel(form.sketchfabUrl) || mediaCount > 0 || hasModel;
   };
 
   const guardPublishCreation = (status: ContentStatus) => {
@@ -286,7 +307,7 @@ export function ContentForm({
     }
 
     setError(null);
-    setNotice("Ajoutez au moins une image ou un lien Sketchfab pour publier cette création.");
+    setNotice("Ajoutez au moins une image, un lien Sketchfab ou un modèle GLB pour publier cette création.");
     return false;
   };
 
@@ -409,8 +430,8 @@ export function ContentForm({
     }
   };
 
-  const archiveContent = async () => {
-    if (!initialItem || !window.confirm("Archiver ce contenu ? Il restera disponible dans l'admin mais disparaîtra du site.")) {
+  const deleteContent = async () => {
+    if (!initialItem || !window.confirm("Supprimer ce contenu ? Il disparaîtra du site et des listes actives.")) {
       return;
     }
 
@@ -421,7 +442,7 @@ export function ContentForm({
     try {
       const archived = await archiveAdminContent(initialItem.id, csrfToken);
       setForm(stateFromItem(archived));
-      setNotice("Contenu archivé.");
+      setNotice("Contenu supprimé.");
       onArchived?.(archived);
       onSaved(archived);
     } catch (nextError) {
@@ -434,6 +455,7 @@ export function ContentForm({
   const slugHelp = `/creations/${form.slug || "adresse-de-la-page"}`;
 
   return (
+    <>
     <form className={`admin-form admin-content-form is-${contentType}`} onSubmit={onSubmit}>
       <div className="admin-form-intro">
         <span>{isMarketplace ? "Ressource marketplace" : "Création portfolio"}</span>
@@ -480,7 +502,7 @@ export function ContentForm({
           ) : null}
 
           <label className="admin-field" htmlFor="content-status">
-            <FieldTitle help="Brouillon masque le contenu, En ligne l’affiche publiquement, Archivé le retire du site.">
+            <FieldTitle help="Brouillon masque le contenu. En ligne l’affiche publiquement. La suppression se fait avec le bouton dédié.">
               Visibilité
             </FieldTitle>
             <select
@@ -488,7 +510,7 @@ export function ContentForm({
               value={form.status}
               onChange={(event) => updateField("status", event.target.value as ContentStatus)}
             >
-              {statuses.map((status) => (
+              {selectableStatuses.map((status) => (
                 <option key={status} value={status}>
                   {statusLabels[status]}
                 </option>
@@ -508,10 +530,9 @@ export function ContentForm({
             />
           </label>
 
-          {isMarketplace ? (
           <label className="admin-field admin-field-wide" htmlFor="content-short-description">
-            <FieldTitle help="Court texte affiché sur la carte du produit.">
-              Accroche affichée
+            <FieldTitle help="Texte court affiché sur les cartes et les listes publiques.">
+              Résumé court
             </FieldTitle>
             <textarea
               id="content-short-description"
@@ -520,7 +541,7 @@ export function ContentForm({
               onChange={(event) => updateField("shortDescription", event.target.value)}
             />
           </label>
-          ) : null}
+
         </div>
       </div>
 
@@ -616,7 +637,7 @@ export function ContentForm({
                 <div>
                   <span>Ressource #{builtByBitPreview.resourceId}</span>
                   <h4>{builtByBitPreview.title}</h4>
-                  <p>{builtByBitPreview.summary || "Aucun résumé fourni."}</p>
+                  <p>{builtByBitPreview.summary || builtByBitPreview.descriptionBbcode || "Aucun résumé fourni."}</p>
                   <dl>
                     <div>
                       <dt>Prix</dt>
@@ -697,38 +718,48 @@ export function ContentForm({
         </div>
       )}
 
-      {initialItem ? (
-        <MediaManager
-          contentId={initialItem.id}
-          csrfToken={csrfToken}
-          onMediaChanged={(items) => setMediaCount(items.length)}
-          onUnauthenticated={onUnauthenticated}
-        />
-      ) : null}
-
       <AdminError error={error} />
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}
 
       <div className="admin-form-actions admin-form-primary-actions">
         <button className="button button-primary" type="submit" disabled={submitting}>
-          {submitting ? "Enregistrement..." : "Enregistrer"}
+          {submitting ? "Enregistrement..." : initialItem ? "Enregistrer" : "Créer puis ajouter les médias"}
         </button>
-        {initialItem && form.status !== "published" ? (
+        {initialItem && form.status === "draft" ? (
           <button className="button button-secondary" disabled={submitting} type="button" onClick={() => void changeStatus("published")}>
-            Mettre en ligne
+            Publier
           </button>
         ) : null}
-        {initialItem && form.status !== "draft" ? (
+        {initialItem && form.status === "published" ? (
           <button className="button button-secondary" disabled={submitting} type="button" onClick={() => void changeStatus("draft")}>
-            Repasser en brouillon
+            Masquer
           </button>
         ) : null}
         {initialItem && form.status !== "archived" ? (
-          <button className="button button-secondary admin-danger" disabled={submitting} type="button" onClick={archiveContent}>
-            Archiver
+          <button className="button button-secondary admin-danger" disabled={submitting} type="button" onClick={deleteContent}>
+            Supprimer
           </button>
         ) : null}
       </div>
     </form>
+      {initialItem ? (
+        <>
+          <MediaManager
+            contentId={initialItem.id}
+            csrfToken={csrfToken}
+            onMediaChanged={(items) => setMediaCount(items.length)}
+            onUnauthenticated={onUnauthenticated}
+          />
+          <ModelManager
+            item={initialItem}
+            csrfToken={csrfToken}
+            onModelChanged={(model) => setHasModel(Boolean(model.modelGlbPath))}
+            onUnauthenticated={onUnauthenticated}
+          />
+        </>
+      ) : (
+        <AttachmentSetupNotice contentType={contentType} />
+      )}
+    </>
   );
 }
