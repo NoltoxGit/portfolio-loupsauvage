@@ -102,8 +102,7 @@ main,
 }
 
 body.has-model-modal .nature-particles {
-  z-index: 0;
-  opacity: 0.16;
+  z-index: 9999;
 }
 
 body.nav-open {
