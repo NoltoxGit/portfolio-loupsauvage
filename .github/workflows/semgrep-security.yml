@@ -25,14 +25,14 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Run Semgrep security scan
         run: |
           docker run --rm \
             -v "${PWD}:/src" \
             -w /src \
-            semgrep/semgrep:1.168.0 \
+            semgrep/semgrep:1.167.0 \
             semgrep scan \
             --config auto \
             --sarif \
@@ -41,14 +41,14 @@ jobs:
       - name: Upload Semgrep SARIF to GitHub code scanning
         if: always()
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v4.36.3
+        uses: github/codeql-action/upload-sarif@8533807ff379ac610d2b2c389c47e7c629d31d13 # v4.36.3
         with:
           sarif_file: semgrep-results.sarif
           category: semgrep
 
       - name: Upload Semgrep SARIF artifact
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: semgrep-results
           path: semgrep-results.sarif
