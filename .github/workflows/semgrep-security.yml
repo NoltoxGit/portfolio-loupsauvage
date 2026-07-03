@@ -18,24 +18,21 @@ concurrency:
 
 jobs:
   semgrep:
-    name: Run npx semgrep
+    name: Run Semgrep
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout source
       uses: actions/checkout@v7.0.0
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v6.4.0
-      with:
-        node-version: 26
-
     - name: Run Semgrep security scan
-      run: |
-        npx --yes semgrep@latest scan \
-          --config auto \
-          --error \
-          --sarif \
+      uses: docker://semgrep/semgrep:latest
+      with:
+        args: >-
+          scan
+          --config auto
+          --error
+          --sarif
           --output semgrep-results.sarif
 
     - name: Upload Semgrep SARIF artifact
