@@ -40,6 +40,7 @@ final class SafeFileDeleter
             || str_contains($baseDirectory, "\0")
             || str_contains($relativePath, "\0")
             || self::isAbsolutePath($relativePath)
+            || is_link($baseDirectory)
             || !is_dir($baseDirectory)
         ) {
             return false;
@@ -89,7 +90,9 @@ final class SafeFileDeleter
             return false;
         }
 
-        // The candidate is inside the configured uploads directory and symlinks are rejected above.
+        // Safe deletion invariant: the request is non-empty, relative, traversal-free, contains no
+        // null bytes, every path component under uploadsRoot rejects symlinks, and realpath()
+        // confirms the final file remains inside the configured uploads directory.
         return unlink($realCandidate); // nosemgrep: php.lang.security.unlink-use.unlink-use
     }
 
