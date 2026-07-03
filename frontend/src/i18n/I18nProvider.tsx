@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useState, type ReactNod
 import { LANGUAGE_STORAGE_KEY, supportedLanguages, translations, type Language } from "./translations";
 
 type TranslationValue = string | { [key: string]: TranslationValue };
+const blockedTranslationKeys = new Set(["__proto__", "prototype", "constructor"]);
 
 export interface I18nContextValue {
   language: Language;
@@ -32,11 +33,23 @@ function readTranslation(language: Language, key: string): string | null {
   let value: TranslationValue = translations[language];
 
   for (const part of parts) {
-    if (!value || typeof value === "string" || !(part in value)) {
+    if (
+      part === ""
+      || blockedTranslationKeys.has(part)
+      || !value
+      || typeof value === "string"
+      || !Object.hasOwn(value, part)
+    ) {
       return null;
     }
 
-    value = value[part];
+    const descriptor = Object.getOwnPropertyDescriptor(value, part);
+
+    if (!descriptor || !("value" in descriptor)) {
+      return null;
+    }
+
+    value = descriptor.value;
   }
 
   return typeof value === "string" ? value : null;

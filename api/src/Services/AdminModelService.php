@@ -7,6 +7,7 @@ namespace LoupSauvage\Services;
 use LoupSauvage\Repositories\AdminModelRepository;
 use LoupSauvage\Support\ApiException;
 use LoupSauvage\Support\Config;
+use LoupSauvage\Support\SafeFileDeleter;
 use Throwable;
 
 final class AdminModelService
@@ -338,36 +339,11 @@ final class AdminModelService
 
     private function deletePhysicalFile(string $publicPath): bool
     {
-        if (!str_starts_with($publicPath, '/uploads/')) {
-            return false;
-        }
-
-        $uploadsRoot = rtrim($this->config->string('uploads.filesystem_path', ''), '/\\');
-
-        if ($uploadsRoot === '' || !is_dir($uploadsRoot)) {
-            return false;
-        }
-
-        $realUploadsRoot = realpath($uploadsRoot);
-
-        if ($realUploadsRoot === false) {
-            return false;
-        }
-
-        $relativePath = ltrim(substr($publicPath, strlen('/uploads/')), '/\\');
-        $candidate = $uploadsRoot . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
-
-        if (!is_file($candidate)) {
-            return false;
-        }
-
-        $realCandidate = realpath($candidate);
-
-        if ($realCandidate === false || !str_starts_with($realCandidate, $realUploadsRoot . DIRECTORY_SEPARATOR)) {
-            return false;
-        }
-
-        return unlink($realCandidate);
+        return SafeFileDeleter::deletePublicUpload(
+            $publicPath,
+            $this->config->string('uploads.filesystem_path', ''),
+            $this->publicUploadsPath()
+        );
     }
 }
 
