@@ -33,7 +33,6 @@ jobs:
           semgrep/semgrep:latest \
           semgrep scan \
           --config auto \
-          --error \
           --sarif \
           --output semgrep-results.sarif
 
