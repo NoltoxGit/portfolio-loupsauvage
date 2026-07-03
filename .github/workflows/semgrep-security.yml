@@ -3,14 +3,16 @@ name: Semgrep security scan
 on:
   push:
     branches:
-    - "**"
+      - "**"
   pull_request:
     branches:
-    - "**"
+      - "**"
   workflow_dispatch:
 
 permissions:
   contents: read
+  security-events: write
+  actions: read
 
 concurrency:
   group: semgrep-security-${{ github.ref }}
@@ -22,24 +24,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v7.0.0
+      - name: Checkout source
+        uses: actions/checkout@v7.0.0
 
-    - name: Run Semgrep security scan
-      run: |
-        docker run --rm \
-          -v "${PWD}:/src" \
-          -w /src \
-          semgrep/semgrep:latest \
-          semgrep scan \
-          --config auto \
-          --sarif \
-          --output semgrep-results.sarif
+      - name: Run Semgrep security scan
+        run: |
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -w /src \
+            semgrep/semgrep:1.168.0 \
+            semgrep scan \
+            --config auto \
+            --sarif \
+            --output semgrep-results.sarif
 
-    - name: Upload Semgrep SARIF artifact
-      if: always()
-      uses: actions/upload-artifact@v7.0.1
-      with:
-        name: semgrep-results
-        path: semgrep-results.sarif
-        if-no-files-found: ignore
+      - name: Upload Semgrep SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4.36.3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep
+
+      - name: Upload Semgrep SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: semgrep-results
+          path: semgrep-results.sarif
+          if-no-files-found: ignore

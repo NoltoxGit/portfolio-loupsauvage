@@ -1,5 +1,4 @@
 version: 2
-
 updates:
   - package-ecosystem: "npm"
     directory: "/frontend"
@@ -7,6 +6,10 @@ updates:
       interval: "daily"
       time: "04:00"
       timezone: "Europe/Paris"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
     open-pull-requests-limit: 20
     rebase-strategy: "auto"
     labels:
@@ -23,6 +26,10 @@ updates:
       interval: "daily"
       time: "04:00"
       timezone: "Europe/Paris"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
     open-pull-requests-limit: 10
     rebase-strategy: "auto"
     labels:
