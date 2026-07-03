@@ -8,6 +8,7 @@
 [![PHP](https://img.shields.io/badge/PHP-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white)](https://mariadb.org/)
 [![WebStrator Build](https://img.shields.io/badge/GitHub%20Actions-WebStrator%20build-2088FF?logo=githubactions&logoColor=white)](.github/workflows/build-webstrator.yml)
+[![Semgrep Security Scan](https://github.com/NoltoxGit/portfolio-loupsauvage/actions/workflows/semgrep-security.yml/badge.svg)](https://github.com/NoltoxGit/portfolio-loupsauvage/actions/workflows/semgrep-security.yml)
 
 Portfolio de LoupSauvage, modélisatrice 3D spécialisée dans les modèles Minecraft et Blockbench. Le site public présente les créations, ressources marketplace et tarifs. Le panneau admin permet de gérer les contenus, offres et médias.
 
