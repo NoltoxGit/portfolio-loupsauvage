@@ -36,7 +36,22 @@ jobs:
             semgrep scan \
             --config auto \
             --sarif \
-            --output semgrep-results.sarif
+            --output semgrep-results.raw.sarif
+
+      - name: Filter ignored Semgrep findings for GitHub code scanning
+        run: |
+          jq '
+            def ignored_by_semgrep:
+              ((.suppressions // []) | length) > 0
+              or (.properties.ignored == true)
+              or (.properties.is_ignored == true)
+              or (.properties._extra.ignored == true)
+              or (.properties._extra.is_ignored == true);
+
+            .runs |= map(
+              .results = ((.results // []) | map(select(ignored_by_semgrep | not)))
+            )
+          ' semgrep-results.raw.sarif > semgrep-results.sarif
 
       - name: Upload Semgrep SARIF to GitHub code scanning
         if: always()
@@ -51,5 +66,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: semgrep-results
-          path: semgrep-results.sarif
+          path: |
+            semgrep-results.raw.sarif
+            semgrep-results.sarif
           if-no-files-found: ignore
