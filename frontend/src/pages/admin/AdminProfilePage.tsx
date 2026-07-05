@@ -28,6 +28,7 @@ export function AdminProfilePage({
   });
   const [tokenName, setTokenName] = useState("Blockbench poste principal");
   const [newToken, setNewToken] = useState<string | null>(null);
+  const [tokenCopied, setTokenCopied] = useState(false);
   const [actionError, setActionError] = useState<unknown>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const { data, error, loading } = useAsyncData(getAdminProfile, [refreshKey]);
@@ -57,6 +58,7 @@ export function AdminProfilePage({
     setActionError(null);
     setNotice(null);
     setNewToken(null);
+    setTokenCopied(false);
 
     try {
       const created = await createAdminBlockbenchToken({ name: tokenName.trim() }, csrfToken);
@@ -92,7 +94,10 @@ export function AdminProfilePage({
     }
 
     await navigator.clipboard.writeText(newToken);
+    setTokenCopied(true);
     setNotice("Clé copiée dans le presse-papiers.");
+
+    window.setTimeout(() => setTokenCopied(false), 2200);
   };
 
   return (
@@ -196,10 +201,15 @@ export function AdminProfilePage({
                 <span>Copie cette clé maintenant. Elle ne sera plus affichée.</span>
                 <code>{newToken}</code>
                 {navigator.clipboard ? (
-                  <button className="button button-secondary" type="button" onClick={() => void copyToken()}>
-                    Copier
+                  <button
+                    className={`button button-secondary admin-copy-button${tokenCopied ? " is-copied" : ""}`}
+                    type="button"
+                    onClick={() => void copyToken()}
+                  >
+                    {tokenCopied ? "Copié" : "Copier"}
                   </button>
                 ) : null}
+                {tokenCopied ? <div className="admin-copy-popover">Copié dans le presse-papiers</div> : null}
               </div>
             ) : null}
 
