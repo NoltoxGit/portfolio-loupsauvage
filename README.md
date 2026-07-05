@@ -59,13 +59,13 @@ Get-ChildItem api -Recurse -Filter *.php | ForEach-Object { php -l $_.FullName }
 Importer une migration en PowerShell :
 
 ```powershell
-Get-Content -Raw database/migrations/001_initial_schema.sql | mysql -u root -p loupsauvage_portfolio
+Get-Content -Raw database/migrations/001_initial_schema.sql | mysql -u root -p <database_name>
 ```
 
 Créer un owner local :
 
 ```powershell
-php tools/create-owner.php LoupSauvage login@loupsauvage.fr
+php tools/create-owner.php <username> <email@example.test>
 ```
 
 Créer une clé Blockbench depuis l’admin :
@@ -77,7 +77,7 @@ Créer une clé Blockbench depuis l’admin :
 Le script CLI reste disponible pour dépannage local :
 
 ```powershell
-php tools/create-blockbench-token.php "Blockbench Lou"
+php tools/create-blockbench-token.php "Blockbench poste principal"
 ```
 
 ## Commandes plugin Blockbench
@@ -96,7 +96,7 @@ cd blockbench-plugin
 npm run package
 ```
 
-Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local. En local, la Base URL du plugin est `http://localhost:8000`. En production, utiliser `https://loupsauvage.fr`.
+Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local. En local, la Base URL du plugin est `http://localhost:8000`. En production, utiliser l’URL publique du site déployé.
 
 Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` comme asset principal, plus une archive zip et un checksum SHA-256.
 
