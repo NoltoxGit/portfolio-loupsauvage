@@ -26,7 +26,7 @@ export function AdminProfilePage({
     newPassword: "",
     confirmPassword: "",
   });
-  const [tokenName, setTokenName] = useState("");
+  const [tokenName, setTokenName] = useState("Blockbench poste principal");
   const [newToken, setNewToken] = useState<string | null>(null);
   const [actionError, setActionError] = useState<unknown>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function AdminProfilePage({
     setNewToken(null);
 
     try {
-      const created = await createAdminBlockbenchToken({ name: tokenName }, csrfToken);
+      const created = await createAdminBlockbenchToken({ name: tokenName.trim() }, csrfToken);
       setTokenName("");
       setNewToken(created.token);
       setNotice("Clé Blockbench créée. Copie-la maintenant, elle ne sera plus affichée.");
@@ -181,7 +181,8 @@ export function AdminProfilePage({
                   type="text"
                   value={tokenName}
                   maxLength={120}
-                  placeholder="Blockbench LoupSauvage PC principal"
+                  required
+                  placeholder="Blockbench poste principal"
                   onChange={(event) => setTokenName(event.target.value)}
                 />
               </label>

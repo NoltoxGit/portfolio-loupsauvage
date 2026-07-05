@@ -51,12 +51,12 @@ export async function apiRequest<T>(
 
   const payload = (await response.json().catch(() => null)) as ApiResponse<T> | null;
 
-  if (!response.ok || !payload) {
-    throw new ApiError("HTTP_ERROR", `Request failed with status ${response.status}`);
+  if (payload && !payload.success) {
+    throw new ApiError(payload.error.code, payload.error.message, payload.error.fields);
   }
 
-  if (!payload.success) {
-    throw new ApiError(payload.error.code, payload.error.message, payload.error.fields);
+  if (!response.ok || !payload) {
+    throw new ApiError("HTTP_ERROR", `Request failed with status ${response.status}`);
   }
 
   return payload.data;
