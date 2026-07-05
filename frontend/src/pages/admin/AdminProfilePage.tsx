@@ -181,7 +181,7 @@ export function AdminProfilePage({
                   type="text"
                   value={tokenName}
                   maxLength={120}
-                  placeholder="Blockbench Lou PC principal"
+                  placeholder="Blockbench LoupSauvage PC principal"
                   onChange={(event) => setTokenName(event.target.value)}
                 />
               </label>
