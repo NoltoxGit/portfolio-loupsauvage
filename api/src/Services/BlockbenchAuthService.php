@@ -22,11 +22,7 @@ final class BlockbenchAuthService
     {
         $authorization = $this->authorizationHeader();
 
-        if (!preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
-            throw new ApiException('UNAUTHENTICATED', 'Invalid integration token.', 401);
-        }
-
-        $token = trim($matches[1]);
+        $token = $this->tokenFromAuthorization($authorization);
 
         if (!str_starts_with($token, 'lsbb_') || strlen($token) <= self::TOKEN_PREFIX_LENGTH) {
             throw new ApiException('UNAUTHENTICATED', 'Invalid integration token.', 401);
@@ -48,6 +44,17 @@ final class BlockbenchAuthService
                 ? (int) $tokenRow['created_by_user_id']
                 : null,
         ];
+    }
+
+    private function tokenFromAuthorization(string $authorization): string
+    {
+        if (preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
+            return trim($matches[1]);
+        }
+
+        $fallback = $_SERVER['HTTP_X_BLOCKBENCH_TOKEN'] ?? '';
+
+        return is_string($fallback) ? trim($fallback) : '';
     }
 
     private function authorizationHeader(): string

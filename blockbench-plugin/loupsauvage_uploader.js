@@ -339,6 +339,7 @@
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiToken}`,
+          "X-Blockbench-Token": apiToken,
         },
         body,
       });

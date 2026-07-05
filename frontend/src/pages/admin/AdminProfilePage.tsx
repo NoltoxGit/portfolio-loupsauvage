@@ -209,7 +209,7 @@ export function AdminProfilePage({
                     {tokenCopied ? "Copié" : "Copier"}
                   </button>
                 ) : null}
-                {tokenCopied ? <div className="admin-copy-popover">Copié dans le presse-papiers</div> : null}
+                {tokenCopied ? <span className="admin-copy-confirmation">Copié dans le presse-papiers</span> : null}
               </div>
             ) : null}
 
