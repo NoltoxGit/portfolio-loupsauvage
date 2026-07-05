@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use LoupSauvage\Database\Connection;
 use LoupSauvage\Repositories\BlockbenchApiTokenRepository;
+use LoupSauvage\Services\BlockbenchApiTokenService;
 
 $config = require __DIR__ . '/../api/config/bootstrap.php';
 
@@ -19,24 +20,10 @@ if (strlen($name) > 120) {
     exit(1);
 }
 
-$repository = new BlockbenchApiTokenRepository((new Connection($config))->pdo());
+$service = new BlockbenchApiTokenService(new BlockbenchApiTokenRepository((new Connection($config))->pdo()));
+$created = $service->create($name);
+$item = is_array($created['item'] ?? null) ? $created['item'] : [];
 
-for ($attempt = 0; $attempt < 5; ++$attempt) {
-    $token = 'lsbb_' . bin2hex(random_bytes(32));
-    $prefix = substr($token, 0, 12);
-
-    try {
-        $id = $repository->create($name, $prefix, hash('sha256', $token));
-        fwrite(STDOUT, "Blockbench token created with id {$id}.\n");
-        fwrite(STDOUT, "Copiez ce token maintenant, il ne sera plus affiché.\n");
-        fwrite(STDOUT, $token . "\n");
-        exit(0);
-    } catch (PDOException $error) {
-        if ($error->getCode() !== '23000') {
-            throw $error;
-        }
-    }
-}
-
-fwrite(STDERR, "Unable to create a unique Blockbench token. Please retry.\n");
-exit(1);
+fwrite(STDOUT, "Blockbench token created with id {$item['id']}.\n");
+fwrite(STDOUT, "Copiez ce token maintenant, il ne sera plus affiché.\n");
+fwrite(STDOUT, $created['token'] . "\n");

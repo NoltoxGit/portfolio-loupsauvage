@@ -225,6 +225,121 @@
   margin: 0;
 }
 
+.admin-profile-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-profile-card {
+  border: 1px solid rgba(31, 111, 58, 0.12);
+  border-radius: var(--radius);
+  background: #ffffff;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.admin-profile-card-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-profile-details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.admin-profile-details div,
+.admin-token-row {
+  border: 1px solid rgba(31, 111, 58, 0.1);
+  border-radius: calc(var(--radius) - 4px);
+  background: rgba(230, 246, 233, 0.34);
+  padding: 12px;
+}
+
+.admin-profile-details dt,
+.admin-token-row span,
+.admin-token-once span {
+  color: var(--green-dark);
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.admin-profile-details dd {
+  color: var(--title-ink);
+  font-weight: 900;
+  margin: 4px 0 0;
+}
+
+.admin-profile-form,
+.admin-token-create {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-profile-form label,
+.admin-token-create label {
+  color: var(--title-ink);
+  display: grid;
+  font-size: 0.9rem;
+  font-weight: 900;
+  gap: 6px;
+}
+
+.admin-profile-form input,
+.admin-token-create input {
+  border: 1px solid rgba(31, 111, 58, 0.16);
+  border-radius: calc(var(--radius) - 4px);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--title-ink);
+  font: inherit;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.admin-token-create {
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.admin-token-once {
+  border: 1px solid rgba(31, 111, 58, 0.18);
+  border-radius: var(--radius);
+  background: rgba(255, 244, 199, 0.58);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.admin-token-once code {
+  overflow-wrap: anywhere;
+  color: var(--title-ink);
+  font-weight: 900;
+}
+
+.admin-token-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-token-row {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.86);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(160px, 1.2fr) repeat(3, minmax(120px, 1fr)) auto;
+}
+
+.admin-token-row strong {
+  color: var(--title-ink);
+  display: block;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
 .admin-import-panel {
   border: 1px solid rgba(31, 111, 58, 0.12);
   border-radius: var(--radius);
@@ -911,6 +1026,12 @@ body.has-model-modal .site-footer {
   }
 
   .admin-dashboard-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-profile-grid,
+  .admin-token-create,
+  .admin-token-row {
     grid-template-columns: 1fr;
   }
 

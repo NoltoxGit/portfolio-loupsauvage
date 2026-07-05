@@ -155,3 +155,40 @@ export interface BuiltByBitPreview {
   categoryLabel: string;
   rawSyncJson: unknown;
 }
+
+export interface AdminProfileUser {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export interface AdminBlockbenchToken {
+  id: number;
+  name: string;
+  tokenPrefix: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+  createdByUserId: number | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AdminProfile {
+  user: AdminProfileUser;
+  blockbenchTokens: AdminBlockbenchToken[];
+}
+
+export interface AdminPasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AdminBlockbenchTokenCreatePayload {
+  name: string;
+}
+
+export interface AdminBlockbenchTokenCreateResult {
+  token: string;
+  item: Pick<AdminBlockbenchToken, "id" | "name" | "tokenPrefix"> & Partial<AdminBlockbenchToken>;
+}

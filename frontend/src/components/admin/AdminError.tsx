@@ -6,6 +6,8 @@ const errorMessages: Record<string, string> = {
   NOT_FOUND: "La ressource demandée est introuvable.",
   CSRF_INVALID: "Session ou action expirée. Recharge la page puis réessaie.",
   UNAUTHENTICATED: "Session admin expirée. Reconnecte-toi.",
+  PASSWORD_INVALID: "Le mot de passe actuel est incorrect.",
+  TOKEN_GENERATION_FAILED: "La génération de la clé a échoué. Réessaie.",
   UPLOAD_ERROR: "Envoi impossible. Vérifie le fichier puis réessaie.",
   BUILTBYBIT_TOKEN_MISSING: "Le token BuiltByBit n’est pas configuré sur le serveur.",
   BUILTBYBIT_HTTPS_UNAVAILABLE: "PHP ne peut pas faire de requêtes HTTPS. Active l’extension curl ou openssl.",

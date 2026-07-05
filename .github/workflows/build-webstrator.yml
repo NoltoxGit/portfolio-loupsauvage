@@ -4,6 +4,27 @@ on:
   push:
     branches:
     - main
+    paths:
+    - "frontend/**"
+    - "api/**"
+    - "database/**"
+    - "uploads/.gitkeep"
+    - "uploads/.htaccess"
+    - "uploads/index.html"
+    - ".htaccess"
+    - ".user.ini"
+    - ".github/workflows/build-webstrator.yml"
+  pull_request:
+    paths:
+    - "frontend/**"
+    - "api/**"
+    - "database/**"
+    - "uploads/.gitkeep"
+    - "uploads/.htaccess"
+    - "uploads/index.html"
+    - ".htaccess"
+    - ".user.ini"
+    - ".github/workflows/build-webstrator.yml"
   workflow_dispatch:
     inputs:
       target_branch:

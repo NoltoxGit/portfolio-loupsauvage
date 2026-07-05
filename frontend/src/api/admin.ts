@@ -14,6 +14,10 @@ import type {
   AdminModelPreviewPayload,
   AdminModelSettingsPayload,
   AdminModelUploadPayload,
+  AdminPasswordPayload,
+  AdminProfile,
+  AdminBlockbenchTokenCreatePayload,
+  AdminBlockbenchTokenCreateResult,
   AdminPricingActivePayload,
   AdminPricingPayload,
   AdminPricingPlan,
@@ -178,4 +182,27 @@ export const previewBuiltByBitResource = (payload: BuiltByBitPreviewPayload, csr
     method: "POST",
     headers: csrfHeaders(csrfToken),
     body: JSON.stringify(payload),
+  });
+
+export const getAdminProfile = () => apiRequest<AdminProfile>("/admin/profile/");
+
+export const updateAdminPassword = (payload: AdminPasswordPayload, csrfToken: string) =>
+  apiRequest<{ changed: boolean }>("/admin/profile/password/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+  });
+
+export const createAdminBlockbenchToken = (payload: AdminBlockbenchTokenCreatePayload, csrfToken: string) =>
+  apiRequest<AdminBlockbenchTokenCreateResult>("/admin/profile/blockbench-tokens/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+  });
+
+export const revokeAdminBlockbenchToken = (id: number, csrfToken: string) =>
+  apiRequest<{ revoked: boolean }>("/admin/profile/blockbench-tokens/revoke/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify({ id }),
   });

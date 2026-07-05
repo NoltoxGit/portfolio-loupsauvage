@@ -1,0 +1,11 @@
+{
+  "name": "loupsauvage-blockbench-uploader",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plugin Blockbench privé pour envoyer des créations GLB vers le portfolio LoupSauvage.",
+  "scripts": {
+    "check": "node --check loupsauvage_uploader.js",
+    "package": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});\" && powershell -NoProfile -Command \"Compress-Archive -Force -Path loupsauvage_uploader.js,README.md,assets -DestinationPath dist/loupsauvage-uploader-blockbench-plugin.zip\""
+  },
+  "license": "UNLICENSED"
+}

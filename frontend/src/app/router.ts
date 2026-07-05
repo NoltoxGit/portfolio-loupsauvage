@@ -6,6 +6,7 @@ export type AppRoute =
   | { name: "pricing" }
   | { name: "adminLogin" }
   | { name: "adminDashboard" }
+  | { name: "adminProfile" }
   | { name: "adminContentList"; contentType: "creation" | "marketplace" }
   | { name: "adminContentNew"; contentType: "creation" | "marketplace" }
   | { name: "adminContentEdit"; contentType: "creation" | "marketplace"; id: number }
@@ -24,6 +25,7 @@ export function routeForPath(pathname: string): AppRoute {
   if (path === "/pricing") return { name: "pricing" };
   if (path === "/admin/login") return { name: "adminLogin" };
   if (path === "/admin") return { name: "adminDashboard" };
+  if (path === "/admin/profile") return { name: "adminProfile" };
   if (path === "/admin/creations") return { name: "adminContentList", contentType: "creation" };
   if (path === "/admin/creations/new") return { name: "adminContentNew", contentType: "creation" };
   if (path === "/admin/marketplace") return { name: "adminContentList", contentType: "marketplace" };

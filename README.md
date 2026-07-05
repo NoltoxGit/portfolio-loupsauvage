@@ -9,54 +9,27 @@
 [![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white)](https://mariadb.org/)
 [![WebStrator Build](https://img.shields.io/badge/GitHub%20Actions-WebStrator%20build-2088FF?logo=githubactions&logoColor=white)](.github/workflows/build-webstrator.yml)
 [![Semgrep findings](https://img.shields.io/badge/Semgrep-0%20findings-2EA44F?logo=semgrep&logoColor=white)](https://github.com/NoltoxGit/portfolio-loupsauvage/actions/workflows/semgrep-security.yml)
-[![CodeQL code scanning](https://img.shields.io/badge/CodeQL-non%20configure-8C959F?logo=github&logoColor=white)](https://github.com/NoltoxGit/portfolio-loupsauvage/security/code-scanning)
 
-Portfolio de LoupSauvage, modélisatrice 3D spécialisée dans les modèles Minecraft et Blockbench. Le site public présente les créations, ressources marketplace et tarifs. Le panneau admin permet de gérer les contenus, offres et médias.
+Monorepo public du portfolio LoupSauvage et du plugin privé Blockbench associé.
 
-## Stack
-
-- Frontend : React, Vite, TypeScript.
-- Backend : API PHP 8.x maison.
-- Base de données : MariaDB avec PDO.
-- Hébergement : WebStrator, branche générée `webstrator-build`.
-- Uploads : fichiers persistants dans `/uploads`, non versionnés.
+Le site présente les créations 3D, ressources marketplace et tarifs de LoupSauvage. L’admin permet de gérer les contenus, médias, modèles GLB et imports. Le plugin Blockbench prépare l’envoi privé de créations `.glb` vers l’API du site.
 
 ## Structure
 
-- `frontend/` : application React publique et admin.
-- `api/auth/` : authentification owner.
-- `api/public/` : endpoints publics.
-- `api/admin/` : endpoints admin protégés.
-- `api/config/` : bootstrap et modèle de configuration.
-- `api/src/` : classes PHP partagées.
-- `database/migrations/` : schéma SQL.
-- `database/seeders/` : données locales de développement.
-- `tools/create-owner.php` : création locale d’un compte owner.
+- `frontend/` : application React/Vite/TypeScript publique et admin.
+- `api/` : API PHP 8.x, endpoints publics, admin et intégrations privées.
+- `database/` : migrations et seeders locaux.
+- `tools/` : scripts CLI utiles au développement et à l’administration.
+- `docs/` : documentation de maintenance et intégrations.
+- `blockbench-plugin/` : plugin Blockbench privé `LoupSauvage Uploader`.
+- `.github/workflows/` : builds WebStrator, scan sécurité et release plugin.
 - `uploads/` : placeholders et règles de sécurité uniquement.
 
-## Développement local
+Le site reste volontairement à la racine pour cette phase afin d’éviter une migration massive de chemins WebStrator. Le monorepo est séparé fonctionnellement par dossiers.
 
-Créer une config locale non versionnée :
+## Commandes site
 
-```powershell
-Copy-Item api/config/config.example.php api/config/config.local.php
-```
-
-Importer la base locale :
-
-```powershell
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS loupsauvage_portfolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p loupsauvage_portfolio < database/migrations/001_initial_schema.sql
-mysql -u root -p loupsauvage_portfolio < database/seeders/001_local_test_data.sql
-```
-
-Lancer l’API PHP depuis la racine :
-
-```powershell
-php -S localhost:8000
-```
-
-Lancer le frontend :
+Installer et lancer le frontend :
 
 ```powershell
 cd frontend
@@ -64,30 +37,91 @@ npm install
 npm run dev
 ```
 
-Ouvrir ensuite `http://localhost:5173`.
-
-## Build
+Build frontend :
 
 ```powershell
 cd frontend
 npm run build
 ```
 
-Le build local est généré dans `frontend/dist/` et reste ignoré sur la branche source.
+Lancer l’API locale depuis la racine :
 
-## Déploiement WebStrator
+```powershell
+php -S localhost:8000
+```
 
-Le workflow `.github/workflows/build-webstrator.yml` se déclenche à chaque push sur `main`. Il construit le frontend et publie une branche déployable `webstrator-build` contenant uniquement les fichiers nécessaires à WebStrator.
+Lint PHP :
 
-La configuration de production `api/config/config.production.php` doit être créée directement sur WebStrator via SFTP et ne doit jamais être commitée. Après une synchronisation Git, vérifier qu’elle existe toujours côté serveur.
+```powershell
+Get-ChildItem api -Recurse -Filter *.php | ForEach-Object { php -l $_.FullName }
+```
+
+Importer une migration en PowerShell :
+
+```powershell
+Get-Content -Raw database/migrations/001_initial_schema.sql | mysql -u root -p <database_name>
+```
+
+Créer un owner local :
+
+```powershell
+php tools/create-owner.php <username> <email@example.test>
+```
+
+Créer une clé Blockbench depuis l’admin :
+
+1. Ouvrir `/admin/profile`.
+2. Générer une clé dans la section Blockbench.
+3. Copier la clé immédiatement : elle ne sera plus affichée après refresh.
+
+Le script CLI reste disponible pour dépannage local :
+
+```powershell
+php tools/create-blockbench-token.php "Blockbench poste principal"
+```
+
+## Commandes plugin Blockbench
+
+Vérifier la syntaxe :
+
+```powershell
+cd blockbench-plugin
+npm run check
+```
+
+Packager localement :
+
+```powershell
+cd blockbench-plugin
+npm run package
+```
+
+Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local. En local, la Base URL du plugin est `http://localhost:8000`. En production, utiliser l’URL publique du site déployé. Le plugin peut mémoriser l’URL API, mais il ne mémorise pas le token.
+
+Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` comme asset principal, plus une archive zip et un checksum SHA-256.
+
+## Workflows
+
+- `build-webstrator.yml` : build le site uniquement quand `frontend/`, `api/`, `database/`, les fichiers Apache ou le workflow changent.
+- `blockbench-plugin-release.yml` : vérifie et publie une release plugin uniquement quand `blockbench-plugin/**` change sur `main`.
+- `semgrep-security.yml` : scan sécurité sur les branches et pull requests.
+
+La branche `webstrator-build` est générée automatiquement. Ne pas la modifier directement.
 
 ## Sécurité
 
-- Aucun secret réel dans Git.
-- Aucun upload réel dans Git.
-- Les configs `config.local.php` et `config.production.php` sont ignorées.
-- Les endpoints admin exigent une session owner.
-- Les mutations admin exigent un token CSRF.
-- Les uploads sont validés par MIME et stockés sous `/uploads`.
+- Ne jamais commiter `api/config/config.local.php`.
+- Ne jamais commiter `api/config/config.production.php`.
+- Ne jamais commiter de token `lsbb_...`.
+- Ne jamais commiter de vrais fichiers uploadés.
+- Les clés Blockbench peuvent être générées et révoquées dans `/admin/profile`.
+- Le plugin Blockbench Desktop crée toujours des créations en brouillon.
+- Le format modèle V1 est `.glb` uniquement.
+- Aucun token Blockbench n’est nécessaire dans React.
 
-Voir aussi [docs/MAINTENANCE.md](docs/MAINTENANCE.md).
+## Statut
+
+- Site React/PHP en production technique.
+- Plugin Blockbench V1 en développement.
+- Pas encore d’Espace client complet.
+- Documentation longue durée : [docs/MAINTENANCE.md](docs/MAINTENANCE.md).

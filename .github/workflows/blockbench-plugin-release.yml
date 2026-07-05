@@ -1,0 +1,92 @@
+name: Blockbench plugin release
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - "blockbench-plugin/**"
+    - ".github/workflows/blockbench-plugin-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blockbench-plugin-release
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Package Blockbench plugin
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Read plugin version
+      id: version
+      run: |
+        VERSION="$(node -p "require('./blockbench-plugin/package.json').version")"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "tag=blockbench-plugin-v$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Check plugin syntax
+      run: node --check blockbench-plugin/loupsauvage_uploader.js
+
+    - name: Check for accidental Blockbench tokens
+      run: |
+        if grep -R -E 'lsbb_[A-Za-z0-9]{16,}' blockbench-plugin; then
+          echo "A token-like value was found in blockbench-plugin."
+          exit 1
+        fi
+
+    - name: Package plugin
+      run: |
+        rm -rf .plugin-dist
+        mkdir -p .plugin-dist
+        cp blockbench-plugin/loupsauvage_uploader.js .plugin-dist/loupsauvage_uploader.js
+        cd blockbench-plugin
+        zip -r ../.plugin-dist/loupsauvage-uploader-blockbench-plugin.zip \
+          loupsauvage_uploader.js README.md assets \
+          -x 'node_modules/*' 'dist/*' '*.log' '*.env*'
+        cd ..
+        sha256sum .plugin-dist/loupsauvage_uploader.js .plugin-dist/loupsauvage-uploader-blockbench-plugin.zip \
+          > .plugin-dist/SHA256SUMS.txt
+
+    - name: Upload plugin artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: loupsauvage-uploader-blockbench-plugin
+        path: |
+          .plugin-dist/loupsauvage_uploader.js
+          .plugin-dist/loupsauvage-uploader-blockbench-plugin.zip
+          .plugin-dist/SHA256SUMS.txt
+        if-no-files-found: error
+
+    - name: Check existing release tag
+      id: tag
+      if: github.event_name == 'push'
+      run: |
+        if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}"; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Create GitHub release
+      if: github.event_name == 'push' && steps.tag.outputs.exists == 'false'
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        gh release create "${{ steps.version.outputs.tag }}" \
+          .plugin-dist/loupsauvage_uploader.js \
+          .plugin-dist/loupsauvage-uploader-blockbench-plugin.zip \
+          .plugin-dist/SHA256SUMS.txt \
+          --title "LoupSauvage Blockbench Plugin ${{ steps.version.outputs.version }}" \
+          --notes "Release automatique du plugin Blockbench LoupSauvage."
+
+    - name: Skip unchanged release
+      if: github.event_name == 'push' && steps.tag.outputs.exists == 'true'
+      run: echo "Release ${{ steps.version.outputs.tag }} already exists. Artifact only."

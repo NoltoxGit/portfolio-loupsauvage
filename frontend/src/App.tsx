@@ -5,6 +5,7 @@ import { navigateTo } from "./app/navigation";
 import { AdminContentEditPage } from "./pages/admin/AdminContentEditPage";
 import { AdminContentListPage } from "./pages/admin/AdminContentListPage";
 import { AdminContentPreviewPage } from "./pages/admin/AdminContentPreviewPage";
+import { AdminProfilePage } from "./pages/admin/AdminProfilePage";
 import { AdminPricingEditPage } from "./pages/admin/AdminPricingEditPage";
 import { AdminPricingListPage } from "./pages/admin/AdminPricingListPage";
 import { DashboardPage } from "./pages/admin/DashboardPage";
@@ -39,6 +40,17 @@ export function App() {
     return (
       <AdminGuard>
         {(auth) => auth.session && <DashboardPage session={auth.session} onUnauthenticated={onUnauthenticated} />}
+      </AdminGuard>
+    );
+  }
+  if (route.name === "adminProfile") {
+    return (
+      <AdminGuard>
+        {(auth) =>
+          auth.session && (
+            <AdminProfilePage csrfToken={auth.session.csrfToken} onUnauthenticated={onUnauthenticated} />
+          )
+        }
       </AdminGuard>
     );
   }
