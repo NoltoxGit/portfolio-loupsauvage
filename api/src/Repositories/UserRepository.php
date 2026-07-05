@@ -52,10 +52,43 @@ final class UserRepository
         return is_array($user) ? $this->publicUser($user) : null;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findOwnerCredentialsById(int $id): ?array
+    {
+        $statement = $this->db->prepare('
+            SELECT id, username, email, password_hash
+            FROM users
+            WHERE id = :id
+            LIMIT 1
+        ');
+        $statement->execute([
+            'id' => $id,
+        ]);
+
+        $user = $statement->fetch();
+
+        return is_array($user) ? $user : null;
+    }
+
     public function updateLastLogin(int $id): void
     {
         $statement = $this->db->prepare('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = :id');
         $statement->execute(['id' => $id]);
+    }
+
+    public function updatePasswordHash(int $id, string $passwordHash): void
+    {
+        $statement = $this->db->prepare('
+            UPDATE users
+            SET password_hash = :password_hash
+            WHERE id = :id
+        ');
+        $statement->execute([
+            'id' => $id,
+            'password_hash' => $passwordHash,
+        ]);
     }
 
     public function upsertOwner(string $username, string $email, string $passwordHash): void

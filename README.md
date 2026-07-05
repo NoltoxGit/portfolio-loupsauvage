@@ -68,7 +68,13 @@ Créer un owner local :
 php tools/create-owner.php LoupSauvage login@loupsauvage.fr
 ```
 
-Créer un token Blockbench :
+Créer une clé Blockbench depuis l’admin :
+
+1. Ouvrir `/admin/profile`.
+2. Générer une clé dans la section Blockbench.
+3. Copier la clé immédiatement : elle ne sera plus affichée après refresh.
+
+Le script CLI reste disponible pour dépannage local :
 
 ```powershell
 php tools/create-blockbench-token.php "Blockbench Lou"
@@ -90,12 +96,14 @@ cd blockbench-plugin
 npm run package
 ```
 
-Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local.
+Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local. En local, la Base URL du plugin est `http://localhost:8000`. En production, utiliser `https://loupsauvage.fr`.
+
+Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` comme asset principal, plus une archive zip et un checksum SHA-256.
 
 ## Workflows
 
 - `build-webstrator.yml` : build le site uniquement quand `frontend/`, `api/`, `database/`, les fichiers Apache ou le workflow changent.
-- `blockbench-plugin-release.yml` : package et publie une release plugin uniquement quand `blockbench-plugin/**` change sur `main`.
+- `blockbench-plugin-release.yml` : vérifie et publie une release plugin uniquement quand `blockbench-plugin/**` change sur `main`.
 - `semgrep-security.yml` : scan sécurité sur les branches et pull requests.
 
 La branche `webstrator-build` est générée automatiquement. Ne pas la modifier directement.
@@ -106,7 +114,8 @@ La branche `webstrator-build` est générée automatiquement. Ne pas la modifier
 - Ne jamais commiter `api/config/config.production.php`.
 - Ne jamais commiter de token `lsbb_...`.
 - Ne jamais commiter de vrais fichiers uploadés.
-- Le plugin Blockbench crée toujours des créations en brouillon.
+- Les clés Blockbench peuvent être générées et révoquées dans `/admin/profile`.
+- Le plugin Blockbench Desktop crée toujours des créations en brouillon.
 - Le format modèle V1 est `.glb` uniquement.
 - Aucun token Blockbench n’est nécessaire dans React.
 

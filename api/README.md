@@ -47,7 +47,7 @@ Tous les endpoints `/api/admin/*` exigent une session owner. Les mutations `POST
 
 - `POST /api/integrations/blockbench/creations/`
 
-L’intégration Blockbench utilise `Authorization: Bearer <TOKEN>`, crée toujours des créations en brouillon et accepte uniquement des modèles `.glb`. Voir `docs/blockbench-integration.md`.
+L’intégration Blockbench utilise un header `Authorization: Bearer <cle_api_blockbench>`, crée toujours des créations en brouillon et accepte uniquement des modèles `.glb`. Voir `docs/blockbench-integration.md`.
 
 ## Réponses JSON
 

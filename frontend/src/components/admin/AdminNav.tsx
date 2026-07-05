@@ -6,6 +6,7 @@ const navItems = [
   { href: "/admin/creations", eyebrow: "Portfolio", label: "Créations" },
   { href: "/admin/marketplace", eyebrow: "Produits", label: "Marketplace" },
   { href: "/admin/pricing", eyebrow: "Vente", label: "Tarifs" },
+  { href: "/admin/profile", eyebrow: "Compte", label: "Profil" },
 ];
 
 export function AdminNav({

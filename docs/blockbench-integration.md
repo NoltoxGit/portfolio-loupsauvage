@@ -1,6 +1,6 @@
 # Intégration Blockbench
 
-Cette phase prépare une API privée pour un futur plugin Blockbench. Le plugin n’est pas encore développé.
+Cette intégration fournit une API privée et un plugin Blockbench Desktop pour envoyer une création `.glb` vers le portfolio.
 
 Le flux permet d’envoyer une création en brouillon avec son modèle `.glb`. Il ne concerne pas les ressources marketplace.
 
@@ -14,13 +14,35 @@ mysql -u root -p loupsauvage_portfolio < database/migrations/009_add_blockbench_
 
 Pour une nouvelle installation, `database/migrations/001_initial_schema.sql` contient déjà la table `blockbench_api_tokens`.
 
-## Générer un token
+## Générer une clé API
+
+Méthode recommandée :
+
+1. Se connecter à l’admin du portfolio.
+2. Ouvrir `/admin/profile`.
+3. Générer une clé Blockbench.
+4. Copier le token immédiatement : il ne sera plus affiché ensuite.
+
+Le script CLI reste disponible pour dépannage :
 
 ```powershell
 php tools/create-blockbench-token.php "Blockbench Lou"
 ```
 
 Le token complet est affiché une seule fois. Il ne doit jamais être commit, copié dans React ou stocké dans un fichier versionné.
+
+## Plugin Blockbench
+
+Le fichier `loupsauvage_uploader.js` est publié comme asset principal dans les GitHub Releases du plugin. Le zip reste disponible pour archivage.
+
+Configuration dans Blockbench Desktop :
+
+- Base URL locale : `http://localhost:8000` ;
+- Base URL production : `https://loupsauvage.fr` ;
+- API Token : clé `lsbb_...` générée depuis l’admin ;
+- cocher `Se souvenir de ces paramètres` si le poste est de confiance.
+
+Les paramètres mémorisés restent dans le stockage local de Blockbench. Ne jamais partager publiquement le token.
 
 ## Endpoint
 
@@ -29,7 +51,7 @@ Le token complet est affiché une seule fois. Il ne doit jamais être commit, co
 Authentification :
 
 ```http
-Authorization: Bearer lsbb_EXAMPLE
+Authorization: Bearer <cle_api_blockbench>
 ```
 
 Payload `multipart/form-data` :
@@ -54,7 +76,7 @@ Le serveur force toujours :
 
 ```powershell
 curl.exe -X POST "http://localhost:8000/api/integrations/blockbench/creations/" `
-  -H "Authorization: Bearer lsbb_EXAMPLE" `
+  -H "Authorization: Bearer <cle_api_blockbench>" `
   -F "title=Nemorak Stage 3" `
   -F "slug=nemorak-stage-3" `
   -F "shortDescription=Modèle de test importé depuis Blockbench." `
@@ -87,3 +109,12 @@ Réponse attendue :
 - Les tokens peuvent être révoqués avec `revoked_at`.
 - Le fichier client ne fournit jamais de chemin de destination.
 - Le modèle est stocké via la logique d’upload GLB existante.
+- L’admin `/admin/profile` permet de générer et révoquer les clés.
+
+## Limites V1
+
+- Blockbench Desktop uniquement.
+- `.glb` uniquement.
+- Créations uniquement.
+- Création toujours en brouillon.
+- Pas d’Espace client.
