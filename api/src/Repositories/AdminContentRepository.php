@@ -222,6 +222,25 @@ final class AdminContentRepository
         return (int) $statement->fetchColumn();
     }
 
+    public function slugExists(string $slug): bool
+    {
+        $statement = $this->db->prepare('
+            SELECT 1
+            FROM content_items
+            WHERE slug = :slug
+            LIMIT 1
+        ');
+        $statement->execute(['slug' => $slug]);
+
+        return $statement->fetchColumn() !== false;
+    }
+
+    public function deleteById(int $id): void
+    {
+        $statement = $this->db->prepare('DELETE FROM content_items WHERE id = :id');
+        $statement->execute(['id' => $id]);
+    }
+
     private function baseSelect(): string
     {
         return '

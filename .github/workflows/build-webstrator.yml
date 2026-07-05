@@ -61,7 +61,7 @@ jobs:
 
         # PHP API source. Copy only the new refactor API surface.
         mkdir -p .deploy/api
-        for dir in auth public admin config src; do
+        for dir in auth public admin integrations config src; do
           if [ -d "api/$dir" ]; then
             mkdir -p ".deploy/api/$dir"
             rsync -a "api/$dir/" ".deploy/api/$dir/" \
@@ -93,6 +93,7 @@ jobs:
         test -d .deploy/api/auth
         test -d .deploy/api/public
         test -d .deploy/api/admin
+        test -d .deploy/api/integrations
         test -d .deploy/api/config
         test -d .deploy/api/src
 
