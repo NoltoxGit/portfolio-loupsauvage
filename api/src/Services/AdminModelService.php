@@ -61,6 +61,14 @@ final class AdminModelService
     }
 
     /**
+     * @param array<string, mixed> $files
+     */
+    public function assertValidGlbUpload(array $files): void
+    {
+        $this->uploadedGlbFile($files);
+    }
+
+    /**
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */

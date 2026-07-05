@@ -43,6 +43,12 @@ La connexion owner utilise `password_verify`, une session PHP sécurisée et un 
 
 Tous les endpoints `/api/admin/*` exigent une session owner. Les mutations `POST`, `PUT`, `PATCH` et `DELETE` exigent l’en-tête `X-CSRF-Token`.
 
+## Intégrations privées
+
+- `POST /api/integrations/blockbench/creations/`
+
+L’intégration Blockbench utilise `Authorization: Bearer <TOKEN>`, crée toujours des créations en brouillon et accepte uniquement des modèles `.glb`. Voir `docs/blockbench-integration.md`.
+
 ## Réponses JSON
 
 Succès :
