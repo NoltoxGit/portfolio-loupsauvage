@@ -179,6 +179,10 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+blockbench-plugin/node_modules/
+blockbench-plugin/dist/
+.plugin-dist/
+loupsauvage-uploader-blockbench-plugin.zip
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
@@ -207,7 +211,6 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.*
-!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

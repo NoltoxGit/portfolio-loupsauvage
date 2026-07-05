@@ -20,6 +20,26 @@ updates:
       prefix: "deps"
       include: "scope"
 
+  - package-ecosystem: "npm"
+    directory: "/blockbench-plugin"
+    schedule:
+      interval: "daily"
+      time: "04:00"
+      timezone: "Europe/Paris"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "blockbench-plugin"
+    commit-message:
+      prefix: "deps(blockbench)"
+      include: "scope"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
