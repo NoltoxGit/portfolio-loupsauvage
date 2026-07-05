@@ -90,10 +90,19 @@ final class SafeFileDeleter
             return false;
         }
 
-        // Safe deletion invariant: the request is non-empty, relative, traversal-free, contains no
-        // null bytes, every path component under uploadsRoot rejects symlinks, and realpath()
-        // confirms the final file remains inside the configured uploads directory.
-        return unlink($realCandidate); // nosemgrep: php.lang.security.unlink-use.unlink-use
+        return self::deleteVerifiedUploadFile($realCandidate);
+    }
+
+    private static function deleteVerifiedUploadFile(string $verifiedPath): bool
+    {
+        // Safe deletion invariant: callers can only reach this point after the request path
+        // has been converted from a public /uploads path into a relative filesystem path,
+        // rejected null bytes, absolute paths, traversal segments and symlinks, and confirmed
+        // with realpath() that the final regular file remains inside the configured uploads root.
+        // Semgrep cannot model this full invariant, so the single audited unlink() call is
+        // intentionally centralized and suppressed here instead of disabling the rule globally.
+        // nosemgrep: php.lang.security.unlink-use.unlink-use
+        return unlink($verifiedPath);
     }
 
     private static function isAbsolutePath(string $path): bool
