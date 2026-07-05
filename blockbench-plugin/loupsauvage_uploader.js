@@ -5,9 +5,9 @@
   const PLUGIN_VERSION = "0.1.0";
   const STORAGE_KEYS = {
     apiBaseUrl: "loupsauvage_uploader.apiBaseUrl",
-    apiToken: "loupsauvage_uploader.apiToken",
     remember: "loupsauvage_uploader.rememberSettings",
     legacy: "loupsauvage_uploader_settings",
+    deprecatedApiToken: "loupsauvage_uploader.apiToken",
   };
 
   let uploadAction = null;
@@ -25,16 +25,18 @@
 
     const settings = {
       apiBaseUrl: localStorage.getItem(STORAGE_KEYS.apiBaseUrl) || "",
-      apiToken: localStorage.getItem(STORAGE_KEYS.apiToken) || "",
+      apiToken: "",
       rememberSettings: localStorage.getItem(STORAGE_KEYS.remember) === "1",
     };
 
-    if (!settings.apiBaseUrl && !settings.apiToken) {
+    localStorage.removeItem(STORAGE_KEYS.deprecatedApiToken);
+
+    if (!settings.apiBaseUrl) {
       try {
         const legacy = JSON.parse(localStorage.getItem(STORAGE_KEYS.legacy) || "{}");
         settings.apiBaseUrl = legacy.apiBaseUrl || "";
-        settings.apiToken = legacy.apiToken || "";
-        settings.rememberSettings = Boolean(settings.apiBaseUrl || settings.apiToken);
+        settings.rememberSettings = Boolean(settings.apiBaseUrl);
+        localStorage.removeItem(STORAGE_KEYS.legacy);
       } catch (error) {
         return settings;
       }
@@ -49,8 +51,8 @@
     }
 
     localStorage.setItem(STORAGE_KEYS.apiBaseUrl, normalizeBaseUrl(values.apiBaseUrl));
-    localStorage.setItem(STORAGE_KEYS.apiToken, String(values.apiToken || "").trim());
     localStorage.setItem(STORAGE_KEYS.remember, "1");
+    localStorage.removeItem(STORAGE_KEYS.deprecatedApiToken);
     localStorage.removeItem(STORAGE_KEYS.legacy);
   }
 
@@ -392,9 +394,9 @@
           value: settings.apiToken || "",
         },
         rememberSettings: {
-          label: "Se souvenir de ces paramètres",
+          label: "Se souvenir de l’URL API",
           type: "checkbox",
-          value: settings.rememberSettings !== false && Boolean(settings.apiBaseUrl || settings.apiToken),
+          value: settings.rememberSettings !== false && Boolean(settings.apiBaseUrl),
         },
         title: {
           label: "Titre affiché",
