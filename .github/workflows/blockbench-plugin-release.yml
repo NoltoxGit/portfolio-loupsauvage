@@ -25,10 +25,10 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-    - name: Read plugin version
+    - name: Read project version
       id: version
       run: |
-        VERSION="$(node -p "require('./blockbench-plugin/package.json').version")"
+        VERSION="$(node tools/sync-project-version.mjs --check --print)"
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
         echo "tag=blockbench-plugin-v$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -44,12 +44,16 @@ jobs:
 
     - name: Package plugin
       run: |
-        rm -rf .plugin-dist
-        mkdir -p .plugin-dist
-        cp blockbench-plugin/loupsauvage_uploader.js .plugin-dist/loupsauvage_uploader.js
-        cd blockbench-plugin
-        zip -r ../.plugin-dist/loupsauvage-uploader-blockbench-plugin.zip \
-          loupsauvage_uploader.js README.md assets \
+        rm -rf .plugin-dist .plugin-package
+        mkdir -p .plugin-dist .plugin-package
+        cp blockbench-plugin/loupsauvage_uploader.js .plugin-package/loupsauvage_uploader.js
+        cp blockbench-plugin/README.md .plugin-package/README.md
+        if [ -d blockbench-plugin/assets ]; then
+          cp -R blockbench-plugin/assets .plugin-package/assets
+        fi
+        cp .plugin-package/loupsauvage_uploader.js .plugin-dist/loupsauvage_uploader.js
+        cd .plugin-package
+        zip -r ../.plugin-dist/loupsauvage-uploader-blockbench-plugin.zip . \
           -x 'node_modules/*' 'dist/*' '*.log' '*.env*'
         cd ..
         sha256sum .plugin-dist/loupsauvage_uploader.js .plugin-dist/loupsauvage-uploader-blockbench-plugin.zip \
@@ -65,18 +69,25 @@ jobs:
           .plugin-dist/SHA256SUMS.txt
         if-no-files-found: error
 
-    - name: Check existing release tag
-      id: tag
-      if: github.event_name == 'push'
+    - name: Check existing release
+      id: release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
-        if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}"; then
-          echo "exists=true" >> "$GITHUB_OUTPUT"
+        if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+          echo "release_exists=true" >> "$GITHUB_OUTPUT"
         else
-          echo "exists=false" >> "$GITHUB_OUTPUT"
+          echo "release_exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+        if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+          echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "tag_exists=false" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Create GitHub release
-      if: github.event_name == 'push' && steps.tag.outputs.exists == 'false'
+      if: github.ref == 'refs/heads/main' && steps.release.outputs.release_exists == 'false'
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
@@ -84,9 +95,14 @@ jobs:
           .plugin-dist/loupsauvage_uploader.js \
           .plugin-dist/loupsauvage-uploader-blockbench-plugin.zip \
           .plugin-dist/SHA256SUMS.txt \
+          --target "$GITHUB_SHA" \
           --title "LoupSauvage Blockbench Plugin ${{ steps.version.outputs.version }}" \
           --notes "Release automatique du plugin Blockbench LoupSauvage."
 
     - name: Skip unchanged release
-      if: github.event_name == 'push' && steps.tag.outputs.exists == 'true'
+      if: github.ref == 'refs/heads/main' && steps.release.outputs.release_exists == 'true'
       run: echo "Release ${{ steps.version.outputs.tag }} already exists. Artifact only."
+
+    - name: Skip release outside main
+      if: github.ref != 'refs/heads/main'
+      run: echo "Release skipped because this workflow is running on ${{ github.ref }}."

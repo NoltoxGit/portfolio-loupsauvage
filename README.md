@@ -100,6 +100,18 @@ Le plugin est privé dans son usage : son code peut être public, mais le token 
 
 Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` comme asset principal, plus une archive zip et un checksum SHA-256.
 
+## Versioning
+
+La version du projet est centralisee dans `VERSION`. Le format utilise un CalVer compatible SemVer/NPM : `YYYY.M.D`, par exemple `2026.7.6`.
+
+Apres modification de `VERSION`, synchroniser les fichiers qui doivent exposer une version :
+
+```powershell
+node tools/sync-project-version.mjs
+```
+
+Le workflow de release Blockbench refuse une release si les versions materialisees ne correspondent pas a `VERSION`.
+
 ## Workflows
 
 - `build-webstrator.yml` : build le site uniquement quand `frontend/`, `api/`, `database/`, les fichiers Apache ou le workflow changent.

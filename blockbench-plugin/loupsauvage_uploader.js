@@ -2,7 +2,7 @@
   "use strict";
 
   const PLUGIN_ID = "loupsauvage_uploader";
-  const PLUGIN_VERSION = "0.1.0";
+  const PLUGIN_VERSION = "2026.7.6";
   const STORAGE_KEYS = {
     apiBaseUrl: "loupsauvage_uploader.apiBaseUrl",
     remember: "loupsauvage_uploader.rememberSettings",
