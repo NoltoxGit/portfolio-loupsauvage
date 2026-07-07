@@ -1,6 +1,6 @@
 {
   "name": "loupsauvage-blockbench-uploader",
-  "version": "2026.7.6",
+  "version": "2026.7.7",
   "private": true,
   "description": "Plugin Blockbench privé pour envoyer des créations GLB vers le portfolio LoupSauvage.",
   "scripts": {

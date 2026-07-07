@@ -6,7 +6,7 @@ Le plugin crée toujours une création en brouillon côté site. Il ne publie ri
 
 ## Statut
 
-Version synchronisee depuis `../VERSION` : `2026.7.6`.
+Version synchronisee depuis `../VERSION` : `2026.7.7`.
 
 Le plugin cible Blockbench Desktop en V1. Il utilise le codec GLB natif de Blockbench pour exporter le modèle courant en mémoire, puis l’envoie à l’API privée du portfolio.
 
