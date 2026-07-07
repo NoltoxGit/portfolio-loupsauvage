@@ -40,9 +40,9 @@ Configuration dans Blockbench Desktop :
 - Base URL locale : `http://localhost:8000` ;
 - Base URL production : `https://loupsauvage.fr` ;
 - API Token : clé `lsbb_...` générée depuis l’admin ;
-- cocher `Se souvenir de l’URL API` si le poste est de confiance.
+- cocher `Se souvenir de ces paramètres` si le poste est de confiance.
 
-Le plugin ne mémorise pas le token dans le stockage local de Blockbench. Ne jamais partager publiquement le token.
+Quand cette option est cochée, le plugin mémorise localement l’URL API et le token sur ce poste Blockbench. Le bouton `Oublier les paramètres` efface ces valeurs. Ne jamais partager publiquement le token.
 
 ## Endpoint
 

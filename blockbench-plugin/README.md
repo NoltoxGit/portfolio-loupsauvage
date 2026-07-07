@@ -28,14 +28,14 @@ Champs demandés par la boîte de dialogue :
 - résumé court ;
 - contexte de création ;
 - orientation du viewer.
-- option `Se souvenir de l’URL API`.
+- option `Se souvenir de ces paramètres`.
 
 Exemples d’URL API :
 
 - local : `http://localhost:8000`
 - production : `https://loupsauvage.fr`
 
-L’URL API peut être mémorisée dans le stockage local de Blockbench. Le token n’est pas mémorisé : il doit être collé au moment de l’envoi et ne doit jamais être partagé publiquement.
+Si l’option est cochée, l’URL API et le token sont mémorisés dans le stockage local de Blockbench sur ce poste. Utiliser cette option uniquement sur une machine de confiance. Le bouton `Oublier les paramètres` supprime ces valeurs locales.
 
 ## Générer une clé côté site
 

@@ -22,7 +22,7 @@ const changedFiles = [];
 function writeIfChanged(filePath, nextContent) {
   const currentContent = readFileSync(filePath, "utf8");
 
-  if (currentContent === nextContent) {
+  if (currentContent === nextContent || (checkOnly && currentContent.replace(/\r\n/g, "\n") === nextContent)) {
     return;
   }
 

@@ -96,7 +96,7 @@ cd blockbench-plugin
 npm run package
 ```
 
-Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local. En local, la Base URL du plugin est `http://localhost:8000`. En production, utiliser l’URL publique du site déployé. Le plugin peut mémoriser l’URL API, mais il ne mémorise pas le token.
+Le plugin est privé dans son usage : son code peut être public, mais le token `lsbb_...` doit rester strictement local. En local, la Base URL du plugin est `http://localhost:8000`. En production, utiliser l’URL publique du site déployé. Le plugin peut mémoriser localement l’URL API et le token si l’option `Se souvenir de ces paramètres` est cochée sur un poste de confiance.
 
 Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` comme asset principal, plus une archive zip et un checksum SHA-256.
 

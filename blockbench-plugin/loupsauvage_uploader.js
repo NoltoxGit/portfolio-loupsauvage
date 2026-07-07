@@ -5,9 +5,9 @@
   const PLUGIN_VERSION = "2026.7.6";
   const STORAGE_KEYS = {
     apiBaseUrl: "loupsauvage_uploader.apiBaseUrl",
+    apiToken: "loupsauvage_uploader.apiToken",
     remember: "loupsauvage_uploader.rememberSettings",
     legacy: "loupsauvage_uploader_settings",
-    deprecatedApiToken: "loupsauvage_uploader.apiToken",
   };
 
   let uploadAction = null;
@@ -25,17 +25,16 @@
 
     const settings = {
       apiBaseUrl: localStorage.getItem(STORAGE_KEYS.apiBaseUrl) || "",
-      apiToken: "",
+      apiToken: localStorage.getItem(STORAGE_KEYS.apiToken) || "",
       rememberSettings: localStorage.getItem(STORAGE_KEYS.remember) === "1",
     };
 
-    localStorage.removeItem(STORAGE_KEYS.deprecatedApiToken);
-
-    if (!settings.apiBaseUrl) {
+    if (!settings.apiBaseUrl || !settings.apiToken) {
       try {
         const legacy = JSON.parse(localStorage.getItem(STORAGE_KEYS.legacy) || "{}");
-        settings.apiBaseUrl = legacy.apiBaseUrl || "";
-        settings.rememberSettings = Boolean(settings.apiBaseUrl);
+        settings.apiBaseUrl = settings.apiBaseUrl || legacy.apiBaseUrl || "";
+        settings.apiToken = settings.apiToken || legacy.apiToken || "";
+        settings.rememberSettings = Boolean(settings.apiBaseUrl || settings.apiToken);
         localStorage.removeItem(STORAGE_KEYS.legacy);
       } catch (error) {
         return settings;
@@ -51,8 +50,8 @@
     }
 
     localStorage.setItem(STORAGE_KEYS.apiBaseUrl, normalizeBaseUrl(values.apiBaseUrl));
+    localStorage.setItem(STORAGE_KEYS.apiToken, String(values.apiToken || "").trim());
     localStorage.setItem(STORAGE_KEYS.remember, "1");
-    localStorage.removeItem(STORAGE_KEYS.deprecatedApiToken);
     localStorage.removeItem(STORAGE_KEYS.legacy);
   }
 
@@ -290,6 +289,40 @@
     }
   }
 
+  function hasRequiredFormValues(values) {
+    const apiBaseUrl = normalizeBaseUrl(values.apiBaseUrl);
+    const slug = slugify(String(values.slug || "").trim() || values.title);
+
+    return Boolean(
+      apiBaseUrl &&
+        String(values.apiToken || "").trim() &&
+        String(values.title || "").trim() &&
+        slug &&
+        String(values.shortDescription || "").trim() &&
+        String(values.sourceContext || "").trim()
+    );
+  }
+
+  function setDialogConfirmEnabled(dialog, values) {
+    if (!dialog || !dialog.object) {
+      return;
+    }
+
+    const confirmButton = dialog.object.querySelector("button.confirm_btn");
+
+    if (confirmButton) {
+      confirmButton.disabled = isUploading || !hasRequiredFormValues(values || {});
+    }
+  }
+
+  function creationEndpoint(apiBaseUrl) {
+    try {
+      return new URL("/api/integrations/blockbench/creations/", apiBaseUrl).toString();
+    } catch (error) {
+      throw new Error("URL API invalide. Utilise une URL complète, par exemple http://localhost:8000.");
+    }
+  }
+
   function apiErrorMessage(payload, fallback) {
     if (payload && payload.error && payload.error.message) {
       return payload.error.message;
@@ -298,7 +331,7 @@
     return fallback;
   }
 
-  async function uploadCreation(formValues) {
+  async function uploadCreation(formValues, dialog) {
     if (isUploading) {
       return;
     }
@@ -313,8 +346,16 @@
     const modelViewerYawDegrees = String(formValues.modelViewerYawDegrees || "180");
 
     validateRequired({ apiBaseUrl, apiToken, title, slug, shortDescription, sourceContext });
+    const endpoint = creationEndpoint(apiBaseUrl);
+
+    if (formValues.rememberSettings) {
+      saveStoredSettings({ apiBaseUrl, apiToken });
+    } else {
+      forgetStoredSettings();
+    }
 
     isUploading = true;
+    setDialogConfirmEnabled(dialog, formValues);
 
     try {
       Blockbench.showQuickMessage("Export du modèle en GLB…", 1800);
@@ -335,7 +376,9 @@
       body.append("modelViewerYawDegrees", modelViewerYawDegrees);
       body.append("file", glbBlob, `${slug || "model"}.glb`);
 
-      const response = await fetch(`${apiBaseUrl}/api/integrations/blockbench/creations/`, {
+      Blockbench.showQuickMessage("Création du brouillon…", 1800);
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiToken}`,
@@ -348,12 +391,6 @@
 
       if (!response.ok || !payload || payload.success !== true) {
         throw new Error(apiErrorMessage(payload, "L’envoi vers LoupSauvage a échoué."));
-      }
-
-      if (formValues.rememberSettings) {
-        saveStoredSettings({ apiBaseUrl, apiToken });
-      } else {
-        forgetStoredSettings();
       }
 
       Blockbench.showQuickMessage("Création du brouillon terminée.", 1800);
@@ -371,6 +408,7 @@
       );
     } finally {
       isUploading = false;
+      setDialogConfirmEnabled(dialog, dialog && dialog.getFormResult ? dialog.getFormResult() : formValues);
     }
   }
 
@@ -395,9 +433,9 @@
           value: settings.apiToken || "",
         },
         rememberSettings: {
-          label: "Se souvenir de l’URL API",
+          label: "Se souvenir de ces paramètres",
           type: "checkbox",
-          value: settings.rememberSettings !== false && Boolean(settings.apiBaseUrl),
+          value: settings.rememberSettings !== false && Boolean(settings.apiBaseUrl || settings.apiToken),
         },
         title: {
           label: "Titre affiché",
@@ -441,6 +479,9 @@
           value: "180",
         },
       },
+      buttons: ["Envoyer", "Oublier les paramètres", "Annuler"],
+      confirmIndex: 0,
+      cancelIndex: 2,
       onFormChange(formValues) {
         const titleSlug = slugify(formValues.title);
         const currentSlug = slugify(formValues.slug);
@@ -450,8 +491,11 @@
         }
 
         if (!slugWasEdited && titleSlug && dialog.setFormValues) {
-          dialog.setFormValues({ slug: titleSlug });
+          dialog.setFormValues({ slug: titleSlug }, false);
+          formValues.slug = titleSlug;
         }
+
+        setDialogConfirmEnabled(dialog, formValues);
       },
       onConfirm: async function (values) {
         if (isUploading) {
@@ -459,7 +503,7 @@
         }
 
         try {
-          await uploadCreation(values);
+          await uploadCreation(values, dialog);
           dialog.hide();
         } catch (error) {
           Blockbench.showMessageBox({
@@ -471,9 +515,33 @@
 
         return false;
       },
+      onButton(buttonIndex) {
+        if (buttonIndex !== 1) {
+          return;
+        }
+
+        forgetStoredSettings();
+
+        if (dialog.setFormValues) {
+          dialog.setFormValues(
+            {
+              apiBaseUrl: "",
+              apiToken: "",
+              rememberSettings: false,
+            },
+            false
+          );
+        }
+
+        setDialogConfirmEnabled(dialog, dialog.getFormResult ? dialog.getFormResult() : {});
+        Blockbench.showQuickMessage("Paramètres LoupSauvage oubliés.", 2200);
+
+        return false;
+      },
     });
 
     dialog.show();
+    setDialogConfirmEnabled(dialog, dialog.getFormResult ? dialog.getFormResult() : {});
   }
 
   Plugin.register(PLUGIN_ID, {
