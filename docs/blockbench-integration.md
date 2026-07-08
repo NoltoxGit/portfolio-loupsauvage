@@ -10,9 +10,10 @@ Appliquer la migration dédiée après `001_initial_schema.sql` et les migration
 
 ```powershell
 mysql -u root -p loupsauvage_portfolio < database/migrations/009_add_blockbench_api_tokens.sql
+mysql -u root -p loupsauvage_portfolio < database/migrations/010_add_creation_bundles.sql
 ```
 
-Pour une nouvelle installation, `database/migrations/001_initial_schema.sql` contient déjà la table `blockbench_api_tokens`.
+Pour une nouvelle installation, `database/migrations/001_initial_schema.sql` contient déjà la table `blockbench_api_tokens` et les tables de bundles de créations.
 
 ## Générer une clé API
 
@@ -57,12 +58,14 @@ Authorization: Bearer <cle_api_blockbench>
 Payload `multipart/form-data` :
 
 - `title` requis ;
-- `slug` optionnel, généré depuis le titre si vide ;
 - `shortDescription` requis ;
 - `sourceContext` requis : `personal`, `private_commission` ou `other` ;
 - `sourceLabel` optionnel ;
 - `modelViewerYawDegrees` optionnel, défaut `180` ;
+- `bundleIds[]` optionnel, un ou plusieurs bundles de créations ;
 - `file` requis, format `.glb` uniquement.
+
+Le slug de la création est toujours généré côté serveur depuis le titre. Les accents sont translittérés, les caractères spéciaux sont nettoyés et un suffixe est ajouté automatiquement en cas de doublon. Le plugin ne demande plus de slug manuellement.
 
 Le serveur force toujours :
 
@@ -72,16 +75,27 @@ Le serveur force toujours :
 - aucun Sketchfab ;
 - aucun item marketplace.
 
+## Bundles Blockbench
+
+Le plugin peut charger et gérer les bundles via :
+
+- `GET /api/integrations/blockbench/creation-bundles/` ;
+- `POST /api/integrations/blockbench/creation-bundles/` avec `name` et `visibility` ;
+- `PATCH /api/integrations/blockbench/creation-bundles/?id=<id>` ;
+- `DELETE /api/integrations/blockbench/creation-bundles/?id=<id>`.
+
+Les mêmes clés Bearer `lsbb_...` sont utilisées. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` sont accessibles par lien direct `/creations/bundles/<slug>` sans token. Les créations d’un bundle restent triées chronologiquement comme la galerie principale. Une création importée depuis Blockbench reste en brouillon tant qu’elle n’est pas publiée dans l’admin, même si elle est associée à un bundle.
+
 ## Test curl local
 
 ```powershell
 curl.exe -X POST "http://localhost:8000/api/integrations/blockbench/creations/" `
   -H "Authorization: Bearer <cle_api_blockbench>" `
   -F "title=Nemorak Stage 3" `
-  -F "slug=nemorak-stage-3" `
   -F "shortDescription=Modèle de test importé depuis Blockbench." `
   -F "sourceContext=personal" `
   -F "modelViewerYawDegrees=180" `
+  -F "bundleIds[]=1" `
   -F "file=@C:\path\to\model.glb"
 ```
 
@@ -110,6 +124,7 @@ Réponse attendue :
 - Le fichier client ne fournit jamais de chemin de destination.
 - Le modèle est stocké via la logique d’upload GLB existante.
 - L’admin `/admin/profile` permet de générer et révoquer les clés.
+- Les tokens ne sont jamais placés dans les URLs de bundles.
 
 ## Limites V1
 
@@ -117,4 +132,6 @@ Réponse attendue :
 - `.glb` uniquement.
 - Créations uniquement.
 - Création toujours en brouillon.
+- Slug généré automatiquement depuis le titre ou le nom.
+- Marketplace non concernée par les bundles.
 - Pas d’Espace client.

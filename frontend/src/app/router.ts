@@ -1,6 +1,7 @@
 export type AppRoute =
   | { name: "home" }
   | { name: "creations" }
+  | { name: "creationBundle"; slug: string }
   | { name: "creationDetail"; slug: string }
   | { name: "marketplace" }
   | { name: "pricing" }
@@ -54,6 +55,11 @@ export function routeForPath(pathname: string): AppRoute {
   const adminPricingMatch = path.match(/^\/admin\/pricing\/(\d+)$/);
   if (adminPricingMatch) {
     return { name: "adminPricingEdit", id: Number(adminPricingMatch[1]) };
+  }
+
+  const bundleMatch = path.match(/^\/creations\/bundles\/([^/]+)$/);
+  if (bundleMatch) {
+    return { name: "creationBundle", slug: decodeURIComponent(bundleMatch[1]) };
   }
 
   const creationMatch = path.match(/^\/creations\/([^/]+)$/);

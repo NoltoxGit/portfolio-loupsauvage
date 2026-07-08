@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use LoupSauvage\Repositories\AdminContentRepository;
 use LoupSauvage\Support\ApiException;
 use LoupSauvage\Support\Config;
+use LoupSauvage\Support\Slugifier;
 use Throwable;
 
 final class BlockbenchCreationService
@@ -19,6 +20,7 @@ final class BlockbenchCreationService
         private readonly AdminContentRepository $contentRepository,
         private readonly AdminModelService $models,
         private readonly Config $config,
+        private readonly ?CreationBundleService $bundles = null,
     ) {
     }
 
@@ -36,7 +38,7 @@ final class BlockbenchCreationService
         $sourceContext = $this->sourceContext($payload);
         $sourceLabel = $this->nullableString($payload, 'sourceLabel', 120);
         $yawDegrees = $this->yawDegrees($payload);
-        $slug = $this->uniqueSlug($this->slugFromPayload($payload, $title));
+        $slug = $this->uniqueSlug(Slugifier::slugify($title));
         $id = 0;
 
         try {
@@ -71,6 +73,12 @@ final class BlockbenchCreationService
                 'contentItemId' => $id,
                 'modelViewerYawDegrees' => $yawDegrees,
             ]);
+
+            if ($this->bundles !== null) {
+                $this->bundles->syncContentBundles($id, [
+                    'bundleIds' => $this->bundles->bundleIds($payload['bundleIds'] ?? []),
+                ]);
+            }
         } catch (Throwable $error) {
             $this->cleanupFailedDraft($id);
             throw $error;
@@ -102,16 +110,6 @@ final class BlockbenchCreationService
         return $value;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function slugFromPayload(array $payload, string $title): string
-    {
-        $value = isset($payload['slug']) && is_scalar($payload['slug']) ? trim((string) $payload['slug']) : '';
-
-        return $value === '' ? $this->slugify($title) : $this->slugify($value);
-    }
-
     private function uniqueSlug(string $slug): string
     {
         $baseSlug = $slug === '' ? 'creation-blockbench' : $slug;
@@ -124,16 +122,6 @@ final class BlockbenchCreationService
         }
 
         return $candidate;
-    }
-
-    private function slugify(string $value): string
-    {
-        $ascii = function_exists('iconv') ? iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) : false;
-        $normalized = strtolower(is_string($ascii) ? $ascii : $value);
-        $normalized = preg_replace('/[^a-z0-9]+/', '-', $normalized) ?? '';
-        $normalized = trim($normalized, '-');
-
-        return preg_replace('/-+/', '-', $normalized) ?? '';
     }
 
     /**

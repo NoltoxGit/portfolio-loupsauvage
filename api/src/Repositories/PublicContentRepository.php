@@ -36,6 +36,17 @@ final class PublicContentRepository
     }
 
     /**
+     * @return array{bundles: array<int, array<string, mixed>>, creations: array<int, array<string, mixed>>}
+     */
+    public function creationsArchive(): array
+    {
+        return [
+            'bundles' => $this->listPublicBundles(),
+            'creations' => $this->listPublishedCreationsOutsidePublicBundles(),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function findPublishedCreationBySlug(string $slug): ?array
@@ -63,10 +74,118 @@ final class PublicContentRepository
         return $items[0] ?? null;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findVisibleBundleBySlug(string $slug): ?array
+    {
+        $statement = $this->db->prepare('
+            SELECT id, name, slug, visibility, created_at, updated_at
+            FROM creation_bundles
+            WHERE slug = :slug
+              AND visibility IN ("public", "unlisted")
+            LIMIT 1
+        ');
+        $statement->execute(['slug' => $slug]);
+        $bundle = $statement->fetch();
+
+        if (!is_array($bundle)) {
+            return null;
+        }
+
+        return $this->bundleWithItems($bundle);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listPublicBundles(): array
+    {
+        $statement = $this->db->query('
+            SELECT id, name, slug, visibility, created_at, updated_at
+            FROM creation_bundles
+            WHERE visibility = "public"
+            ORDER BY name ASC, id ASC
+        ');
+
+        return array_map(fn (array $bundle): array => $this->bundleWithItems($bundle), $statement->fetchAll());
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listPublishedCreationsOutsidePublicBundles(): array
+    {
+        $statement = $this->db->prepare($this->baseSelect() . '
+            WHERE content_items.type = :type
+              AND content_items.status = :status
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM creation_bundle_items
+                  INNER JOIN creation_bundles
+                    ON creation_bundles.id = creation_bundle_items.bundle_id
+                  WHERE creation_bundle_items.content_item_id = content_items.id
+                    AND creation_bundles.visibility = "public"
+              )
+            ORDER BY content_items.display_date ASC, content_items.id ASC
+        ');
+        $statement->execute([
+            'type' => 'creation',
+            'status' => 'published',
+        ]);
+
+        return $this->attachMedia($statement->fetchAll());
+    }
+
+    /**
+     * @param array<string, mixed> $bundle
+     * @return array<string, mixed>
+     */
+    private function bundleWithItems(array $bundle): array
+    {
+        $statement = $this->db->prepare('
+            SELECT
+                ' . $this->contentColumns() . '
+            FROM creation_bundle_items
+            INNER JOIN content_items
+                ON content_items.id = creation_bundle_items.content_item_id
+            WHERE creation_bundle_items.bundle_id = :bundle_id
+              AND content_items.type = :type
+              AND content_items.status = :status
+            ORDER BY content_items.display_date ASC, content_items.id ASC
+        ');
+        $statement->execute([
+            'bundle_id' => (int) $bundle['id'],
+            'type' => 'creation',
+            'status' => 'published',
+        ]);
+
+        $items = $this->attachMedia($statement->fetchAll());
+
+        return [
+            'id' => (int) $bundle['id'],
+            'name' => (string) $bundle['name'],
+            'slug' => (string) $bundle['slug'],
+            'visibility' => (string) $bundle['visibility'],
+            'itemCount' => count($items),
+            'previewItem' => $items[0] ?? null,
+            'items' => $items,
+            'createdAt' => (string) $bundle['created_at'],
+            'updatedAt' => (string) $bundle['updated_at'],
+        ];
+    }
+
     private function baseSelect(): string
     {
         return '
             SELECT
+                ' . $this->contentColumns() . '
+            FROM content_items';
+    }
+
+    private function contentColumns(): string
+    {
+        return '
                 content_items.id,
                 content_items.type,
                 content_items.title,
@@ -87,8 +206,7 @@ final class PublicContentRepository
                 content_items.model_watermark_enabled,
                 content_items.model_viewer_yaw_degrees,
                 content_items.published_at,
-                content_items.display_date
-            FROM content_items';
+                content_items.display_date';
     }
 
     /**

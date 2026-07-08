@@ -7,10 +7,12 @@ use LoupSauvage\Http\Request;
 use LoupSauvage\Repositories\AdminContentRepository;
 use LoupSauvage\Repositories\AdminModelRepository;
 use LoupSauvage\Repositories\BlockbenchApiTokenRepository;
+use LoupSauvage\Repositories\CreationBundleRepository;
 use LoupSauvage\Services\AdminContentService;
 use LoupSauvage\Services\AdminModelService;
 use LoupSauvage\Services\BlockbenchAuthService;
 use LoupSauvage\Services\BlockbenchCreationService;
+use LoupSauvage\Services\CreationBundleService;
 use LoupSauvage\Support\ApiException;
 use LoupSauvage\Support\Response;
 
@@ -33,7 +35,8 @@ try {
         new AdminContentService($contentRepository),
         $contentRepository,
         new AdminModelService($modelRepository, $config),
-        $config
+        $config,
+        new CreationBundleService(new CreationBundleRepository($db), $contentRepository),
     );
 
     Response::success($service->createDraftFromUpload($_POST, $_FILES), 201);

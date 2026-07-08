@@ -7,6 +7,7 @@ namespace LoupSauvage\Services;
 use DateTimeImmutable;
 use LoupSauvage\Repositories\AdminContentRepository;
 use LoupSauvage\Support\ApiException;
+use LoupSauvage\Support\Slugifier;
 use PDOException;
 
 final class AdminContentService
@@ -74,7 +75,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function create(array $payload): array
+    public function create(array $payload, ?int $ownerId = null): array
     {
         $data = $this->validatePayload($payload, null);
 
@@ -90,7 +91,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function update(int $id, array $payload): array
+    public function update(int $id, array $payload, ?int $ownerId = null): array
     {
         $existing = $this->contents->findById($id);
 
@@ -118,7 +119,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function updateStatus(int $id, array $payload): array
+    public function updateStatus(int $id, array $payload, ?int $ownerId = null): array
     {
         $status = isset($payload['status']) ? trim((string) $payload['status']) : '';
 
@@ -158,7 +159,7 @@ final class AdminContentService
     /**
      * @return array<string, mixed>
      */
-    public function archive(int $id): array
+    public function archive(int $id, ?int $ownerId = null): array
     {
         $existing = $this->contents->findById($id);
 
@@ -206,10 +207,13 @@ final class AdminContentService
             $fields['externalPlatform'] = 'External platform is invalid.';
         }
 
+        $title = $this->requiredString($payload, 'title', $existing['title'] ?? null, 190, $fields);
+        $existingId = isset($existing['id']) && is_numeric($existing['id']) ? (int) $existing['id'] : null;
+
         $data = [
             'type' => $type,
-            'title' => $this->requiredString($payload, 'title', $existing['title'] ?? null, 190, $fields),
-            'slug' => $this->requiredSlug($payload, 'slug', $existing['slug'] ?? null, 220, $fields),
+            'title' => $title,
+            'slug' => $this->uniqueSlug(Slugifier::slugify($title), $existingId),
             'short_description' => $this->nullableString($payload, 'shortDescription', $existing['shortDescription'] ?? null, 65535, $fields),
             'status' => $status,
             'source_context' => $sourceContext,
@@ -344,19 +348,18 @@ final class AdminContentService
         return $value;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     * @param array<string, string> $fields
-     */
-    private function requiredSlug(array $payload, string $key, mixed $fallback, int $maxLength, array &$fields): string
+    private function uniqueSlug(string $slug, ?int $exceptId): string
     {
-        $slug = $this->requiredString($payload, $key, $fallback, $maxLength, $fields);
+        $baseSlug = $slug === '' ? 'creation' : $slug;
+        $candidate = $baseSlug;
+        $suffix = 2;
 
-        if ($slug !== '' && preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) !== 1) {
-            $fields[$key] = 'Slug must contain lowercase letters, numbers, and hyphens only.';
+        while ($this->contents->slugExistsExcept($candidate, $exceptId)) {
+            $candidate = $baseSlug . '-' . $suffix;
+            ++$suffix;
         }
 
-        return $slug;
+        return $candidate;
     }
 
     /**

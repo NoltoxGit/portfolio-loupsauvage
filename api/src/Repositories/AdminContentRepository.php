@@ -224,13 +224,27 @@ final class AdminContentRepository
 
     public function slugExists(string $slug): bool
     {
-        $statement = $this->db->prepare('
+        return $this->slugExistsExcept($slug, null);
+    }
+
+    public function slugExistsExcept(string $slug, ?int $exceptId): bool
+    {
+        $sql = '
             SELECT 1
             FROM content_items
-            WHERE slug = :slug
-            LIMIT 1
+            WHERE slug = :slug';
+        $params = ['slug' => $slug];
+
+        if ($exceptId !== null) {
+            $sql .= ' AND id <> :id';
+            $params['id'] = $exceptId;
+        }
+
+        $sql .= ' LIMIT 1';
+        $statement = $this->db->prepare('
+            ' . $sql . '
         ');
-        $statement->execute(['slug' => $slug]);
+        $statement->execute($params);
 
         return $statement->fetchColumn() !== false;
     }
@@ -343,7 +357,9 @@ final class AdminContentRepository
             ];
         }
 
-        return array_map(function (array $item) use ($mediaByItem): array {
+        $bundlesByItem = $this->bundlesForItems($ids);
+
+        return array_map(function (array $item) use ($mediaByItem, $bundlesByItem): array {
             $id = (int) $item['id'];
 
             return [
@@ -372,7 +388,52 @@ final class AdminContentRepository
                 'createdAt' => $item['created_at'],
                 'updatedAt' => $item['updated_at'],
                 'media' => $mediaByItem[$id] ?? [],
+                'bundles' => $bundlesByItem[$id] ?? [],
             ];
         }, $items);
+    }
+
+    /**
+     * @param array<int, int> $ids
+     * @return array<int, array<int, array<string, mixed>>>
+     */
+    private function bundlesForItems(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $statement = $this->db->prepare("
+            SELECT
+                creation_bundle_items.content_item_id,
+                creation_bundles.id,
+                creation_bundles.name,
+                creation_bundles.slug,
+                creation_bundles.visibility,
+                creation_bundles.created_at,
+                creation_bundles.updated_at
+            FROM creation_bundle_items
+            INNER JOIN creation_bundles
+                ON creation_bundles.id = creation_bundle_items.bundle_id
+            WHERE creation_bundle_items.content_item_id IN ($placeholders)
+            ORDER BY creation_bundles.name ASC, creation_bundles.id ASC
+        ");
+        $statement->execute($ids);
+
+        $byItem = [];
+        foreach ($statement->fetchAll() as $bundle) {
+            $itemId = (int) $bundle['content_item_id'];
+            $byItem[$itemId][] = [
+                'id' => (int) $bundle['id'],
+                'name' => (string) $bundle['name'],
+                'slug' => (string) $bundle['slug'],
+                'visibility' => (string) $bundle['visibility'],
+                'createdAt' => (string) $bundle['created_at'],
+                'updatedAt' => (string) $bundle['updated_at'],
+            ];
+        }
+
+        return $byItem;
     }
 }

@@ -2,7 +2,7 @@
   "use strict";
 
   const PLUGIN_ID = "loupsauvage_uploader";
-  const PLUGIN_VERSION = "2026.7.7";
+  const PLUGIN_VERSION = "2026.7.8";
   const STORAGE_KEYS = {
     apiBaseUrl: "loupsauvage_uploader.apiBaseUrl",
     apiToken: "loupsauvage_uploader.apiToken",
@@ -13,6 +13,7 @@
   let uploadAction = null;
   let forgetSettingsAction = null;
   let isUploading = false;
+  let dialogStylesInjected = false;
 
   function storageAvailable() {
     return typeof localStorage !== "undefined";
@@ -68,7 +69,26 @@
   }
 
   function slugify(value) {
+    const replacements = {
+      ß: "ss",
+      æ: "ae",
+      Æ: "AE",
+      œ: "oe",
+      Œ: "OE",
+      ø: "o",
+      Ø: "O",
+      ł: "l",
+      Ł: "L",
+      đ: "d",
+      Đ: "D",
+      þ: "th",
+      Þ: "TH",
+      ð: "d",
+      Ð: "D",
+    };
+
     return String(value || "")
+      .replace(/[ßæÆœŒøØłŁđĐþÞðÐ]/g, (char) => replacements[char] || "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
@@ -275,7 +295,6 @@
       ["apiBaseUrl", "API Base URL"],
       ["apiToken", "API Token"],
       ["title", "Titre affiché"],
-      ["slug", "Slug"],
       ["shortDescription", "Résumé court"],
       ["sourceContext", "Contexte de création"],
     ];
@@ -291,13 +310,11 @@
 
   function hasRequiredFormValues(values) {
     const apiBaseUrl = normalizeBaseUrl(values.apiBaseUrl);
-    const slug = slugify(String(values.slug || "").trim() || values.title);
 
     return Boolean(
       apiBaseUrl &&
         String(values.apiToken || "").trim() &&
         String(values.title || "").trim() &&
-        slug &&
         String(values.shortDescription || "").trim() &&
         String(values.sourceContext || "").trim()
     );
@@ -323,6 +340,260 @@
     }
   }
 
+  function bundlesEndpoint(apiBaseUrl, id) {
+    try {
+      const url = new URL("/api/integrations/blockbench/creation-bundles/", apiBaseUrl);
+
+      if (id) {
+        url.searchParams.set("id", String(id));
+      }
+
+      return url.toString();
+    } catch (error) {
+      throw new Error("URL API invalide. Utilise une URL complète, par exemple http://localhost:8000.");
+    }
+  }
+
+  async function apiJson(url, apiToken, options) {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "X-Blockbench-Token": apiToken,
+        ...(options && options.headers ? options.headers : {}),
+      },
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload || payload.success !== true) {
+      throw new Error(apiErrorMessage(payload, "La requête API LoupSauvage a échoué."));
+    }
+
+    return payload.data;
+  }
+
+  async function fetchBundles(apiBaseUrl, apiToken) {
+    if (!apiBaseUrl || !apiToken) {
+      return [];
+    }
+
+    return apiJson(bundlesEndpoint(apiBaseUrl), apiToken, { method: "GET" });
+  }
+
+  function selectedBundleIds(values, bundles) {
+    return bundles
+      .filter((bundle) => Boolean(values[`bundle_${bundle.id}`]))
+      .map((bundle) => bundle.id);
+  }
+
+  function bundleOptions(bundles) {
+    const options = {};
+
+    bundles.forEach((bundle) => {
+      options[bundle.id] = `${bundle.name} (${bundle.visibility === "unlisted" ? "non listé" : "public"})`;
+    });
+
+    return options;
+  }
+
+  function injectDialogStyles() {
+    if (dialogStylesInjected || typeof document === "undefined") {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "loupsauvage-uploader-dialog-style";
+    style.textContent = `
+      #loupsauvage_uploader_dialog .lsbb-section {
+        border-top: 1px solid var(--color-border, rgba(255,255,255,.12));
+        margin: 14px 0 8px;
+        padding-top: 12px;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section:first-child {
+        border-top: 0;
+        margin-top: 0;
+        padding-top: 0;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section-title {
+        align-items: center;
+        color: var(--color-accent, #7ecf86);
+        display: flex;
+        font-size: 12px;
+        font-weight: 700;
+        gap: 7px;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section-title::before,
+      #loupsauvage_uploader_dialog button[data-lsbb-icon]::before {
+        content: attr(data-lsbb-icon);
+        direction: ltr;
+        display: inline-block;
+        font-family: 'Material Icons', 'Material Icons Outlined', sans-serif;
+        font-feature-settings: 'liga';
+        font-size: 18px;
+        font-style: normal;
+        font-weight: normal;
+        line-height: 1;
+        text-transform: none;
+        vertical-align: -3px;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section-help {
+        color: var(--color-subtle_text, rgba(255,255,255,.62));
+        font-size: 12px;
+        line-height: 1.35;
+        margin-top: 4px;
+      }
+      #loupsauvage_uploader_dialog .lsbb-field {
+        border-radius: 6px;
+      }
+      #loupsauvage_uploader_dialog button[data-lsbb-icon] {
+        align-items: center;
+        display: inline-flex;
+        gap: 6px;
+        justify-content: center;
+      }
+    `;
+    document.head.appendChild(style);
+    dialogStylesInjected = true;
+  }
+
+  function findDialogField(dialog, key) {
+    if (!dialog || !dialog.object) {
+      return null;
+    }
+
+    return (
+      dialog.object.querySelector(`[name="${key}"]`) ||
+      dialog.object.querySelector(`#${key}`) ||
+      dialog.object.querySelector(`[data-key="${key}"]`)
+    );
+  }
+
+  function findDialogFieldRow(dialog, key) {
+    const field = findDialogField(dialog, key);
+
+    if (!field) {
+      return null;
+    }
+
+    return (
+      field.closest(".form_bar") ||
+      field.closest(".form_field") ||
+      field.closest(".dialog_form > *") ||
+      field.closest("label") ||
+      field.parentElement
+    );
+  }
+
+  function insertDialogSection(dialog, beforeKey, title, help, icon) {
+    const row = findDialogFieldRow(dialog, beforeKey);
+
+    if (!row || !row.parentElement || row.previousElementSibling?.classList?.contains("lsbb-section")) {
+      return;
+    }
+
+    const section = document.createElement("div");
+    section.className = "lsbb-section";
+    section.innerHTML = `
+      <div class="lsbb-section-title" data-lsbb-icon="${icon}">${title}</div>
+      <div class="lsbb-section-help">${help}</div>
+    `;
+    row.parentElement.insertBefore(section, row);
+  }
+
+  function markDialogFields(dialog, keys) {
+    keys.forEach((key) => {
+      const row = findDialogFieldRow(dialog, key);
+      if (row) {
+        row.classList.add("lsbb-field");
+      }
+    });
+  }
+
+  function iconizeDialogButtons(dialog) {
+    if (!dialog || !dialog.object) {
+      return;
+    }
+
+    const icons = {
+      Envoyer: "cloud_upload",
+      "Nouveau bundle": "add_circle",
+      Renommer: "edit",
+      Supprimer: "delete",
+      Oublier: "lock_reset",
+      Annuler: "close",
+    };
+
+    dialog.object.querySelectorAll("button").forEach((button) => {
+      const label = String(button.textContent || "").trim();
+      const icon = icons[label];
+
+      if (icon) {
+        button.dataset.lsbbIcon = icon;
+      }
+    });
+  }
+
+  function enhanceUploadDialog(dialog, bundles) {
+    if (!dialog || !dialog.object || typeof document === "undefined") {
+      return;
+    }
+
+    injectDialogStyles();
+
+    dialog.object.classList.add("lsbb-dialog");
+    insertDialogSection(
+      dialog,
+      "apiBaseUrl",
+      "Connexion",
+      "URL du site et token local. Le token n’est jamais affiche dans les logs.",
+      "vpn_key"
+    );
+    insertDialogSection(
+      dialog,
+      "title",
+      "Creation",
+      "Le modele courant sera envoye en brouillon, avec un slug genere automatiquement cote site.",
+      "deployed_code"
+    );
+    insertDialogSection(
+      dialog,
+      bundles.length > 0 ? `bundle_${bundles[0].id}` : "newBundleName",
+      "Bundles",
+      "Associe la creation a un ou plusieurs bundles, ou cree un nouveau bundle avant l’envoi.",
+      "folder_special"
+    );
+
+    if (bundles.length > 0) {
+      insertDialogSection(
+        dialog,
+        "manageBundleId",
+        "Gestion rapide",
+        "Renomme ou supprime un bundle sans quitter Blockbench.",
+        "tune"
+      );
+    }
+
+    markDialogFields(dialog, [
+      "apiBaseUrl",
+      "apiToken",
+      "rememberSettings",
+      "title",
+      "shortDescription",
+      "sourceContext",
+      "sourceLabel",
+      "modelViewerYawDegrees",
+      "newBundleName",
+      "newBundleVisibility",
+      "manageBundleId",
+      "manageBundleName",
+      "manageBundleVisibility",
+      ...bundles.map((bundle) => `bundle_${bundle.id}`),
+    ]);
+    iconizeDialogButtons(dialog);
+  }
+
   function apiErrorMessage(payload, fallback) {
     if (payload && payload.error && payload.error.message) {
       return payload.error.message;
@@ -339,13 +610,13 @@
     const apiBaseUrl = normalizeBaseUrl(formValues.apiBaseUrl);
     const apiToken = String(formValues.apiToken || "").trim();
     const title = String(formValues.title || "").trim();
-    const slug = slugify(String(formValues.slug || "").trim() || title);
+    const slug = slugify(title);
     const shortDescription = String(formValues.shortDescription || "").trim();
     const sourceContext = String(formValues.sourceContext || "personal");
     const sourceLabel = String(formValues.sourceLabel || "").trim();
     const modelViewerYawDegrees = String(formValues.modelViewerYawDegrees || "180");
 
-    validateRequired({ apiBaseUrl, apiToken, title, slug, shortDescription, sourceContext });
+    validateRequired({ apiBaseUrl, apiToken, title, shortDescription, sourceContext });
     const endpoint = creationEndpoint(apiBaseUrl);
 
     if (formValues.rememberSettings) {
@@ -369,11 +640,13 @@
 
       const body = new FormData();
       body.append("title", title);
-      body.append("slug", slug);
       body.append("shortDescription", shortDescription);
       body.append("sourceContext", sourceContext);
       body.append("sourceLabel", sourceLabel);
       body.append("modelViewerYawDegrees", modelViewerYawDegrees);
+      selectedBundleIds(formValues, formValues.__bundles || []).forEach((bundleId) => {
+        body.append("bundleIds[]", String(bundleId));
+      });
       body.append("file", glbBlob, `${slug || "model"}.glb`);
 
       Blockbench.showQuickMessage("Création du brouillon…", 1800);
@@ -412,10 +685,58 @@
     }
   }
 
-  function openUploadDialog() {
-    const settings = readStoredSettings();
+  async function openUploadDialog(preset) {
+    const settings = {
+      ...readStoredSettings(),
+      ...(preset || {}),
+    };
+    const apiBaseUrl = normalizeBaseUrl(settings.apiBaseUrl || "");
+    const apiToken = String(settings.apiToken || "").trim();
     const defaultTitle = projectName();
-    let slugWasEdited = false;
+    let bundles = [];
+
+    if (apiBaseUrl && apiToken) {
+      try {
+        bundles = await fetchBundles(apiBaseUrl, apiToken);
+      } catch (error) {
+        Blockbench.showQuickMessage("Bundles indisponibles avec ces paramètres.", 2600);
+      }
+    }
+
+    const bundleFields = {};
+    bundles.forEach((bundle) => {
+      bundleFields[`bundle_${bundle.id}`] = {
+        label: bundle.name,
+        type: "checkbox",
+        value: Array.isArray(settings.bundleIds) && settings.bundleIds.includes(bundle.id),
+      };
+    });
+
+    const managementFields =
+      bundles.length > 0
+        ? {
+            manageBundleId: {
+              label: "Bundle à gérer",
+              type: "select",
+              options: bundleOptions(bundles),
+              value: String(bundles[0].id),
+            },
+            manageBundleName: {
+              label: "Nouveau nom",
+              type: "text",
+              value: "",
+            },
+            manageBundleVisibility: {
+              label: "Nouvelle visibilité",
+              type: "select",
+              options: {
+                public: "Public",
+                unlisted: "Non listé",
+              },
+              value: "public",
+            },
+          }
+        : {};
 
     const dialog = new Dialog({
       id: "loupsauvage_uploader_dialog",
@@ -440,12 +761,7 @@
         title: {
           label: "Titre affiché",
           type: "text",
-          value: defaultTitle,
-        },
-        slug: {
-          label: "Slug / lien de page",
-          type: "text",
-          value: slugify(defaultTitle),
+          value: settings.title || defaultTitle,
         },
         shortDescription: {
           label: "Résumé court",
@@ -478,23 +794,28 @@
           },
           value: "180",
         },
+        ...bundleFields,
+        newBundleName: {
+          label: "Créer un bundle",
+          type: "text",
+          value: "",
+          placeholder: "Pack dragons",
+        },
+        newBundleVisibility: {
+          label: "Visibilité nouveau bundle",
+          type: "select",
+          options: {
+            public: "Public",
+            unlisted: "Non listé",
+          },
+          value: "public",
+        },
+        ...managementFields,
       },
-      buttons: ["Envoyer", "Oublier les paramètres", "Annuler"],
+      buttons: ["Envoyer", "Nouveau bundle", "Renommer", "Supprimer", "Oublier", "Annuler"],
       confirmIndex: 0,
-      cancelIndex: 2,
+      cancelIndex: 5,
       onFormChange(formValues) {
-        const titleSlug = slugify(formValues.title);
-        const currentSlug = slugify(formValues.slug);
-
-        if (currentSlug && currentSlug !== titleSlug) {
-          slugWasEdited = true;
-        }
-
-        if (!slugWasEdited && titleSlug && dialog.setFormValues) {
-          dialog.setFormValues({ slug: titleSlug }, false);
-          formValues.slug = titleSlug;
-        }
-
         setDialogConfirmEnabled(dialog, formValues);
       },
       onConfirm: async function (values) {
@@ -503,6 +824,7 @@
         }
 
         try {
+          values.__bundles = bundles;
           await uploadCreation(values, dialog);
           dialog.hide();
         } catch (error) {
@@ -516,8 +838,115 @@
         return false;
       },
       onButton(buttonIndex) {
-        if (buttonIndex !== 1) {
+        if (![1, 2, 3, 4].includes(buttonIndex)) {
           return;
+        }
+
+        const values = dialog.getFormResult ? dialog.getFormResult() : {};
+        const nextPreset = {
+          apiBaseUrl: values.apiBaseUrl,
+          apiToken: values.apiToken,
+          rememberSettings: values.rememberSettings,
+          title: values.title,
+          bundleIds: selectedBundleIds(values, bundles),
+        };
+
+        if (buttonIndex === 1) {
+          void (async () => {
+            const name = String(values.newBundleName || "").trim();
+
+            if (!name) {
+              Blockbench.showQuickMessage("Nom de bundle requis.", 2200);
+              return;
+            }
+
+            try {
+              await apiJson(bundlesEndpoint(normalizeBaseUrl(values.apiBaseUrl), String(values.apiToken || "").trim()), String(values.apiToken || "").trim(), {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  name,
+                  visibility: values.newBundleVisibility || "public",
+                }),
+              });
+              Blockbench.showQuickMessage("Bundle créé.", 2200);
+              dialog.hide();
+              void openUploadDialog(nextPreset);
+            } catch (error) {
+              Blockbench.showMessageBox({
+                title: "Bundle impossible",
+                message: error instanceof Error ? error.message : "Erreur inconnue.",
+                buttons: ["OK"],
+              });
+            }
+          })();
+          return false;
+        }
+
+        if (buttonIndex === 2) {
+          void (async () => {
+            const id = Number(values.manageBundleId || 0);
+            const name = String(values.manageBundleName || "").trim();
+
+            if (!id || !name) {
+              Blockbench.showQuickMessage("Choisis un bundle et un nouveau nom.", 2400);
+              return;
+            }
+
+            try {
+              await apiJson(bundlesEndpoint(normalizeBaseUrl(values.apiBaseUrl), id), String(values.apiToken || "").trim(), {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  name,
+                  visibility: values.manageBundleVisibility || "public",
+                }),
+              });
+              Blockbench.showQuickMessage("Bundle renommé.", 2200);
+              dialog.hide();
+              void openUploadDialog(nextPreset);
+            } catch (error) {
+              Blockbench.showMessageBox({
+                title: "Bundle impossible",
+                message: error instanceof Error ? error.message : "Erreur inconnue.",
+                buttons: ["OK"],
+              });
+            }
+          })();
+          return false;
+        }
+
+        if (buttonIndex === 3) {
+          void (async () => {
+            const id = Number(values.manageBundleId || 0);
+
+            if (!id) {
+              return;
+            }
+
+            try {
+              await apiJson(bundlesEndpoint(normalizeBaseUrl(values.apiBaseUrl), id), String(values.apiToken || "").trim(), {
+                method: "DELETE",
+              });
+              Blockbench.showQuickMessage("Bundle supprimé.", 2200);
+              dialog.hide();
+              void openUploadDialog({
+                ...nextPreset,
+                bundleIds: nextPreset.bundleIds.filter((bundleId) => bundleId !== id),
+              });
+            } catch (error) {
+              Blockbench.showMessageBox({
+                title: "Suppression impossible",
+                message: error instanceof Error ? error.message : "Erreur inconnue.",
+                buttons: ["OK"],
+              });
+            }
+          })();
+          return false;
         }
 
         forgetStoredSettings();
@@ -541,6 +970,8 @@
     });
 
     dialog.show();
+    enhanceUploadDialog(dialog, bundles);
+    setTimeout(() => enhanceUploadDialog(dialog, bundles), 0);
     setDialogConfirmEnabled(dialog, dialog.getFormResult ? dialog.getFormResult() : {});
   }
 
@@ -556,7 +987,9 @@
         name: "Envoyer sur LoupSauvage",
         description: "Créer une création brouillon avec le modèle GLB courant.",
         icon: "cloud_upload",
-        click: openUploadDialog,
+        click() {
+          void openUploadDialog();
+        },
       });
 
       forgetSettingsAction = new Action("loupsauvage_forget_settings", {

@@ -1,5 +1,10 @@
 Options -Indexes
 
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^public/creation-bundles/([^/]+)/?$ public/creation-bundles/index.php?slug=$1 [L,QSA]
+</IfModule>
+
 <FilesMatch "^(config\.php|README\.md)$">
   Require all denied
 </FilesMatch>

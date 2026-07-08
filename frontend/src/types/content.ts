@@ -2,6 +2,7 @@ export type ContentType = "creation" | "marketplace";
 export type ContentStatus = "draft" | "published" | "archived";
 export type SourceContext = "personal" | "private_commission" | "marketplace_product" | "other";
 export type ExternalPlatform = "builtbybit" | "mcmodels" | "sketchfab" | "other";
+export type CreationBundleVisibility = "public" | "unlisted";
 
 export interface ContentMedia {
   id: number;
@@ -39,4 +40,26 @@ export interface ContentItem {
   publishedAt: string | null;
   displayDate: string;
   media: ContentMedia[];
+  bundles?: CreationBundleSummary[];
+}
+
+export interface CreationBundleSummary {
+  id: number;
+  name: string;
+  slug: string;
+  visibility: CreationBundleVisibility;
+  itemCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreationBundle extends CreationBundleSummary {
+  itemCount: number;
+  previewItem: ContentItem | null;
+  items: ContentItem[];
+}
+
+export interface CreationsArchivePayload {
+  bundles: CreationBundle[];
+  creations: ContentItem[];
 }

@@ -3,6 +3,7 @@ import {
   archiveAdminContent,
   createAdminContent,
   previewBuiltByBitResource,
+  syncAdminContentBundles,
   updateAdminContent,
   updateAdminContentStatus,
 } from "../../api/admin";
@@ -11,6 +12,7 @@ import type { ContentStatus, ContentType, ExternalPlatform, SourceContext } from
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 import { MediaManager } from "./MediaManager";
 import { ModelManager, type ModelManagerHandle } from "./ModelManager";
+import { CreationBundlesPanel } from "./CreationBundlesPanel";
 import { hasSketchfabModel } from "../content/SketchfabEmbed";
 
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
@@ -38,7 +40,6 @@ const platformLabels: Record<ExternalPlatform, string> = {
 
 interface ContentFormState {
   title: string;
-  slug: string;
   shortDescription: string;
   status: ContentStatus;
   sourceContext: SourceContext;
@@ -73,17 +74,6 @@ function fromInputDateTime(value: string) {
   return normalized.length === 16 ? `${normalized}:00` : normalized;
 }
 
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/['’]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -104,7 +94,6 @@ function defaultState(contentType: ContentType): ContentFormState {
 
   return {
     title: "",
-    slug: "",
     shortDescription: "",
     status: "draft",
     sourceContext: contentType === "marketplace" ? "marketplace_product" : "personal",
@@ -125,7 +114,6 @@ function defaultState(contentType: ContentType): ContentFormState {
 function stateFromItem(item: AdminContentItem): ContentFormState {
   return {
     title: item.title,
-    slug: item.slug,
     shortDescription: item.shortDescription ?? "",
     status: item.status,
     sourceContext: item.sourceContext,
@@ -224,7 +212,9 @@ export function ContentForm({
     initialItem ? stateFromItem(initialItem) : defaultState(contentType),
   );
   const selectableStatuses = form.status === "archived" ? statuses : statuses.filter((status) => status !== "archived");
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(() => Boolean(initialItem?.slug));
+  const [selectedBundleIds, setSelectedBundleIds] = useState<number[]>(() =>
+    initialItem?.bundles?.map((bundle) => bundle.id) ?? [],
+  );
   const [error, setError] = useState<unknown>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -237,7 +227,7 @@ export function ContentForm({
 
   useEffect(() => {
     setForm(initialItem ? stateFromItem(initialItem) : defaultState(contentType));
-    setSlugManuallyEdited(Boolean(initialItem?.slug));
+    setSelectedBundleIds(initialItem?.bundles?.map((bundle) => bundle.id) ?? []);
     setError(null);
     setNotice(null);
     setMediaCount(initialItem?.media.length ?? 0);
@@ -255,13 +245,7 @@ export function ContentForm({
     setForm((current) => ({
       ...current,
       title,
-      slug: slugManuallyEdited ? current.slug : slugify(title),
     }));
-  };
-
-  const regenerateSlug = () => {
-    setSlugManuallyEdited(false);
-    setForm((current) => ({ ...current, slug: slugify(current.title) }));
   };
 
   const setSourceContext = (sourceContext: SourceContext) => {
@@ -279,7 +263,6 @@ export function ContentForm({
     return {
       type: contentType,
       title: form.title,
-      slug: form.slug,
       shortDescription: trimOrNull(form.shortDescription),
       status: form.status,
       sourceContext,
@@ -367,7 +350,6 @@ export function ContentForm({
     setForm((current) => ({
       ...current,
       title: builtByBitPreview.title || current.title,
-      slug: current.slug || slugify(builtByBitPreview.title),
       shortDescription: builtByBitPreview.summary || current.shortDescription,
       externalUrl: builtByBitPreview.externalUrl || current.externalUrl,
       externalPlatform: "builtbybit",
@@ -407,12 +389,16 @@ export function ContentForm({
       const uploadedModel = await modelManagerRef.current?.uploadPendingModel(saved);
       let finalSaved = uploadedModel ? mergeModelInfo(saved, uploadedModel) : saved;
 
+      if (contentType === "creation") {
+        const synced = await syncAdminContentBundles(saved.id, { bundleIds: selectedBundleIds }, csrfToken);
+        finalSaved = { ...finalSaved, bundles: synced.bundles };
+      }
+
       if (needsDeferredPublish) {
         finalSaved = await updateAdminContentStatus(saved.id, { status: "published" }, csrfToken);
       }
 
       setForm(stateFromItem(finalSaved));
-      setSlugManuallyEdited(true);
       setMediaCount(finalSaved.media.length);
       setHasModel(Boolean(finalSaved.modelGlbPath));
       setNotice(uploadedModel ? "Contenu enregistré avec le modèle GLB." : "Contenu enregistré.");
@@ -481,8 +467,6 @@ export function ContentForm({
     }
   };
 
-  const slugHelp = `/creations/${form.slug || "adresse-de-la-page"}`;
-
   return (
     <>
     <form className={`admin-form admin-content-form is-${contentType}`} onSubmit={onSubmit}>
@@ -492,7 +476,7 @@ export function ContentForm({
         <p>{isMarketplace ? "Prépare la fiche marketplace visible sur le site." : "Prépare la fiche portfolio visible sur le site."}</p>
       </div>
 
-      <div className="admin-form-section">
+      <div className="admin-form-section admin-section-main">
         <div className="admin-form-grid">
           <label className="admin-field" htmlFor="content-title">
             <FieldTitle help="Nom visible sur le portfolio et dans les listes d’administration.">
@@ -505,30 +489,6 @@ export function ContentForm({
               required
             />
           </label>
-
-          {!isMarketplace ? (
-            <label className="admin-field" htmlFor="content-slug">
-              <FieldTitle
-                help={`Adresse courte de la page, elle est générée depuis le titre. Aperçu : ${slugHelp}`}
-              >
-                Lien de la page
-              </FieldTitle>
-              <div className="admin-slug-row">
-                <input
-                  id="content-slug"
-                  value={form.slug}
-                  onChange={(event) => {
-                    setSlugManuallyEdited(true);
-                    updateField("slug", event.target.value);
-                  }}
-                  required
-                />
-                <button className="admin-inline-action" type="button" onClick={regenerateSlug}>
-                  Générer
-                </button>
-              </div>
-            </label>
-          ) : null}
 
           <label className="admin-field" htmlFor="content-status">
             <FieldTitle help="Brouillon masque le contenu. En ligne l’affiche publiquement. La suppression se fait avec le bouton dédié.">
@@ -575,7 +535,7 @@ export function ContentForm({
       </div>
 
       {!isMarketplace ? (
-        <div className="admin-form-section">
+        <div className="admin-form-section admin-section-creation">
           <div className="admin-form-section-heading">
             <SectionTitle help="Indique l’origine de la création. Une commission privée ne peut pas être publiée sans accord client.">
               Contexte de création
@@ -633,7 +593,7 @@ export function ContentForm({
           </label>
         </div>
       ) : (
-        <div className="admin-form-section">
+        <div className="admin-form-section admin-section-marketplace">
           <div className="admin-form-section-heading">
             <SectionTitle help="Renseigne le lien externe, le prix affiché et la plateforme principale du produit.">
               Publication marketplace
@@ -746,6 +706,16 @@ export function ContentForm({
           ) : null}
         </div>
       )}
+
+      {!isMarketplace ? (
+        <CreationBundlesPanel
+          contentId={initialItem?.id}
+          selectedIds={selectedBundleIds}
+          onSelectedIdsChange={setSelectedBundleIds}
+          csrfToken={csrfToken}
+          onUnauthenticated={onUnauthenticated}
+        />
+      ) : null}
 
       <ModelManager
         ref={modelManagerRef}

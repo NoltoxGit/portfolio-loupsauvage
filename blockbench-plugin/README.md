@@ -6,7 +6,7 @@ Le plugin crée toujours une création en brouillon côté site. Il ne publie ri
 
 ## Statut
 
-Version synchronisee depuis `../VERSION` : `2026.7.7`.
+Version synchronisee depuis `../VERSION` : `2026.7.8`.
 
 Le plugin cible Blockbench Desktop en V1. Il utilise le codec GLB natif de Blockbench pour exporter le modèle courant en mémoire, puis l’envoie à l’API privée du portfolio.
 
@@ -24,10 +24,10 @@ Champs demandés par la boîte de dialogue :
 - API Base URL ;
 - API Token ;
 - titre affiché ;
-- slug ;
 - résumé court ;
 - contexte de création ;
 - orientation du viewer.
+- bundles de créations, si l’API est joignable avec le token ;
 - option `Se souvenir de ces paramètres`.
 
 Exemples d’URL API :
@@ -36,6 +36,8 @@ Exemples d’URL API :
 - production : `https://loupsauvage.fr`
 
 Si l’option est cochée, l’URL API et le token sont mémorisés dans le stockage local de Blockbench sur ce poste. Utiliser cette option uniquement sur une machine de confiance. Le bouton `Oublier les paramètres` supprime ces valeurs locales.
+
+Le slug de la création n’est pas demandé : le site le génère automatiquement depuis le titre, sans accents ni caractères spéciaux. Le plugin peut aussi créer, renommer et supprimer des bundles de créations. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` restent accessibles par lien direct sans token. L’upload Blockbench crée toujours un brouillon.
 
 ## Générer une clé côté site
 
@@ -61,6 +63,7 @@ Le token complet est affiché une seule fois. Ne jamais le commiter et ne jamais
 - Créations uniquement.
 - Brouillon uniquement côté serveur.
 - Pas de marketplace.
+- Bundles de créations uniquement, pas de bundles marketplace.
 - Pas de Sketchfab.
 - Pas de description complète.
 - Pas de token dans le code.

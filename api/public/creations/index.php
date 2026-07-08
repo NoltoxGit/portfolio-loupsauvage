@@ -24,7 +24,7 @@ try {
         return;
     }
 
-    Response::success($repository->listPublishedByType('creation'));
+    Response::success($repository->creationsArchive());
 } catch (Throwable $error) {
     Response::error('SERVER_ERROR', 'Unable to load public creations.', 500);
 }

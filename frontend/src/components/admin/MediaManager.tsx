@@ -1,22 +1,11 @@
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { deleteAdminMedia, listAdminMedia, updateAdminMedia, uploadAdminMedia } from "../../api/admin";
-import type { AdminMediaItem, AdminMediaKind } from "../../types/admin";
+import type { AdminMediaItem } from "../../types/admin";
 import { mediaBackgroundStyle } from "../content/media";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 
-const mediaKinds: AdminMediaKind[] = ["cover", "gallery", "render", "thumbnail"];
-
-const mediaKindLabels: Record<AdminMediaKind, string> = {
-  cover: "Image principale",
-  gallery: "Galerie",
-  render: "Rendu",
-  thumbnail: "Aperçu",
-};
-
 interface MediaFormState {
-  kind: AdminMediaKind;
   alt: string;
-  sortOrder: string;
 }
 
 interface UploadFormState extends MediaFormState {
@@ -24,17 +13,13 @@ interface UploadFormState extends MediaFormState {
 }
 
 const defaultUploadForm: UploadFormState = {
-  kind: "gallery",
   alt: "",
-  sortOrder: "0",
   file: null,
 };
 
 function stateFromMedia(media: AdminMediaItem): MediaFormState {
   return {
-    kind: media.kind,
     alt: media.alt ?? "",
-    sortOrder: String(media.sortOrder),
   };
 }
 
@@ -42,38 +27,6 @@ function toNullableString(value: string) {
   const trimmed = value.trim();
 
   return trimmed === "" ? null : trimmed;
-}
-
-function toInteger(value: string) {
-  const parsed = Number.parseInt(value, 10);
-
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function MediaKindChoices({
-  value,
-  onChange,
-  disabled = false,
-}: {
-  value: AdminMediaKind;
-  onChange: (kind: AdminMediaKind) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="admin-choice-group admin-media-kind-group" role="group" aria-label="Rôle de l’image">
-      {mediaKinds.map((kind) => (
-        <button
-          className={`admin-choice${value === kind ? " is-selected" : ""}`}
-          disabled={disabled}
-          key={kind}
-          type="button"
-          onClick={() => onChange(kind)}
-        >
-          {mediaKindLabels[kind]}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 export function MediaManager({
@@ -142,7 +95,7 @@ export function MediaManager({
     setEditForms((current) => ({
       ...current,
       [id]: {
-        ...(current[id] ?? { kind: "gallery", alt: "", sortOrder: "0" }),
+        ...(current[id] ?? { alt: "" }),
         [key]: value,
       },
     }));
@@ -167,9 +120,9 @@ export function MediaManager({
       await uploadAdminMedia(
         {
           contentItemId: contentId,
-          kind: uploadForm.kind,
+          kind: "gallery",
           alt: toNullableString(uploadForm.alt),
-          sortOrder: toInteger(uploadForm.sortOrder),
+          sortOrder: mediaItems.length * 10,
           file: uploadForm.file,
         },
         csrfToken,
@@ -188,24 +141,24 @@ export function MediaManager({
     }
   };
 
-  const saveMedia = async (mediaId: number) => {
-    const form = editForms[mediaId];
+  const saveMedia = async (media: AdminMediaItem) => {
+    const form = editForms[media.id];
 
     if (!form) {
       return;
     }
 
-    setBusyMediaId(mediaId);
+    setBusyMediaId(media.id);
     setError(null);
     setNotice(null);
 
     try {
       await updateAdminMedia(
-        mediaId,
+        media.id,
         {
-          kind: form.kind,
+          kind: media.kind,
           alt: toNullableString(form.alt),
-          sortOrder: toInteger(form.sortOrder),
+          sortOrder: media.sortOrder,
         },
         csrfToken,
       );
@@ -240,12 +193,12 @@ export function MediaManager({
   };
 
   return (
-    <section className="admin-media-manager" aria-labelledby="admin-media-title">
+    <section className="admin-media-manager admin-carousel-manager" aria-labelledby="admin-media-title">
       <div className="admin-media-heading">
         <div>
-          <span>Images</span>
-          <h3 id="admin-media-title">Images du contenu</h3>
-          <p>Ajoute une image principale et des images de galerie. Les aperçus ne sont pas rognés.</p>
+          <span>Carrousel facultatif</span>
+          <h3 id="admin-media-title">Images de galerie</h3>
+          <p>Ajoute simplement les images à montrer en carrousel. Cette section peut rester vide.</p>
         </div>
         <button className="button button-secondary" type="button" onClick={() => void loadMedia()} disabled={loading}>
           Actualiser
@@ -257,6 +210,7 @@ export function MediaManager({
           <span>Nouvelle image</span>
           <input
             id="media-upload-file"
+            name="media-upload-file"
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
@@ -264,28 +218,14 @@ export function MediaManager({
           />
         </label>
 
-        <div className="admin-field admin-field-wide">
-          <span>Rôle de l’image</span>
-          <MediaKindChoices value={uploadForm.kind} onChange={(kind) => updateUploadField("kind", kind)} disabled={uploading} />
-        </div>
-
         <label className="admin-field" htmlFor="media-upload-alt">
-          <span>Texte d’accessibilité</span>
+          <span>Texte alternatif</span>
           <input
             id="media-upload-alt"
+            name="media-upload-alt"
             value={uploadForm.alt}
             onChange={(event) => updateUploadField("alt", event.target.value)}
             placeholder="Facultatif"
-          />
-        </label>
-
-        <label className="admin-field" htmlFor="media-upload-sort-order">
-          <span>Position d’affichage</span>
-          <input
-            id="media-upload-sort-order"
-            type="number"
-            value={uploadForm.sortOrder}
-            onChange={(event) => updateUploadField("sortOrder", event.target.value)}
           />
         </label>
 
@@ -301,10 +241,10 @@ export function MediaManager({
 
       {loading ? <p className="admin-media-empty">Chargement des images...</p> : null}
 
-      {!loading && mediaItems.length === 0 ? <p className="admin-media-empty">Aucune image pour ce contenu.</p> : null}
+      {!loading && mediaItems.length === 0 ? <p className="admin-media-empty">Aucune image de galerie. Le contenu peut quand même être publié avec un modèle GLB ou Sketchfab.</p> : null}
 
       {!loading && mediaItems.length > 0 ? (
-        <div className="admin-media-list">
+        <div className="admin-media-list" aria-label="Images du carrousel">
           {mediaItems.map((media) => {
             const form = editForms[media.id] ?? stateFromMedia(media);
             const isBusy = busyMediaId === media.id;
@@ -316,32 +256,14 @@ export function MediaManager({
                 </a>
 
                 <div className="admin-media-fields">
-                  <div className="admin-field admin-field-wide">
-                    <span>Rôle de l’image</span>
-                    <MediaKindChoices
-                      value={form.kind}
-                      onChange={(kind) => updateEditField(media.id, "kind", kind)}
-                      disabled={isBusy}
-                    />
-                  </div>
-
                   <label className="admin-field" htmlFor={`media-alt-${media.id}`}>
-                    <span>Texte d’accessibilité</span>
+                    <span>Texte alternatif</span>
                     <input
                       id={`media-alt-${media.id}`}
+                      name={`media-alt-${media.id}`}
                       value={form.alt}
                       onChange={(event) => updateEditField(media.id, "alt", event.target.value)}
                       placeholder="Facultatif"
-                    />
-                  </label>
-
-                  <label className="admin-field" htmlFor={`media-sort-order-${media.id}`}>
-                    <span>Position d’affichage</span>
-                    <input
-                      id={`media-sort-order-${media.id}`}
-                      type="number"
-                      value={form.sortOrder}
-                      onChange={(event) => updateEditField(media.id, "sortOrder", event.target.value)}
                     />
                   </label>
 
@@ -349,7 +271,7 @@ export function MediaManager({
                 </div>
 
                 <div className="admin-media-actions">
-                  <button className="button button-secondary" type="button" disabled={isBusy} onClick={() => void saveMedia(media.id)}>
+                  <button className="button button-secondary" type="button" disabled={isBusy} onClick={() => void saveMedia(media)}>
                     Enregistrer
                   </button>
                   <button className="button button-secondary admin-danger" type="button" disabled={isBusy} onClick={() => void removeMedia(media.id)}>
