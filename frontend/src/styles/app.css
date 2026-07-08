@@ -1428,7 +1428,15 @@ body.has-model-modal .site-footer {
   border: 1px solid rgba(31, 111, 58, 0.1);
   border-radius: 8px;
   background: rgba(230, 246, 233, 0.42);
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.5fr) auto;
+  align-items: end;
   padding: 12px;
+}
+
+.admin-bundle-create .button {
+  align-self: end;
+  min-height: 42px;
 }
 
 .admin-bundle-create label {
@@ -1447,7 +1455,24 @@ body.has-model-modal .site-footer {
   color: var(--ink);
   font: inherit;
   min-height: 42px;
+  outline: none;
   padding: 10px 12px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.admin-bundle-create input:focus,
+.admin-bundle-create select:focus,
+.admin-bundle-edit input:focus,
+.admin-bundle-edit select:focus,
+.admin-bundle-create input:focus-visible,
+.admin-bundle-create select:focus-visible,
+.admin-bundle-edit input:focus-visible,
+.admin-bundle-edit select:focus-visible {
+  border-color: rgba(63, 174, 90, 0.72);
+  box-shadow: 0 0 0 4px rgba(63, 174, 90, 0.12);
+  outline: none;
 }
 
 .admin-bundle-row {

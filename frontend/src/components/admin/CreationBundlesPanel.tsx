@@ -157,6 +157,25 @@ export function CreationBundlesPanel({
     }
   };
 
+  const shareBundle = async (bundle: AdminCreationBundle) => {
+    const url = `${window.location.origin}/creations/bundles/${encodeURIComponent(bundle.slug)}`;
+
+    setError(null);
+    setNotice(null);
+
+    if (!navigator.clipboard) {
+      window.prompt("Lien du bundle", url);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setNotice("Lien du bundle copié.");
+    } catch (nextError) {
+      handleError(nextError);
+    }
+  };
+
   return (
     <section className="admin-bundles-panel">
       <div className="admin-form-section-heading">
@@ -258,6 +277,9 @@ export function CreationBundlesPanel({
                 <div className="admin-bundle-actions">
                   <button className="admin-mini-button" type="button" onClick={() => startEdit(bundle)}>
                     Renommer
+                  </button>
+                  <button className="admin-mini-button" type="button" onClick={() => void shareBundle(bundle)}>
+                    Partager
                   </button>
                   <button className="admin-mini-button admin-danger" type="button" onClick={() => void deleteBundle(bundle)}>
                     Supprimer
