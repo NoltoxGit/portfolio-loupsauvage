@@ -2,7 +2,7 @@
   "use strict";
 
   const PLUGIN_ID = "loupsauvage_uploader";
-  const PLUGIN_VERSION = "2026.7.7";
+  const PLUGIN_VERSION = "2026.7.8";
   const STORAGE_KEYS = {
     apiBaseUrl: "loupsauvage_uploader.apiBaseUrl",
     apiToken: "loupsauvage_uploader.apiToken",
@@ -13,6 +13,7 @@
   let uploadAction = null;
   let forgetSettingsAction = null;
   let isUploading = false;
+  let dialogStylesInjected = false;
 
   function storageAvailable() {
     return typeof localStorage !== "undefined";
@@ -395,6 +396,204 @@
     return options;
   }
 
+  function injectDialogStyles() {
+    if (dialogStylesInjected || typeof document === "undefined") {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "loupsauvage-uploader-dialog-style";
+    style.textContent = `
+      #loupsauvage_uploader_dialog .lsbb-section {
+        border-top: 1px solid var(--color-border, rgba(255,255,255,.12));
+        margin: 14px 0 8px;
+        padding-top: 12px;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section:first-child {
+        border-top: 0;
+        margin-top: 0;
+        padding-top: 0;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section-title {
+        align-items: center;
+        color: var(--color-accent, #7ecf86);
+        display: flex;
+        font-size: 12px;
+        font-weight: 700;
+        gap: 7px;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section-title::before,
+      #loupsauvage_uploader_dialog button[data-lsbb-icon]::before {
+        content: attr(data-lsbb-icon);
+        direction: ltr;
+        display: inline-block;
+        font-family: 'Material Icons', 'Material Icons Outlined', sans-serif;
+        font-feature-settings: 'liga';
+        font-size: 18px;
+        font-style: normal;
+        font-weight: normal;
+        line-height: 1;
+        text-transform: none;
+        vertical-align: -3px;
+      }
+      #loupsauvage_uploader_dialog .lsbb-section-help {
+        color: var(--color-subtle_text, rgba(255,255,255,.62));
+        font-size: 12px;
+        line-height: 1.35;
+        margin-top: 4px;
+      }
+      #loupsauvage_uploader_dialog .lsbb-field {
+        border-radius: 6px;
+      }
+      #loupsauvage_uploader_dialog button[data-lsbb-icon] {
+        align-items: center;
+        display: inline-flex;
+        gap: 6px;
+        justify-content: center;
+      }
+    `;
+    document.head.appendChild(style);
+    dialogStylesInjected = true;
+  }
+
+  function findDialogField(dialog, key) {
+    if (!dialog || !dialog.object) {
+      return null;
+    }
+
+    return (
+      dialog.object.querySelector(`[name="${key}"]`) ||
+      dialog.object.querySelector(`#${key}`) ||
+      dialog.object.querySelector(`[data-key="${key}"]`)
+    );
+  }
+
+  function findDialogFieldRow(dialog, key) {
+    const field = findDialogField(dialog, key);
+
+    if (!field) {
+      return null;
+    }
+
+    return (
+      field.closest(".form_bar") ||
+      field.closest(".form_field") ||
+      field.closest(".dialog_form > *") ||
+      field.closest("label") ||
+      field.parentElement
+    );
+  }
+
+  function insertDialogSection(dialog, beforeKey, title, help, icon) {
+    const row = findDialogFieldRow(dialog, beforeKey);
+
+    if (!row || !row.parentElement || row.previousElementSibling?.classList?.contains("lsbb-section")) {
+      return;
+    }
+
+    const section = document.createElement("div");
+    section.className = "lsbb-section";
+    section.innerHTML = `
+      <div class="lsbb-section-title" data-lsbb-icon="${icon}">${title}</div>
+      <div class="lsbb-section-help">${help}</div>
+    `;
+    row.parentElement.insertBefore(section, row);
+  }
+
+  function markDialogFields(dialog, keys) {
+    keys.forEach((key) => {
+      const row = findDialogFieldRow(dialog, key);
+      if (row) {
+        row.classList.add("lsbb-field");
+      }
+    });
+  }
+
+  function iconizeDialogButtons(dialog) {
+    if (!dialog || !dialog.object) {
+      return;
+    }
+
+    const icons = {
+      Envoyer: "cloud_upload",
+      "Nouveau bundle": "add_circle",
+      Renommer: "edit",
+      Supprimer: "delete",
+      Oublier: "lock_reset",
+      Annuler: "close",
+    };
+
+    dialog.object.querySelectorAll("button").forEach((button) => {
+      const label = String(button.textContent || "").trim();
+      const icon = icons[label];
+
+      if (icon) {
+        button.dataset.lsbbIcon = icon;
+      }
+    });
+  }
+
+  function enhanceUploadDialog(dialog, bundles) {
+    if (!dialog || !dialog.object || typeof document === "undefined") {
+      return;
+    }
+
+    injectDialogStyles();
+
+    dialog.object.classList.add("lsbb-dialog");
+    insertDialogSection(
+      dialog,
+      "apiBaseUrl",
+      "Connexion",
+      "URL du site et token local. Le token n’est jamais affiche dans les logs.",
+      "vpn_key"
+    );
+    insertDialogSection(
+      dialog,
+      "title",
+      "Creation",
+      "Le modele courant sera envoye en brouillon, avec un slug genere automatiquement cote site.",
+      "deployed_code"
+    );
+    insertDialogSection(
+      dialog,
+      bundles.length > 0 ? `bundle_${bundles[0].id}` : "newBundleName",
+      "Bundles",
+      "Associe la creation a un ou plusieurs bundles, ou cree un nouveau bundle avant l’envoi.",
+      "folder_special"
+    );
+
+    if (bundles.length > 0) {
+      insertDialogSection(
+        dialog,
+        "manageBundleId",
+        "Gestion rapide",
+        "Renomme ou supprime un bundle sans quitter Blockbench.",
+        "tune"
+      );
+    }
+
+    markDialogFields(dialog, [
+      "apiBaseUrl",
+      "apiToken",
+      "rememberSettings",
+      "title",
+      "shortDescription",
+      "sourceContext",
+      "sourceLabel",
+      "modelViewerYawDegrees",
+      "newBundleName",
+      "newBundleVisibility",
+      "manageBundleId",
+      "manageBundleName",
+      "manageBundleVisibility",
+      ...bundles.map((bundle) => `bundle_${bundle.id}`),
+    ]);
+    iconizeDialogButtons(dialog);
+  }
+
   function apiErrorMessage(payload, fallback) {
     if (payload && payload.error && payload.error.message) {
       return payload.error.message;
@@ -613,7 +812,7 @@
         },
         ...managementFields,
       },
-      buttons: ["Envoyer", "Créer bundle", "Renommer bundle", "Supprimer bundle", "Oublier les paramètres", "Annuler"],
+      buttons: ["Envoyer", "Nouveau bundle", "Renommer", "Supprimer", "Oublier", "Annuler"],
       confirmIndex: 0,
       cancelIndex: 5,
       onFormChange(formValues) {
@@ -771,6 +970,8 @@
     });
 
     dialog.show();
+    enhanceUploadDialog(dialog, bundles);
+    setTimeout(() => enhanceUploadDialog(dialog, bundles), 0);
     setDialogConfirmEnabled(dialog, dialog.getFormResult ? dialog.getFormResult() : {});
   }
 
