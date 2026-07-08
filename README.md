@@ -100,6 +100,12 @@ Le plugin est privé dans son usage : son code peut être public, mais le token 
 
 Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` comme asset principal, plus une archive zip et un checksum SHA-256.
 
+## Bundles de créations
+
+Les créations peuvent être rangées dans plusieurs bundles, avec un ordre manuel par bundle. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` restent accessibles par lien direct clair sous `/creations/bundles/<slug>` sans token dans l’URL. Les brouillons restent invisibles côté public, y compris dans les bundles.
+
+Les slugs des créations et des bundles sont générés automatiquement depuis le titre ou le nom. L’admin Créations permet d’associer, créer, renommer, masquer et réordonner les bundles. La Marketplace n’est pas concernée par ce système.
+
 ## Versioning
 
 La version du projet est centralisee dans `VERSION`. Le format utilise un CalVer compatible SemVer/NPM : `YYYY.M.D`, par exemple `2026.7.6`.
@@ -128,6 +134,7 @@ La branche `webstrator-build` est générée automatiquement. Ne pas la modifier
 - Ne jamais commiter de vrais fichiers uploadés.
 - Les clés Blockbench peuvent être générées et révoquées dans `/admin/profile`.
 - Le plugin Blockbench Desktop crée toujours des créations en brouillon.
+- Les bundles non listés ne remplacent pas les brouillons : un brouillon reste invisible, un bundle non listé reste accessible par lien.
 - Le format modèle V1 est `.glb` uniquement.
 - Aucun token Blockbench n’est nécessaire dans React.
 

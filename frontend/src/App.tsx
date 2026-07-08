@@ -11,6 +11,7 @@ import { AdminPricingListPage } from "./pages/admin/AdminPricingListPage";
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { LoginPage } from "./pages/admin/LoginPage";
 import { CreationDetailPage } from "./pages/public/CreationDetailPage";
+import { CreationBundlePage } from "./pages/public/CreationBundlePage";
 import { CreationsPage } from "./pages/public/CreationsPage";
 import { HomePage } from "./pages/public/HomePage";
 import { MarketplacePage } from "./pages/public/MarketplacePage";
@@ -32,6 +33,7 @@ export function App() {
 
   if (route.name === "home") return <HomePage />;
   if (route.name === "creations") return <CreationsPage />;
+  if (route.name === "creationBundle") return <CreationBundlePage slug={route.slug} />;
   if (route.name === "creationDetail") return <CreationDetailPage slug={route.slug} />;
   if (route.name === "marketplace") return <MarketplacePage />;
   if (route.name === "pricing") return <PricingPage />;

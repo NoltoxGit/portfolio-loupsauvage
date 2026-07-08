@@ -115,6 +115,15 @@ export function AdminContentListPage({
                 <span>{contentType === "creation" ? `/creations/${item.slug}` : item.externalUrl || `/marketplace/${item.slug}`}</span>
                 <h3>{item.title}</h3>
                 <p>Date de publication {publicationLabel(item.publishedAt, item.displayDate)}</p>
+                {contentType === "creation" && item.bundles.length > 0 ? (
+                  <div className="admin-bundle-badges">
+                    {item.bundles.map((bundle) => (
+                      <span className={`admin-bundle-badge is-${bundle.visibility}`} key={bundle.id}>
+                        {bundle.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               <div className="admin-list-actions">
                 <button className="admin-mini-button" type="button" onClick={() => navigateTo(`${path}/${item.id}`)}>

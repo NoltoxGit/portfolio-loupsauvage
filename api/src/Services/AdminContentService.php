@@ -74,7 +74,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function create(array $payload): array
+    public function create(array $payload, ?int $ownerId = null): array
     {
         $data = $this->validatePayload($payload, null);
 
@@ -90,7 +90,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function update(int $id, array $payload): array
+    public function update(int $id, array $payload, ?int $ownerId = null): array
     {
         $existing = $this->contents->findById($id);
 
@@ -118,7 +118,7 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function updateStatus(int $id, array $payload): array
+    public function updateStatus(int $id, array $payload, ?int $ownerId = null): array
     {
         $status = isset($payload['status']) ? trim((string) $payload['status']) : '';
 
@@ -158,7 +158,7 @@ final class AdminContentService
     /**
      * @return array<string, mixed>
      */
-    public function archive(int $id): array
+    public function archive(int $id, ?int $ownerId = null): array
     {
         $existing = $this->contents->findById($id);
 
@@ -206,10 +206,13 @@ final class AdminContentService
             $fields['externalPlatform'] = 'External platform is invalid.';
         }
 
+        $title = $this->requiredString($payload, 'title', $existing['title'] ?? null, 190, $fields);
+        $existingId = isset($existing['id']) && is_numeric($existing['id']) ? (int) $existing['id'] : null;
+
         $data = [
             'type' => $type,
-            'title' => $this->requiredString($payload, 'title', $existing['title'] ?? null, 190, $fields),
-            'slug' => $this->requiredSlug($payload, 'slug', $existing['slug'] ?? null, 220, $fields),
+            'title' => $title,
+            'slug' => $this->uniqueSlug($this->slugFromPayload($payload, $title), $existingId),
             'short_description' => $this->nullableString($payload, 'shortDescription', $existing['shortDescription'] ?? null, 65535, $fields),
             'status' => $status,
             'source_context' => $sourceContext,
@@ -348,15 +351,35 @@ final class AdminContentService
      * @param array<string, mixed> $payload
      * @param array<string, string> $fields
      */
-    private function requiredSlug(array $payload, string $key, mixed $fallback, int $maxLength, array &$fields): string
+    private function slugFromPayload(array $payload, string $title): string
     {
-        $slug = $this->requiredString($payload, $key, $fallback, $maxLength, $fields);
+        $value = isset($payload['slug']) && is_scalar($payload['slug']) ? trim((string) $payload['slug']) : '';
 
-        if ($slug !== '' && preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) !== 1) {
-            $fields[$key] = 'Slug must contain lowercase letters, numbers, and hyphens only.';
+        return $this->slugify($value === '' ? $title : $value);
+    }
+
+    private function uniqueSlug(string $slug, ?int $exceptId): string
+    {
+        $baseSlug = $slug === '' ? 'creation' : $slug;
+        $candidate = $baseSlug;
+        $suffix = 2;
+
+        while ($this->contents->slugExistsExcept($candidate, $exceptId)) {
+            $candidate = $baseSlug . '-' . $suffix;
+            ++$suffix;
         }
 
-        return $slug;
+        return $candidate;
+    }
+
+    private function slugify(string $value): string
+    {
+        $ascii = function_exists('iconv') ? iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) : false;
+        $normalized = strtolower(is_string($ascii) ? $ascii : $value);
+        $normalized = preg_replace('/[^a-z0-9]+/', '-', $normalized) ?? '';
+        $normalized = trim($normalized, '-');
+
+        return preg_replace('/-+/', '-', $normalized) ?? '';
     }
 
     /**

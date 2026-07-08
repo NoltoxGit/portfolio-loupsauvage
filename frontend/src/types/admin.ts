@@ -1,4 +1,13 @@
-import type { ContentItem, ContentMedia, ContentStatus, ContentType, ExternalPlatform, SourceContext } from "./content";
+import type {
+  ContentItem,
+  ContentMedia,
+  ContentStatus,
+  ContentType,
+  CreationBundleSummary,
+  CreationBundleVisibility,
+  ExternalPlatform,
+  SourceContext,
+} from "./content";
 import type { PricingPlan } from "./pricing";
 
 export interface AdminDashboardSummary {
@@ -25,7 +34,7 @@ export interface AdminContentFilters {
 export interface AdminContentPayload {
   type: ContentType;
   title: string;
-  slug: string;
+  slug?: string;
   shortDescription?: string | null;
   status: ContentStatus;
   sourceContext: SourceContext;
@@ -48,9 +57,36 @@ export interface AdminContentStatusPayload {
 
 export type AdminContentItem = ContentItem & {
   status: ContentStatus;
+  bundles: CreationBundleSummary[];
   createdAt: string;
   updatedAt: string;
 };
+
+export interface AdminCreationBundle extends CreationBundleSummary {
+  visibility: CreationBundleVisibility;
+  itemCount: number;
+  items?: Array<{
+    contentItemId: number;
+    sortOrder: number;
+  }>;
+  createdByUserId?: number | null;
+  updatedByUserId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCreationBundlePayload {
+  name: string;
+  visibility: CreationBundleVisibility;
+}
+
+export interface AdminCreationBundleSyncPayload {
+  bundleIds: number[];
+}
+
+export interface AdminCreationBundleReorderPayload {
+  contentItemIds: number[];
+}
 
 export interface AdminPricingPayload {
   slug: string;

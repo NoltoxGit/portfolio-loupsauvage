@@ -19,6 +19,7 @@ final class BlockbenchCreationService
         private readonly AdminContentRepository $contentRepository,
         private readonly AdminModelService $models,
         private readonly Config $config,
+        private readonly ?CreationBundleService $bundles = null,
     ) {
     }
 
@@ -36,7 +37,7 @@ final class BlockbenchCreationService
         $sourceContext = $this->sourceContext($payload);
         $sourceLabel = $this->nullableString($payload, 'sourceLabel', 120);
         $yawDegrees = $this->yawDegrees($payload);
-        $slug = $this->uniqueSlug($this->slugFromPayload($payload, $title));
+        $slug = $this->uniqueSlug($this->slugify($title));
         $id = 0;
 
         try {
@@ -71,6 +72,12 @@ final class BlockbenchCreationService
                 'contentItemId' => $id,
                 'modelViewerYawDegrees' => $yawDegrees,
             ]);
+
+            if ($this->bundles !== null) {
+                $this->bundles->syncContentBundles($id, [
+                    'bundleIds' => $this->bundles->bundleIds($payload['bundleIds'] ?? []),
+                ]);
+            }
         } catch (Throwable $error) {
             $this->cleanupFailedDraft($id);
             throw $error;
@@ -100,16 +107,6 @@ final class BlockbenchCreationService
         }
 
         return $value;
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function slugFromPayload(array $payload, string $title): string
-    {
-        $value = isset($payload['slug']) && is_scalar($payload['slug']) ? trim((string) $payload['slug']) : '';
-
-        return $value === '' ? $this->slugify($title) : $this->slugify($value);
     }
 
     private function uniqueSlug(string $slug): string

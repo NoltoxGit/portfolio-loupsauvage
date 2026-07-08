@@ -4,6 +4,10 @@ import type {
   AdminContentItem,
   AdminContentPayload,
   AdminContentStatusPayload,
+  AdminCreationBundle,
+  AdminCreationBundlePayload,
+  AdminCreationBundleReorderPayload,
+  AdminCreationBundleSyncPayload,
   AdminDashboardSummary,
   AdminMediaDeleteResult,
   AdminMediaItem,
@@ -80,6 +84,56 @@ export const archiveAdminContent = (id: number, csrfToken: string) =>
   apiRequest<AdminContentItem>(`/admin/content/${queryString({ id })}`, {
     method: "DELETE",
     headers: csrfHeaders(csrfToken),
+  });
+
+export const listAdminCreationBundles = () => apiRequest<AdminCreationBundle[]>("/admin/creation-bundles/");
+
+export const getAdminCreationBundle = (id: number) =>
+  apiRequest<AdminCreationBundle>(`/admin/creation-bundles/${queryString({ id })}`);
+
+export const createAdminCreationBundle = (payload: AdminCreationBundlePayload, csrfToken: string) =>
+  apiRequest<AdminCreationBundle>("/admin/creation-bundles/", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+  });
+
+export const updateAdminCreationBundle = (id: number, payload: AdminCreationBundlePayload, csrfToken: string) =>
+  apiRequest<AdminCreationBundle>(`/admin/creation-bundles/${queryString({ id })}`, {
+    method: "PATCH",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminCreationBundle = (id: number, csrfToken: string) =>
+  apiRequest<{ deleted: boolean }>(`/admin/creation-bundles/${queryString({ id })}`, {
+    method: "DELETE",
+    headers: csrfHeaders(csrfToken),
+  });
+
+export const syncAdminContentBundles = (
+  contentId: number,
+  payload: AdminCreationBundleSyncPayload,
+  csrfToken: string,
+) =>
+  apiRequest<{ contentItemId: number; bundles: AdminCreationBundle[] }>(
+    `/admin/creation-bundles/content/${queryString({ contentId })}`,
+    {
+      method: "POST",
+      headers: csrfHeaders(csrfToken),
+      body: JSON.stringify(payload),
+    },
+  );
+
+export const reorderAdminCreationBundle = (
+  id: number,
+  payload: AdminCreationBundleReorderPayload,
+  csrfToken: string,
+) =>
+  apiRequest<AdminCreationBundle>(`/admin/creation-bundles/reorder/${queryString({ id })}`, {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
   });
 
 export const listAdminPricing = () => apiRequest<AdminPricingPlan[]>("/admin/pricing/");

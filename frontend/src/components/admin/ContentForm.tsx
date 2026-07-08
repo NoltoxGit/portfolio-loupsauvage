@@ -3,6 +3,7 @@ import {
   archiveAdminContent,
   createAdminContent,
   previewBuiltByBitResource,
+  syncAdminContentBundles,
   updateAdminContent,
   updateAdminContentStatus,
 } from "../../api/admin";
@@ -11,6 +12,7 @@ import type { ContentStatus, ContentType, ExternalPlatform, SourceContext } from
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 import { MediaManager } from "./MediaManager";
 import { ModelManager, type ModelManagerHandle } from "./ModelManager";
+import { CreationBundlesPanel } from "./CreationBundlesPanel";
 import { hasSketchfabModel } from "../content/SketchfabEmbed";
 
 const statuses: ContentStatus[] = ["draft", "published", "archived"];
@@ -224,7 +226,9 @@ export function ContentForm({
     initialItem ? stateFromItem(initialItem) : defaultState(contentType),
   );
   const selectableStatuses = form.status === "archived" ? statuses : statuses.filter((status) => status !== "archived");
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(() => Boolean(initialItem?.slug));
+  const [selectedBundleIds, setSelectedBundleIds] = useState<number[]>(() =>
+    initialItem?.bundles?.map((bundle) => bundle.id) ?? [],
+  );
   const [error, setError] = useState<unknown>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -237,7 +241,7 @@ export function ContentForm({
 
   useEffect(() => {
     setForm(initialItem ? stateFromItem(initialItem) : defaultState(contentType));
-    setSlugManuallyEdited(Boolean(initialItem?.slug));
+    setSelectedBundleIds(initialItem?.bundles?.map((bundle) => bundle.id) ?? []);
     setError(null);
     setNotice(null);
     setMediaCount(initialItem?.media.length ?? 0);
@@ -255,13 +259,8 @@ export function ContentForm({
     setForm((current) => ({
       ...current,
       title,
-      slug: slugManuallyEdited ? current.slug : slugify(title),
+      slug: slugify(title),
     }));
-  };
-
-  const regenerateSlug = () => {
-    setSlugManuallyEdited(false);
-    setForm((current) => ({ ...current, slug: slugify(current.title) }));
   };
 
   const setSourceContext = (sourceContext: SourceContext) => {
@@ -407,12 +406,16 @@ export function ContentForm({
       const uploadedModel = await modelManagerRef.current?.uploadPendingModel(saved);
       let finalSaved = uploadedModel ? mergeModelInfo(saved, uploadedModel) : saved;
 
+      if (contentType === "creation") {
+        const synced = await syncAdminContentBundles(saved.id, { bundleIds: selectedBundleIds }, csrfToken);
+        finalSaved = { ...finalSaved, bundles: synced.bundles };
+      }
+
       if (needsDeferredPublish) {
         finalSaved = await updateAdminContentStatus(saved.id, { status: "published" }, csrfToken);
       }
 
       setForm(stateFromItem(finalSaved));
-      setSlugManuallyEdited(true);
       setMediaCount(finalSaved.media.length);
       setHasModel(Boolean(finalSaved.modelGlbPath));
       setNotice(uploadedModel ? "Contenu enregistré avec le modèle GLB." : "Contenu enregistré.");
@@ -481,8 +484,6 @@ export function ContentForm({
     }
   };
 
-  const slugHelp = `/creations/${form.slug || "adresse-de-la-page"}`;
-
   return (
     <>
     <form className={`admin-form admin-content-form is-${contentType}`} onSubmit={onSubmit}>
@@ -505,30 +506,6 @@ export function ContentForm({
               required
             />
           </label>
-
-          {!isMarketplace ? (
-            <label className="admin-field" htmlFor="content-slug">
-              <FieldTitle
-                help={`Adresse courte de la page, elle est générée depuis le titre. Aperçu : ${slugHelp}`}
-              >
-                Lien de la page
-              </FieldTitle>
-              <div className="admin-slug-row">
-                <input
-                  id="content-slug"
-                  value={form.slug}
-                  onChange={(event) => {
-                    setSlugManuallyEdited(true);
-                    updateField("slug", event.target.value);
-                  }}
-                  required
-                />
-                <button className="admin-inline-action" type="button" onClick={regenerateSlug}>
-                  Générer
-                </button>
-              </div>
-            </label>
-          ) : null}
 
           <label className="admin-field" htmlFor="content-status">
             <FieldTitle help="Brouillon masque le contenu. En ligne l’affiche publiquement. La suppression se fait avec le bouton dédié.">
@@ -746,6 +723,16 @@ export function ContentForm({
           ) : null}
         </div>
       )}
+
+      {!isMarketplace ? (
+        <CreationBundlesPanel
+          contentId={initialItem?.id}
+          selectedIds={selectedBundleIds}
+          onSelectedIdsChange={setSelectedBundleIds}
+          csrfToken={csrfToken}
+          onUnauthenticated={onUnauthenticated}
+        />
+      ) : null}
 
       <ModelManager
         ref={modelManagerRef}
