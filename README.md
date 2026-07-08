@@ -102,9 +102,9 @@ Les releases GitHub du plugin publient directement `loupsauvage_uploader.js` com
 
 ## Bundles de créations
 
-Les créations peuvent être rangées dans plusieurs bundles, avec un ordre manuel par bundle. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` restent accessibles par lien direct clair sous `/creations/bundles/<slug>` sans token dans l’URL. Les brouillons restent invisibles côté public, y compris dans les bundles.
+Les créations peuvent être rangées dans plusieurs bundles. Les créations d’un bundle suivent le même tri chronologique que la galerie principale. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` restent accessibles par lien direct clair sous `/creations/bundles/<slug>` sans token dans l’URL. Les brouillons restent invisibles côté public, y compris dans les bundles.
 
-Les slugs des créations et des bundles sont générés automatiquement depuis le titre ou le nom. L’admin Créations permet d’associer, créer, renommer, masquer et réordonner les bundles. La Marketplace n’est pas concernée par ce système.
+Les slugs des créations et des bundles sont générés automatiquement depuis le titre ou le nom : accents translittérés, caractères spéciaux nettoyés, tirets normalisés et suffixe automatique en cas de doublon. L’admin Créations permet d’associer, créer, renommer et masquer les bundles. La Marketplace n’est pas concernée par ce système.
 
 ## Versioning
 

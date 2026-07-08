@@ -34,7 +34,6 @@ export interface AdminContentFilters {
 export interface AdminContentPayload {
   type: ContentType;
   title: string;
-  slug?: string;
   shortDescription?: string | null;
   status: ContentStatus;
   sourceContext: SourceContext;
@@ -65,10 +64,6 @@ export type AdminContentItem = ContentItem & {
 export interface AdminCreationBundle extends CreationBundleSummary {
   visibility: CreationBundleVisibility;
   itemCount: number;
-  items?: Array<{
-    contentItemId: number;
-    sortOrder: number;
-  }>;
   createdByUserId?: number | null;
   updatedByUserId?: number | null;
   createdAt: string;
@@ -82,10 +77,6 @@ export interface AdminCreationBundlePayload {
 
 export interface AdminCreationBundleSyncPayload {
   bundleIds: number[];
-}
-
-export interface AdminCreationBundleReorderPayload {
-  contentItemIds: number[];
 }
 
 export interface AdminPricingPayload {

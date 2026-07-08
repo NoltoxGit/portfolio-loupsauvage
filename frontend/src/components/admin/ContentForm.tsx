@@ -40,7 +40,6 @@ const platformLabels: Record<ExternalPlatform, string> = {
 
 interface ContentFormState {
   title: string;
-  slug: string;
   shortDescription: string;
   status: ContentStatus;
   sourceContext: SourceContext;
@@ -75,17 +74,6 @@ function fromInputDateTime(value: string) {
   return normalized.length === 16 ? `${normalized}:00` : normalized;
 }
 
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/['’]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -106,7 +94,6 @@ function defaultState(contentType: ContentType): ContentFormState {
 
   return {
     title: "",
-    slug: "",
     shortDescription: "",
     status: "draft",
     sourceContext: contentType === "marketplace" ? "marketplace_product" : "personal",
@@ -127,7 +114,6 @@ function defaultState(contentType: ContentType): ContentFormState {
 function stateFromItem(item: AdminContentItem): ContentFormState {
   return {
     title: item.title,
-    slug: item.slug,
     shortDescription: item.shortDescription ?? "",
     status: item.status,
     sourceContext: item.sourceContext,
@@ -259,7 +245,6 @@ export function ContentForm({
     setForm((current) => ({
       ...current,
       title,
-      slug: slugify(title),
     }));
   };
 
@@ -278,7 +263,6 @@ export function ContentForm({
     return {
       type: contentType,
       title: form.title,
-      slug: form.slug,
       shortDescription: trimOrNull(form.shortDescription),
       status: form.status,
       sourceContext,
@@ -366,7 +350,6 @@ export function ContentForm({
     setForm((current) => ({
       ...current,
       title: builtByBitPreview.title || current.title,
-      slug: current.slug || slugify(builtByBitPreview.title),
       shortDescription: builtByBitPreview.summary || current.shortDescription,
       externalUrl: builtByBitPreview.externalUrl || current.externalUrl,
       externalPlatform: "builtbybit",
@@ -493,7 +476,7 @@ export function ContentForm({
         <p>{isMarketplace ? "Prépare la fiche marketplace visible sur le site." : "Prépare la fiche portfolio visible sur le site."}</p>
       </div>
 
-      <div className="admin-form-section">
+      <div className="admin-form-section admin-section-main">
         <div className="admin-form-grid">
           <label className="admin-field" htmlFor="content-title">
             <FieldTitle help="Nom visible sur le portfolio et dans les listes d’administration.">
@@ -552,7 +535,7 @@ export function ContentForm({
       </div>
 
       {!isMarketplace ? (
-        <div className="admin-form-section">
+        <div className="admin-form-section admin-section-creation">
           <div className="admin-form-section-heading">
             <SectionTitle help="Indique l’origine de la création. Une commission privée ne peut pas être publiée sans accord client.">
               Contexte de création
@@ -610,7 +593,7 @@ export function ContentForm({
           </label>
         </div>
       ) : (
-        <div className="admin-form-section">
+        <div className="admin-form-section admin-section-marketplace">
           <div className="admin-form-section-heading">
             <SectionTitle help="Renseigne le lien externe, le prix affiché et la plateforme principale du produit.">
               Publication marketplace

@@ -145,7 +145,6 @@ final class PublicContentRepository
     {
         $statement = $this->db->prepare('
             SELECT
-                creation_bundle_items.sort_order AS bundle_sort_order,
                 ' . $this->contentColumns() . '
             FROM creation_bundle_items
             INNER JOIN content_items
@@ -153,7 +152,7 @@ final class PublicContentRepository
             WHERE creation_bundle_items.bundle_id = :bundle_id
               AND content_items.type = :type
               AND content_items.status = :status
-            ORDER BY creation_bundle_items.sort_order ASC, creation_bundle_items.id ASC
+            ORDER BY content_items.display_date ASC, content_items.id ASC
         ');
         $statement->execute([
             'bundle_id' => (int) $bundle['id'],

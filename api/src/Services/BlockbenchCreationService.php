@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use LoupSauvage\Repositories\AdminContentRepository;
 use LoupSauvage\Support\ApiException;
 use LoupSauvage\Support\Config;
+use LoupSauvage\Support\Slugifier;
 use Throwable;
 
 final class BlockbenchCreationService
@@ -37,7 +38,7 @@ final class BlockbenchCreationService
         $sourceContext = $this->sourceContext($payload);
         $sourceLabel = $this->nullableString($payload, 'sourceLabel', 120);
         $yawDegrees = $this->yawDegrees($payload);
-        $slug = $this->uniqueSlug($this->slugify($title));
+        $slug = $this->uniqueSlug(Slugifier::slugify($title));
         $id = 0;
 
         try {
@@ -121,16 +122,6 @@ final class BlockbenchCreationService
         }
 
         return $candidate;
-    }
-
-    private function slugify(string $value): string
-    {
-        $ascii = function_exists('iconv') ? iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) : false;
-        $normalized = strtolower(is_string($ascii) ? $ascii : $value);
-        $normalized = preg_replace('/[^a-z0-9]+/', '-', $normalized) ?? '';
-        $normalized = trim($normalized, '-');
-
-        return preg_replace('/-+/', '-', $normalized) ?? '';
     }
 
     /**

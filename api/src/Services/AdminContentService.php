@@ -7,6 +7,7 @@ namespace LoupSauvage\Services;
 use DateTimeImmutable;
 use LoupSauvage\Repositories\AdminContentRepository;
 use LoupSauvage\Support\ApiException;
+use LoupSauvage\Support\Slugifier;
 use PDOException;
 
 final class AdminContentService
@@ -212,7 +213,7 @@ final class AdminContentService
         $data = [
             'type' => $type,
             'title' => $title,
-            'slug' => $this->uniqueSlug($this->slugFromPayload($payload, $title), $existingId),
+            'slug' => $this->uniqueSlug(Slugifier::slugify($title), $existingId),
             'short_description' => $this->nullableString($payload, 'shortDescription', $existing['shortDescription'] ?? null, 65535, $fields),
             'status' => $status,
             'source_context' => $sourceContext,
@@ -347,17 +348,6 @@ final class AdminContentService
         return $value;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     * @param array<string, string> $fields
-     */
-    private function slugFromPayload(array $payload, string $title): string
-    {
-        $value = isset($payload['slug']) && is_scalar($payload['slug']) ? trim((string) $payload['slug']) : '';
-
-        return $this->slugify($value === '' ? $title : $value);
-    }
-
     private function uniqueSlug(string $slug, ?int $exceptId): string
     {
         $baseSlug = $slug === '' ? 'creation' : $slug;
@@ -370,16 +360,6 @@ final class AdminContentService
         }
 
         return $candidate;
-    }
-
-    private function slugify(string $value): string
-    {
-        $ascii = function_exists('iconv') ? iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) : false;
-        $normalized = strtolower(is_string($ascii) ? $ascii : $value);
-        $normalized = preg_replace('/[^a-z0-9]+/', '-', $normalized) ?? '';
-        $normalized = trim($normalized, '-');
-
-        return preg_replace('/-+/', '-', $normalized) ?? '';
     }
 
     /**

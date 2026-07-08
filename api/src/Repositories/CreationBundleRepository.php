@@ -215,20 +215,14 @@ final class CreationBundleRepository
             $delete->execute(['content_item_id' => $contentItemId]);
 
             $insert = $this->db->prepare('
-                INSERT INTO creation_bundle_items (bundle_id, content_item_id, sort_order)
-                SELECT
-                    :bundle_id,
-                    :content_item_id,
-                    COALESCE(MAX(sort_order), 0) + 10
-                FROM creation_bundle_items
-                WHERE bundle_id = :bundle_id_for_order
+                INSERT INTO creation_bundle_items (bundle_id, content_item_id)
+                VALUES (:bundle_id, :content_item_id)
             ');
 
             foreach ($bundleIds as $bundleId) {
                 $insert->execute([
                     'bundle_id' => $bundleId,
                     'content_item_id' => $contentItemId,
-                    'bundle_id_for_order' => $bundleId,
                 ]);
             }
 
@@ -237,49 +231,6 @@ final class CreationBundleRepository
             $this->db->rollBack();
             throw $error;
         }
-    }
-
-    /**
-     * @param array<int, int> $contentItemIds
-     */
-    public function reorderItems(int $bundleId, array $contentItemIds): void
-    {
-        $statement = $this->db->prepare('
-            UPDATE creation_bundle_items
-            SET sort_order = :sort_order
-            WHERE bundle_id = :bundle_id
-              AND content_item_id = :content_item_id
-        ');
-
-        foreach (array_values($contentItemIds) as $index => $contentItemId) {
-            $statement->execute([
-                'bundle_id' => $bundleId,
-                'content_item_id' => $contentItemId,
-                'sort_order' => ($index + 1) * 10,
-            ]);
-        }
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function itemIds(int $bundleId): array
-    {
-        $statement = $this->db->prepare('
-            SELECT content_item_id, sort_order
-            FROM creation_bundle_items
-            WHERE bundle_id = :bundle_id
-            ORDER BY sort_order ASC, id ASC
-        ');
-        $statement->execute(['bundle_id' => $bundleId]);
-
-        return array_map(
-            static fn (array $row): array => [
-                'contentItemId' => (int) $row['content_item_id'],
-                'sortOrder' => (int) $row['sort_order'],
-            ],
-            $statement->fetchAll(),
-        );
     }
 
     /**

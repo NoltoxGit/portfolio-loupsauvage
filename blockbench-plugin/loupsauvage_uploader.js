@@ -68,7 +68,26 @@
   }
 
   function slugify(value) {
+    const replacements = {
+      ß: "ss",
+      æ: "ae",
+      Æ: "AE",
+      œ: "oe",
+      Œ: "OE",
+      ø: "o",
+      Ø: "O",
+      ł: "l",
+      Ł: "L",
+      đ: "d",
+      Đ: "D",
+      þ: "th",
+      Þ: "TH",
+      ð: "d",
+      Ð: "D",
+    };
+
     return String(value || "")
+      .replace(/[ßæÆœŒøØłŁđĐþÞðÐ]/g, (char) => replacements[char] || "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()

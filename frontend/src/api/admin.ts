@@ -6,7 +6,6 @@ import type {
   AdminContentStatusPayload,
   AdminCreationBundle,
   AdminCreationBundlePayload,
-  AdminCreationBundleReorderPayload,
   AdminCreationBundleSyncPayload,
   AdminDashboardSummary,
   AdminMediaDeleteResult,
@@ -124,17 +123,6 @@ export const syncAdminContentBundles = (
       body: JSON.stringify(payload),
     },
   );
-
-export const reorderAdminCreationBundle = (
-  id: number,
-  payload: AdminCreationBundleReorderPayload,
-  csrfToken: string,
-) =>
-  apiRequest<AdminCreationBundle>(`/admin/creation-bundles/reorder/${queryString({ id })}`, {
-    method: "POST",
-    headers: csrfHeaders(csrfToken),
-    body: JSON.stringify(payload),
-  });
 
 export const listAdminPricing = () => apiRequest<AdminPricingPlan[]>("/admin/pricing/");
 

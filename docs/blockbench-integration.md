@@ -65,7 +65,7 @@ Payload `multipart/form-data` :
 - `bundleIds[]` optionnel, un ou plusieurs bundles de créations ;
 - `file` requis, format `.glb` uniquement.
 
-Le slug de la création est toujours généré côté serveur depuis le titre. Le plugin ne demande plus de slug manuellement.
+Le slug de la création est toujours généré côté serveur depuis le titre. Les accents sont translittérés, les caractères spéciaux sont nettoyés et un suffixe est ajouté automatiquement en cas de doublon. Le plugin ne demande plus de slug manuellement.
 
 Le serveur force toujours :
 
@@ -84,7 +84,7 @@ Le plugin peut charger et gérer les bundles via :
 - `PATCH /api/integrations/blockbench/creation-bundles/?id=<id>` ;
 - `DELETE /api/integrations/blockbench/creation-bundles/?id=<id>`.
 
-Les mêmes clés Bearer `lsbb_...` sont utilisées. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` sont accessibles par lien direct `/creations/bundles/<slug>` sans token. Une création importée depuis Blockbench reste en brouillon tant qu’elle n’est pas publiée dans l’admin, même si elle est associée à un bundle.
+Les mêmes clés Bearer `lsbb_...` sont utilisées. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` sont accessibles par lien direct `/creations/bundles/<slug>` sans token. Les créations d’un bundle restent triées chronologiquement comme la galerie principale. Une création importée depuis Blockbench reste en brouillon tant qu’elle n’est pas publiée dans l’admin, même si elle est associée à un bundle.
 
 ## Test curl local
 

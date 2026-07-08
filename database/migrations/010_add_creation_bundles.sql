@@ -27,11 +27,10 @@ CREATE TABLE IF NOT EXISTS creation_bundle_items (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     bundle_id BIGINT UNSIGNED NOT NULL,
     content_item_id BIGINT UNSIGNED NOT NULL,
-    sort_order INT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_creation_bundle_item (bundle_id, content_item_id),
-    INDEX idx_creation_bundle_items_bundle_order (bundle_id, sort_order, id),
+    INDEX idx_creation_bundle_items_bundle (bundle_id, id),
     INDEX idx_creation_bundle_items_content (content_item_id),
     CONSTRAINT fk_creation_bundle_items_bundle
         FOREIGN KEY (bundle_id)

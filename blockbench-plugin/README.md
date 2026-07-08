@@ -37,7 +37,7 @@ Exemples d’URL API :
 
 Si l’option est cochée, l’URL API et le token sont mémorisés dans le stockage local de Blockbench sur ce poste. Utiliser cette option uniquement sur une machine de confiance. Le bouton `Oublier les paramètres` supprime ces valeurs locales.
 
-Le slug de la création n’est pas demandé : le site le génère automatiquement depuis le titre. Le plugin peut aussi créer, renommer et supprimer des bundles de créations. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` restent accessibles par lien direct sans token. L’upload Blockbench crée toujours un brouillon.
+Le slug de la création n’est pas demandé : le site le génère automatiquement depuis le titre, sans accents ni caractères spéciaux. Le plugin peut aussi créer, renommer et supprimer des bundles de créations. Les bundles `public` apparaissent sur `/creations`; les bundles `unlisted` restent accessibles par lien direct sans token. L’upload Blockbench crée toujours un brouillon.
 
 ## Générer une clé côté site
 

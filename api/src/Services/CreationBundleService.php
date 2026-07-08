@@ -7,6 +7,7 @@ namespace LoupSauvage\Services;
 use LoupSauvage\Repositories\AdminContentRepository;
 use LoupSauvage\Repositories\CreationBundleRepository;
 use LoupSauvage\Support\ApiException;
+use LoupSauvage\Support\Slugifier;
 use PDOException;
 
 final class CreationBundleService
@@ -36,7 +37,7 @@ final class CreationBundleService
         $fields = [];
         $name = $this->requiredString($payload, 'name', null, 190, $fields);
         $visibility = $this->visibility($payload, null, $fields);
-        $slug = $this->uniqueSlug($this->slugify($name));
+        $slug = $this->uniqueSlug(Slugifier::slugify($name));
 
         if ($fields !== []) {
             throw new ApiException('VALIDATION_ERROR', 'Invalid bundle payload.', 422, $fields);
@@ -67,7 +68,7 @@ final class CreationBundleService
         $fields = [];
         $name = $this->requiredString($payload, 'name', $existing['name'] ?? null, 190, $fields);
         $visibility = $this->visibility($payload, (string) ($existing['visibility'] ?? 'public'), $fields);
-        $slug = $this->uniqueSlug($this->slugify($name), $id);
+        $slug = $this->uniqueSlug(Slugifier::slugify($name), $id);
 
         if ($fields !== []) {
             throw new ApiException('VALIDATION_ERROR', 'Invalid bundle payload.', 422, $fields);
@@ -93,8 +94,6 @@ final class CreationBundleService
         if ($bundle === null) {
             throw new ApiException('NOT_FOUND', 'Bundle not found.', 404);
         }
-
-        $bundle['items'] = $this->bundles->itemIds($id);
 
         return $bundle;
     }
@@ -139,33 +138,6 @@ final class CreationBundleService
             'contentItemId' => $contentItemId,
             'bundles' => $this->bundles->listForContent($contentItemId),
         ];
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     * @return array<string, mixed>
-     */
-    public function reorder(int $bundleId, array $payload): array
-    {
-        if ($this->bundles->findById($bundleId) === null) {
-            throw new ApiException('NOT_FOUND', 'Bundle not found.', 404);
-        }
-
-        $contentItemIds = $this->bundleIds($payload['contentItemIds'] ?? []);
-
-        foreach ($contentItemIds as $contentItemId) {
-            $content = $this->contents->findById($contentItemId);
-
-            if ($content === null || ($content['type'] ?? null) !== 'creation') {
-                throw new ApiException('VALIDATION_ERROR', 'Invalid bundle order.', 422, [
-                    'contentItemIds' => 'Une ou plusieurs créations sont invalides.',
-                ]);
-            }
-        }
-
-        $this->bundles->reorderItems($bundleId, $contentItemIds);
-
-        return $this->find($bundleId);
     }
 
     /**
@@ -259,16 +231,6 @@ final class CreationBundleService
         }
 
         return $candidate;
-    }
-
-    private function slugify(string $value): string
-    {
-        $ascii = function_exists('iconv') ? iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) : false;
-        $normalized = strtolower(is_string($ascii) ? $ascii : $value);
-        $normalized = preg_replace('/[^a-z0-9]+/', '-', $normalized) ?? '';
-        $normalized = trim($normalized, '-');
-
-        return preg_replace('/-+/', '-', $normalized) ?? '';
     }
 
     private function throwDuplicateSlugIfNeeded(PDOException $error): void

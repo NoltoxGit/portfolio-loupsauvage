@@ -1,15 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   createAdminCreationBundle,
   deleteAdminCreationBundle,
-  getAdminCreationBundle,
-  listAdminContent,
   listAdminCreationBundles,
-  reorderAdminCreationBundle,
   syncAdminContentBundles,
   updateAdminCreationBundle,
 } from "../../api/admin";
-import type { AdminContentItem, AdminCreationBundle } from "../../types/admin";
+import type { AdminCreationBundle } from "../../types/admin";
 import type { CreationBundleVisibility } from "../../types/content";
 import { AdminError, isUnauthenticatedError } from "./AdminError";
 
@@ -17,14 +14,6 @@ const visibilityLabels: Record<CreationBundleVisibility, string> = {
   public: "Public",
   unlisted: "Non listé",
 };
-
-function move<T>(items: T[], from: number, to: number) {
-  const next = [...items];
-  const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
-
-  return next;
-}
 
 export function CreationBundlesPanel({
   contentId,
@@ -40,15 +29,11 @@ export function CreationBundlesPanel({
   onUnauthenticated: () => void;
 }) {
   const [bundles, setBundles] = useState<AdminCreationBundle[]>([]);
-  const [creations, setCreations] = useState<AdminContentItem[]>([]);
   const [newBundle, setNewBundle] = useState({ name: "", visibility: "public" as CreationBundleVisibility });
   const [editing, setEditing] = useState<Record<number, { name: string; visibility: CreationBundleVisibility }>>({});
-  const [reorderId, setReorderId] = useState<number | null>(null);
-  const [reorderItems, setReorderItems] = useState<number[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
-  const creationById = useMemo(() => new Map(creations.map((item) => [item.id, item])), [creations]);
 
   const handleError = (nextError: unknown) => {
     if (isUnauthenticatedError(nextError)) {
@@ -60,12 +45,7 @@ export function CreationBundlesPanel({
   };
 
   const refresh = async () => {
-    const [nextBundles, nextCreations] = await Promise.all([
-      listAdminCreationBundles(),
-      listAdminContent({ type: "creation" }),
-    ]);
-    setBundles(nextBundles);
-    setCreations(nextCreations);
+    setBundles(await listAdminCreationBundles());
   };
 
   useEffect(() => {
@@ -177,46 +157,12 @@ export function CreationBundlesPanel({
     }
   };
 
-  const openReorder = async (bundle: AdminCreationBundle) => {
-    setError(null);
-    setNotice(null);
-
-    try {
-      const detailed = await getAdminCreationBundle(bundle.id);
-      setReorderId(bundle.id);
-      setReorderItems((detailed.items ?? []).map((item) => item.contentItemId));
-    } catch (nextError) {
-      handleError(nextError);
-    }
-  };
-
-  const saveReorder = async () => {
-    if (!reorderId) {
-      return;
-    }
-
-    setError(null);
-    setNotice(null);
-
-    try {
-      await reorderAdminCreationBundle(reorderId, { contentItemIds: reorderItems }, csrfToken);
-      setReorderId(null);
-      setReorderItems([]);
-      setNotice("Ordre du bundle enregistré.");
-      await refresh();
-    } catch (nextError) {
-      handleError(nextError);
-    }
-  };
-
-  const reorderBundle = bundles.find((bundle) => bundle.id === reorderId) ?? null;
-
   return (
     <section className="admin-bundles-panel">
       <div className="admin-form-section-heading">
         <span>Bundles</span>
-        <h3>Classement YouTube des créations</h3>
-        <p>Une création peut appartenir à plusieurs bundles. Les bundles non listés restent accessibles par lien.</p>
+        <h3>Groupes de créations</h3>
+        <p>Une création peut appartenir à plusieurs bundles. Les contenus d’un bundle suivent l’ordre chronologique de la galerie.</p>
       </div>
 
       {loading ? <p className="admin-empty">Chargement des bundles...</p> : null}
@@ -224,17 +170,21 @@ export function CreationBundlesPanel({
       {notice ? <p className="admin-status is-visible">{notice}</p> : null}
 
       <div className="admin-bundle-create">
-        <label>
+        <label htmlFor="creation-bundle-name">
           Nouveau bundle
           <input
+            id="creation-bundle-name"
+            name="creation-bundle-name"
             value={newBundle.name}
             onChange={(event) => setNewBundle((current) => ({ ...current, name: event.target.value }))}
             placeholder="Pack dragons"
           />
         </label>
-        <label>
+        <label htmlFor="creation-bundle-visibility">
           Visibilité
           <select
+            id="creation-bundle-visibility"
+            name="creation-bundle-visibility"
             value={newBundle.visibility}
             onChange={(event) =>
               setNewBundle((current) => ({ ...current, visibility: event.target.value as CreationBundleVisibility }))
@@ -258,6 +208,8 @@ export function CreationBundlesPanel({
             <article className="admin-bundle-row" key={bundle.id}>
               <label className="admin-check-field">
                 <input
+                  id={`creation-bundle-${bundle.id}`}
+                  name="creation-bundles"
                   type="checkbox"
                   checked={selectedIds.includes(bundle.id)}
                   onChange={() => void toggleBundle(bundle.id)}
@@ -274,6 +226,8 @@ export function CreationBundlesPanel({
               {edit ? (
                 <div className="admin-bundle-edit">
                   <input
+                    id={`creation-bundle-edit-name-${bundle.id}`}
+                    name={`creation-bundle-edit-name-${bundle.id}`}
                     value={edit.name}
                     onChange={(event) =>
                       setEditing((current) => ({
@@ -283,6 +237,8 @@ export function CreationBundlesPanel({
                     }
                   />
                   <select
+                    id={`creation-bundle-edit-visibility-${bundle.id}`}
+                    name={`creation-bundle-edit-visibility-${bundle.id}`}
                     value={edit.visibility}
                     onChange={(event) =>
                       setEditing((current) => ({
@@ -303,9 +259,6 @@ export function CreationBundlesPanel({
                   <button className="admin-mini-button" type="button" onClick={() => startEdit(bundle)}>
                     Renommer
                   </button>
-                  <button className="admin-mini-button" type="button" onClick={() => void openReorder(bundle)}>
-                    Réordonner
-                  </button>
                   <button className="admin-mini-button admin-danger" type="button" onClick={() => void deleteBundle(bundle)}>
                     Supprimer
                   </button>
@@ -315,50 +268,6 @@ export function CreationBundlesPanel({
           );
         })}
       </div>
-
-      {reorderBundle ? (
-        <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-label="Réordonner le bundle">
-          <div className="admin-modal-panel">
-            <h3>Réordonner {reorderBundle.name}</h3>
-            {reorderItems.length === 0 ? <p className="admin-empty">Ce bundle ne contient pas encore de création.</p> : null}
-            <div className="admin-reorder-list">
-              {reorderItems.map((contentItemId, index) => {
-                const item = creationById.get(contentItemId);
-
-                return (
-                  <div className="admin-reorder-row" key={contentItemId}>
-                    <span>{item?.title ?? `Création #${contentItemId}`}</span>
-                    <button
-                      className="admin-mini-button"
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => setReorderItems((current) => move(current, index, index - 1))}
-                    >
-                      Monter
-                    </button>
-                    <button
-                      className="admin-mini-button"
-                      type="button"
-                      disabled={index === reorderItems.length - 1}
-                      onClick={() => setReorderItems((current) => move(current, index, index + 1))}
-                    >
-                      Descendre
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="admin-form-actions">
-              <button className="button button-primary" type="button" onClick={() => void saveReorder()}>
-                Enregistrer l’ordre
-              </button>
-              <button className="button button-secondary" type="button" onClick={() => setReorderId(null)}>
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
